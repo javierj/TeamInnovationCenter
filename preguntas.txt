@@ -1,0 +1,125 @@
+# Versión 1.0
+# Código, texto de la pregunta, si hay que valorarla en positivo o negativo.
+
+## Precondicoones. Sueldo.
+A01:Mi sueldo no afecta a mi desempeño del trabajo.:P
+A02:Pienso que mi sueldo es adecuado.:P
+A03:Pienso que mi sueldo no es adecuado.:N
+A04:Mi sueldo refleja mi valía.:P
+A05:Mi sueldo no refleja mi valía.:N
+A06:Trabajo en este proyecto porque es mi deseo, no por el sueldo.:P
+
+## Precondicoones. Capacitación.
+B01:Siendo que soy capaz de hacer el trabajo que hago ahora mismo.:P
+B02:No siento que esté preparado para hacer el trabajo que hago ahora mismo.:N
+B03:Me veo capaz de aprender lo necesario para este proyecto.:P
+B04:No me veo capaz de realizar aportaciones valiosas en este proyecto.:N
+B05:No creo que sea capaz de aprender lo suficiente para poder aportar algo útil a este proyecto.:N
+B06:Estoy adecuadamente formado para trabajar en este poryecto.:P
+B07:Estoy adecuadamente formado, o puedo adquirir la formación que necesito para este poryecto mientras trabajo en el mismo.:P
+
+## Seguridad sicológica
+
+C01:Tengo miedo de pedir o dar feedback constructivo.:N
+C02:No tengo miedo de dar feedback constructivo.:P
+C03:No tengo miedo de que me den feedback sobre mi trabajo.:P
+C04:Cuando doy feedback constructivo siento que ha ido bien recibido.:P
+C05:El feedback que recibo de mis compañeros es constructivo.:P
+C06:Intento evitar activamente dar feedback.:N
+C07:Intento evitar que me den feedback.:N
+
+# Bloque 2. Pregunta original: Hesitance around expressing divergent ideas and asking 'silly' questions
+
+C08: Dudo en expresar ideas divergentes.:N
+C09: Dudo en hacer preguntas porque pienso que serán preguntas tontas.:N
+C10:Me preocupa que los demás piensen que las preguntas que hago son tontas.:N
+C11:No dudo en expresar ideas, aunque sean divergente.:P
+
+# Bloque 3. Pregunta original: "Do all team members feel comfortable brainstorming in front of each other?"
+
+C12:Me siendo comodo cuando todo el equipo proponemos ideas juntos.:P
+C13:Prefiero exponer mis ideas en privado antes que en el grupo.:N
+# Faltan más
+
+
+
+## Dependabilitat (DP). Signos de que tu equipo necesita mejorar su interdependencia.
+
+# Bloque 1: Team has poor visibility into project priorities or progress
+D01:Mi equipo tiene poca visibilidad de las prioridades del proyecto.:N
+D02:Mi equipo tienen poca visibilidad del progreso del proyecto.:N
+D03:Mi equipo tiene claro el progreso del proyecto en todo momento.:P
+D04:Mi equipo tiene claro las prioridades del proyecto en todo momento.:P
+
+# Bloque 2: Diffusion of responsibility and no clear owners for tasks or problems
+
+D05:En mi equipo, la responsabilidad es difusa.:N
+D06:No hay propietarios claros para las tareas.:N
+D07:No hay responsables claros para arreglar problemas.:N
+D08:Las tareas tienen un propietario que se encarga de que se realiza.:P
+D09:Los problemas tienen un responsable que se encarga de que se resuelva.:P
+
+# Cuando los miembros del equipo dicen que harán algo, ¿lo hacen?
+
+D10:En general, cuando los miembros de mie quipo dicen que van a hacer algo, se hace.:P
+D11:En general, cuando los miembros de mi equipo dicen que van a hacer algo, ese algo no se hace.:N
+D12:La gente de mi equipo se pone a hacer algo y lo hace.:P
+D13:Los miembros de mi equipo dicen que van a hacer algo, pero no se hace.:N
+# Faltan más
+
+
+## Estructura y claridad (SC). Signs that your team needs to improve structure and clarity
+
+# Bloque 1: Lack of clarity about who is responsible for what
+
+E01:Tengo claro quién es el responsable de cada cosa en el proyecto.:P
+E02:Tengo claro qué cosas son responsabilidad mía en el proyecto.:P
+E03:No hay claridad sobre quién es responsable de cada cosa en el proyecto.:N
+
+# Bloque 2:  Unclear decision-making process, owners, or rationale
+
+E04:Tenemos un proceso de toma de decisiones claro.:P
+E05:El proceso de toma de decisiones no es claro.:N
+E06:Tenemos claro cómo se asigna responsables.:P
+E07:Entendemos por qué se asignan responsables.:P
+
+# Faltan más
+
+## Significado (ME). Señales de que su equipo necesita mejorar el significado:
+
+# Asignaciones de trabajo basadas únicamente en habilidad, experiencia, carga de trabajo; poca consideración por las necesidades e intereses del desarrollo individual
+
+F04: Hay poca consideración por las necesidades individuales en la asignación del trabajo.:N
+
+# Falta de reconocimiento regular de logros o hitos
+F05:Mi equipo celebra sus objetivos.:P
+F06:Mi equipo celebra alcanzar una milestone.:P
+F07:No hay celebraciones de éxitos alcanzados en el equipo.:N
+
+
+# ¿El trabajo le da a los miembros del equipo un sentido de realización personal y profesional?
+F08: El trabajo que realizo me da una sensación de crecimiento profesional.:P
+F09:El trabajo que realizo me permite sentirme realizado.:P
+
+## Impacto (IM). Signs that your team needs to improve impact:
+
+
+# Bloque 2. Too many goals, limiting ability to make meaningful progress
+
+G01:Siento que el equipo tiene demasiados objetivos.:N
+G02:Siento que tenemos los suficientes objetivos para poder estar centrados.:P
+G03:Siento que tenemos los suficientes objetivos para poder cumplirlos.:P
+G04:Siento que tengo la posibilidad de hacer que el proyecto avance.:P
+G05:Creo que no puedo conseguir ningún avance significativo con mi trabajo.:N
+
+# ¿Los miembros del equipo ven su trabajo como un cambio para mejorar?
+
+# Bloque 5. How are current team processes affecting well-being/burnout?
+
+G06:La manera de trabajar me agota.:N
+G07:Termino el trabajo y aún tengo energía.:P
+
+
+
+
+
