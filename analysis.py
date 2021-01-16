@@ -190,7 +190,7 @@ def generate_report(questions_repo, id_proj, id_team):
 
 
 # Test
-"""
+
 questions_repo = load_questions()
 test_results = _load_answers(questions_repo)
 print(test_results)
@@ -207,7 +207,7 @@ print(df.head())
 max_year = df['year'].max()
 print(max_year)
 print(df[ df['year'] == max_year ]['month'].max())
-"""
+
 
 # A partir de aquí hacer el análisis.
 #print(df[(1, 2)])
@@ -217,10 +217,10 @@ print("-------------")
 print(df.mad(axis=0))
 print("-------------")
 print(df.mean(axis=0).mean())
-
-ra = RadarAnalysis()
-print(ra.analyze(df))
 """
+ra = RadarAnalysis()
+print(ra.analyze(df, "01", "01"))
+
 # Hacer un listado con todas las preguntas que han aparecido en los test y sus repsuestas.
 
 """

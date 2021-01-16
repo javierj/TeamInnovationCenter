@@ -31,7 +31,7 @@
 		    %for answer_row in data['answer']:
 		    <tr>
 		        %for answer in answer_row:
-		        <td style="text-align:center>{{answer}}</td>
+		        <td style="text-align:center">{{answer}} </td>
 		        %end
 		    </tr>
 		    %end

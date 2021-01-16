@@ -55,15 +55,21 @@ def question(org_id, project_id, questions=""):
     data = TestData(org_id, project_id, questions)
     question = director.next_question(data)
 
+    base_url = request.url
+
+    """
+    if base_url.endswith('/') == False:
+        base_url += "/"
+    """
+
     if question is None:
         #print("Server URL: ", _server_url(request.url))
-        return template('end_template', base_url=_server_url(request.url))
+        return template('end_template', base_url=_server_url(base_url))
 
     #print("áéÍÓñÑ: " + question.text())
-    return template('question_template', question=question.text(), base_url = request.url, question_code = question.code(), question_index = data.len_questions() + 1)
+    return template('question_template', question=question.text(), base_url = base_url, question_code = question.code(), question_index = data.len_questions() + 1)
 
-
-@route('/test/<org_id>/<project_id>')
+#@route('/test/<org_id>/<project_id>')
 @route('/test/<org_id>/<project_id>/')
 def first_question(org_id, project_id):
     return question(org_id, project_id)
