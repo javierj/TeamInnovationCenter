@@ -21,3 +21,6 @@ if __name__ == '__main__':
 from tappraisal import TestData
 data = TestData("01", "01", "A013B121")
 print(data._questions)
+
+import sys
+print(sys.path)

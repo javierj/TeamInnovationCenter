@@ -43,7 +43,8 @@ C13:Prefiero exponer mis ideas en privado antes que en el grupo.:N
 
 
 
-## Dependabilitat (DP). Signos de que tu equipo necesita mejorar su interdependencia.
+## Dependabilitad (DP).
+# Signos de que tu equipo necesita mejorar su interdependencia y que hay comprmiso por el trabajo.
 
 # Bloque 1: Team has poor visibility into project priorities or progress
 D01:Mi equipo tiene poca visibilidad de las prioridades del proyecto.:N

@@ -1,12 +1,20 @@
 
 import random
 
+# Candidato a refactorizarlo a otro sitio.
+def _get_full_filename(filename):
+    import os
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    my_path = os.path.join(base_path, filename)
+    return my_path
+
 
 def _save_data(data):
     import datetime
 
     now = datetime.datetime.now()
-    with open("data.txt", "a") as myfile:
+    filename = _get_full_filename("data.txt")
+    with open(filename, "a") as myfile:
         myfile.write(str(now)+"/"+str(data) + "\n")
 
 
@@ -56,6 +64,7 @@ class TestQuestion(object):
     def __init__(self, text, code="", valoration=""):
         self.text_question = text
         self._code = code
+        self._valoration=valoration
 
     def text(self):
         return self.text_question
@@ -65,6 +74,9 @@ class TestQuestion(object):
 
     def code(self):
         return self._code
+
+    def is_positive(self):
+        return self._valoration == "P"
 
 
 class AppraisalDirector(object):
@@ -81,7 +93,7 @@ class AppraisalDirector(object):
         :return:
         """
 
-        if data.len_questions() == 9:
+        if data.len_questions() == 9: # 9 preguntas
             _save_data(data)
             return None
 
@@ -100,8 +112,12 @@ class AppraisalDirector(object):
         if data.len_questions_in("G") < 1:
             return self._questions_repo.random_question_from("G")
 
-        question = TestQuestion("05. Duño en expresar ideas que se alejan de lo que piensan los demás")
+        question = TestQuestion("05. ERROR")
         return question
+
+    # this method if a bad smell but botttle needs it to call bottle.
+    def get_repo(self):
+        return self._questions_repo
 
 
 class QuestionRepository(object):
@@ -112,7 +128,7 @@ class QuestionRepository(object):
     def __str__(self):
         return str(self._questions)
 
-    def append(self, question):
+    def _append(self, question):
         category = question.category()
 
         if category not in self._questions:
@@ -130,26 +146,32 @@ class QuestionRepository(object):
         elements = s_line.split(':')
         question = TestQuestion(code=elements[0].strip(), text=elements[1].strip(), valoration=elements[2].strip())
 
-        self.append(question)
-
-    # Unused
-    def len_questions_in(self, category):
-        if category not in self._questions:
-            return 0
-        return len(self._questions[category])
+        self._append(question)
 
     def random_question_from(self, category):
         index = random.randint(0, len(self._questions[category])-1)
         print("Random question from", category, "max questions ", len(self._questions[category]), "index:", index)
         return self._questions[category][index]
 
+    def get_question(self, category, code):
+        #print("Searching:", category, code)
+        questions = self._questions[category]
+        for question in questions:
+            #print("Code found: ", question.code())
+            if question.code() == code:
+                return question
+        return None
+
 
 def load_questions():
     repo = QuestionRepository()
-    file_name = "./preguntas.txt"
-    file = open(file_name)
+
+    file_name = _get_full_filename("preguntas.txt")
+    file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     questions = list()
     for line in file:
         repo.commit_question(line)
+        #print("áéÍÓñÑ: " + line)
     file.close()
+
     return repo
