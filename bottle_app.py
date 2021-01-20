@@ -33,6 +33,11 @@ def stylesheets_static(filename):
 def stylesheets_static(filename):
     return redirect("/static/images/"+filename)
 
+@route('/iwt2')
+@route('/iwt2/')
+def iwt2_static():
+    return redirect("/static/iwt2.html")
+
 @route('/get_data')
 def get_data():
     #data_file = _get_full_filename("data.txt")

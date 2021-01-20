@@ -1,32 +1,37 @@
-# Versión 1.0
+# Versión 1.1
 # Código, texto de la pregunta, si hay que valorarla en positivo o negativo.
+# 1.0. Versión inicial, 60 preguntas
+# 1.1. Mejor redactadas las preguntas de condiciones. 66 preguntas
 
 ## Precondicoones. Sueldo.
-A01:Mi sueldo no afecta a mi desempeño del trabajo.:P
-A02:Pienso que mi sueldo es adecuado.:P
-A03:Pienso que mi sueldo no es adecuado.:N
-A04:Mi sueldo refleja mi valía.:P
-A05:Mi sueldo no refleja mi valía.:N
-A06:Trabajo en este proyecto porque es mi deseo, no por el sueldo.:P
+A01:Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P
+A02:Pienso que mi sueldo actual es adecuado.:P
+A03:Pienso que mi sueldo actual no es adecuado para el trabajo que realizo.:N
+A04:Considero que mi sueldo refleja mi valía en el trabajo que hago.:P
+A05:Considero que mi sueldo no refleja mi valía en el trabajo que hago.:N
+A06:Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.:P
+A07:Estoy en este trabajo principalmente por el sueldo que me pagan.:N
 
-## Precondicoones. Capacitación.
-B01:Siendo que soy capaz de hacer el trabajo que hago ahora mismo.:P
+## Precondiciones. Capacitación.
+B01:Siento que estoy preparado para hacer el trabajo que hago ahora mismo.:P
 B02:No siento que esté preparado para hacer el trabajo que hago ahora mismo.:N
 B03:Me veo capaz de aprender lo necesario para este proyecto.:P
 B04:No me veo capaz de realizar aportaciones valiosas en este proyecto.:N
-B05:No creo que sea capaz de aprender lo suficiente para poder aportar algo útil a este proyecto.:N
-B06:Estoy adecuadamente formado para trabajar en este poryecto.:P
+B05:No creo que sea capaz de aprender lo suficiente para  aportar algo útil a este proyecto.:N
+B06:Estoy adecuadamente formado para trabajar en este proyecto.:P
+B08:Siento que no estoy bien formado para trabajar en este proyecto.:N
 B07:Estoy adecuadamente formado, o puedo adquirir la formación que necesito para este poryecto mientras trabajo en el mismo.:P
 
 ## Seguridad sicológica
 
-C01:Tengo miedo de pedir o dar feedback constructivo.:N
-C02:No tengo miedo de dar feedback constructivo.:P
-C03:No tengo miedo de que me den feedback sobre mi trabajo.:P
-C04:Cuando doy feedback constructivo siento que ha ido bien recibido.:P
+C01:Tengo miedo de pedir o dar feedback en mi trabajo.:N
+C02:No tengo miedo de dar feedback constructivo a mis compañeros.:P
+C03:No tengo miedo de mis compañeros me den feedback sobre mi trabajo.:P
+C04:Cuando doy feedback siento que ha ido bien recibido.:P
 C05:El feedback que recibo de mis compañeros es constructivo.:P
 C06:Intento evitar activamente dar feedback.:N
 C07:Intento evitar que me den feedback.:N
+C14:El feedback que recibo de mis compañeros de trabajo no es constructivo ni me sirve para mejorar.:N
 
 # Bloque 2. Pregunta original: Hesitance around expressing divergent ideas and asking 'silly' questions
 
@@ -37,8 +42,11 @@ C11:No dudo en expresar ideas, aunque sean divergente.:P
 
 # Bloque 3. Pregunta original: "Do all team members feel comfortable brainstorming in front of each other?"
 
-C12:Me siendo comodo cuando todo el equipo proponemos ideas juntos.:P
-C13:Prefiero exponer mis ideas en privado antes que en el grupo.:N
+C12:Me siendo cómodo cuando todo el equipo proponemos ideas juntos.:P
+C13:Prefiero exponer mis ideas en privado antes que en el equipo.:N
+C13:Me siento cómodo haciendo preguntas en presencia de todo el equipo.:P
+C13:Prefiero hacer mis preguntas en privado cuando no esté reunido todo el equipo.:N
+
 # Faltan más
 
 
