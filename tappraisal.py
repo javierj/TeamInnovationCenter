@@ -58,6 +58,16 @@ class TestData(object):
             return 0
         return len(self._questions[category])
 
+    def questions_as_list(self):
+        """
+        Not in use. Analysis duplicates this code.
+        :return:
+        """
+        question_list = list()
+        for _, value in self._questions:
+            question_list.extend(value)
+        return question_list
+
 
 class TestQuestion(object):
 
@@ -162,6 +172,15 @@ class QuestionRepository(object):
                 return question
         return None
 
+    def as_dict(self):
+        """
+        :return: A dict Code :  Questionobject.
+        """
+        result = dict()
+        for questions in self._questions.values():
+            for question in questions:
+                result[question.code()] = question
+        return result
 
 def load_questions():
     repo = QuestionRepository()

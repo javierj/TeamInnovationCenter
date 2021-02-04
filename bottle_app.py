@@ -1,6 +1,6 @@
 from bottle import route, template, request, static_file, redirect, default_app
 from tappraisal import AppraisalDirector, TestData, load_questions
-from analysis import generate_report
+from analysis import generate_report, questions_answers
 import os
 
 director = None
@@ -34,7 +34,9 @@ def stylesheets_static(filename):
     return redirect("/static/images/"+filename)
 
 @route('/iwt2')
+@route('/IWT2')
 @route('/iwt2/')
+@route('/IWT2/')
 def iwt2_static():
     return redirect("/static/iwt2.html")
 
@@ -85,13 +87,14 @@ def report_test():
     return template('report_template', data_report=data_report)
 
 # Aún no funciona, hay que añadir id de poryecto y equipo
-@route('/report/<org_id>/<project_id>')
+#@route('/report/<org_id>/<project_id>')
 @route('/report/<org_id>/<project_id>/')
 def report_test(org_id, project_id):
     global director
     data_report, date_info, has_answers = generate_report(director.get_repo(), org_id, project_id)
+    q_a_list = questions_answers(director.get_repo(), org_id, project_id)
     if has_answers:
-        return template('report_template', data_report=data_report, date_info = date_info)
+        return template('report_template', data_report=data_report, date_info = date_info, question_answer=q_a_list)
     return template('noanswers_template', org_id=org_id, project_id = project_id)
 
 def set_up():

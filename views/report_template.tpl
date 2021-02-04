@@ -62,8 +62,18 @@
 <p>
 <strong> Análisis:  </strong> {{data['analysis']}}
 </p>
+
 <br/>
 %end
+
+<p>
+<strong> Preguntas de las encuestas y sus respuestas:  </strong>
+<br/>
+ %for line in question_answer:
+{{line}}
+<br/>
+%end
+</p>
 
 
 

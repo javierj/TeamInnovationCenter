@@ -70,7 +70,7 @@ D09:Los problemas tienen un responsable que se encarga de que se resuelva.:P
 
 # Cuando los miembros del equipo dicen que harán algo, ¿lo hacen?
 
-D10:En general, cuando los miembros de mie quipo dicen que van a hacer algo, se hace.:P
+D10:En general, cuando los miembros de mi equipo dicen que van a hacer algo, se hace.:P
 D11:En general, cuando los miembros de mi equipo dicen que van a hacer algo, ese algo no se hace.:N
 D12:La gente de mi equipo se pone a hacer algo y lo hace.:P
 D13:Los miembros de mi equipo dicen que van a hacer algo, pero no se hace.:N
