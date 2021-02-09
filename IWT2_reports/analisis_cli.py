@@ -1,18 +1,17 @@
-
 import pandas as pd
 from tappraisal import load_questions
 from analysis import RadarAnalysis, _load_answers, TestsResult, questions_answers
 
-
-
 questions_repo = load_questions()
-results = _load_answers(questions_repo, "IWT2_reports\\012021 - AIRPA")
+results = _load_answers(questions_repo, "IWT2_reports\\022021 - GIMO-PD.txt")
+#results = _load_answers(questions_repo, "IWT2_reports\\072021 - APPIMEDEA.txt")
+#results = _load_answers(questions_repo, "IWT2_reports\\012021 - AIRPA")
 #results = _load_answers(questions_repo, "IWT2_reports\\022021 - G7D.txt")
 
 ra = RadarAnalysis()
 #data_report, date_info = ra.analyze(results.create_dataframe(), "AIRPA", "T01")
 df = results.create_dataframe()
-data_report, date_info = ra.analyze(df, "G7D", "T01")
+data_report, date_info = ra.analyze(df, "GIMO-PD", "T01")
 print( data_report)
 
 for key, value in data_report.items():
@@ -73,12 +72,15 @@ for key in sorted_keys:
     pass
 
 print("-----------------------------")
+"""
 #results = TestsResult(q_repo = questions_repo )
-q_a_dict = results.question_answers("AIRPA")
+q_a_dict = results.question_answers("APP-IMEDEA")
 sorted_keys = sorted(q_a_dict.keys())
 for key in sorted_keys:
     print(key+":"+str(q_a_dict[key]))
-
+"""
 print("-----------------------------")
-for line in questions_answers(questions_repo, "AIRPA", None):
+for line in questions_answers(questions_repo, "GIMO-PD", None):
     print(line)
+
+# El problema e sque no salen las repsuestas originales aquí.

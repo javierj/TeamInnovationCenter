@@ -9,11 +9,11 @@ def _get_full_filename(filename):
     return my_path
 
 
-def _save_data(data):
+def _save_data(data, filename = "data.txt"):
     import datetime
 
     now = datetime.datetime.now()
-    filename = _get_full_filename("data.txt")
+    filename = _get_full_filename(filename)
     with open(filename, "a") as myfile:
         myfile.write(str(now)+"/"+str(data) + "\n")
 

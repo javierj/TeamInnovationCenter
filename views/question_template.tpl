@@ -7,11 +7,11 @@
 </p>
 <br/>
 <p>
-1. Es cierto / Estoy de acuerdo. <br/>
-2. A veces es cierto / Estoy parcialmente de acuerdo. <br/>
+1. Es falso / Estoy en desacuerdo. <br/>
+2. A veces es falso / Estoy parcialmente en desacuerdo. <br/>
 3. No tengo criterio. <br/>
-4. A veces es falso / Estoy parcialmente en desacuerdo. <br/>
-5. Es falso / Estoy en desacuerdo. <br/>
+4. A veces es cierto / Estoy parcialmente de acuerdo. <br/>
+5. Es cierto / Estoy de acuerdo. <br/>
 </p>
 %# Generate 5 answers with 5 URL.
 

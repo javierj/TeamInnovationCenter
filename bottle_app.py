@@ -61,7 +61,6 @@ def question(org_id, project_id, questions=""):
 
     data = TestData(org_id, project_id, questions)
     question = director.next_question(data)
-
     base_url = request.url
 
     """

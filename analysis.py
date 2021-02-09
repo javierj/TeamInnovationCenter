@@ -6,6 +6,7 @@ class TestsResult(object):
     def __init__(self, questions_number = 9, q_repo = None):
         self._questions = dict() # avoid duplicates
         self._answers = list()
+        self._original_answers = list()
         self._answers_id = list()
         self._q_repo = q_repo
         self._answers_number = questions_number
@@ -22,14 +23,25 @@ class TestsResult(object):
         #team_id = data[2]
         #self._add_answers(data[3])
         answers_list = self._extract_answers(data[3])
+        original_answers_list = self._extract_original_answers(data[3])
+
         if len(answers_list) < self._answers_number:
             #print("No hay las suficientes repsuestas")
             return
+
+        # Todo evitar esta duplicidad.
+        #
         answers_dict = {k: answers_list[k-1] for k in range(1, len(answers_list)+1) }
         answers_dict['datetime'] = data[0]
         answers_dict['project_id'] = data[1]
         answers_dict['team_id'] = data[2]
         self._answers.append(answers_dict)
+
+        answers_dict = {k: original_answers_list[k-1] for k in range(1, len(original_answers_list)+1) }
+        answers_dict['datetime'] = data[0]
+        answers_dict['project_id'] = data[1]
+        answers_dict['team_id'] = data[2]
+        self._original_answers.append(answers_dict)
 
         answers_id_list = self._extract_ids(data[3])
         answers_dict = {k: answers_id_list[k - 1] for k in range(1, len(answers_id_list) + 1)}
@@ -57,12 +69,18 @@ class TestsResult(object):
             self._answers += 1
     """
 
+    """
+    def _adjust_values(self, answers_list, category, q_id):
+        result_list = [self._get_answer_value(v, category, q_id) for v in answers_list]
+        return result_list
+"""
+
     def _get_answer_value(self, value_str, category, code):
         value = int(value_str)
         question = self._q_repo.get_question(category, code)
         if question.is_positive():
             return value
-        return 5 - value
+        return 6 - value
 
     def _extract_tokens(self, q_url):
         answers = list()
@@ -78,6 +96,27 @@ class TestsResult(object):
             q_id = token[0:3]
             category = q_id[0]
             answer_value = self._get_answer_value(token[3], category, q_id)
+            #answer_value = token[3]
+
+            if q_id not in self._questions:
+                self._questions[q_id] = list()
+            self._questions[q_id].append(answer_value)
+
+            answers.append(answer_value) # Cambiar esto por si la pregunta es negativa
+        return answers
+
+    def _extract_original_answers(self, q_url):
+        """
+        TODO. evitar esta duplicidad de código
+        :param q_url:
+        :return:
+        """
+        answers = list()
+        for token in self._extract_tokens(q_url):
+            q_id = token[0:3]
+            category = q_id[0]
+            #answer_value = self._get_answer_value(token[3], category, q_id)
+            answer_value = int(token[3])
 
             if q_id not in self._questions:
                 self._questions[q_id] = list()
@@ -101,8 +140,10 @@ class TestsResult(object):
     def __str__(self):
         return str(self._answers)
 
-    def create_dataframe(self, project= None):
-        df_tmp = pd.DataFrame(self._answers)
+    def create_dataframe(self, project= None, data = None):
+        if data is None:
+            data = self._answers
+        df_tmp = pd.DataFrame(data)
         if project is None:
             return df_tmp
         return df_tmp[ df_tmp['project_id'] == project ]
@@ -119,7 +160,6 @@ class TestsResult(object):
             return df_tmp
         return df_tmp[df_tmp['project_id'] == project]
 
-
     def question_answers(self, project = None):
         """
         :param project:
@@ -131,7 +171,7 @@ class TestsResult(object):
         df_tmp = self.create_ids_dataframe(project)
         df_ids = df_tmp[df_tmp.columns[0:self._answers_number]]
 
-        df_tmp = self.create_dataframe(project)
+        df_tmp = self.create_dataframe(project, data= self._original_answers)
         df_qs = df_tmp[df_tmp.columns[0:self._answers_number]]
 
         questions = self._q_repo.as_dict()
@@ -148,6 +188,12 @@ class TestsResult(object):
                     question_answers[key] = list()
                     question_answers[key].append(ansewr)
         return question_answers
+
+    def original_answers(self):
+        return self._original_answers
+
+    def id_quesions(self):
+        return self._answers_id
 
 class RadarAnalysis(object):
 
@@ -219,6 +265,7 @@ class RadarAnalysis(object):
         :param dataframe:
         :return:
         Data { característica: {espuestas: [[.....], [....]], mean [...] mad [...] analysis: "......" } }
+        ¿Qué es date info?
         """
         self._result = dict()
         dataframe = self._filter(p_dataframe, id_proj, id_team)
@@ -243,7 +290,7 @@ class RadarAnalysis(object):
 
         return self._result, self._date_info
 
-    def has_answers(self,):
+    def has_answers(self):
         return self._has_answers
 
 
@@ -267,6 +314,7 @@ def generate_report(questions_repo, id_proj, id_team):
     ra = RadarAnalysis()
     data_report, date_info = ra.analyze(df, id_proj, id_team)
     return data_report, date_info, ra.has_answers()
+
 
 def questions_answers(questions_repo, id_proj, id_team):
     test_results = _load_answers(questions_repo)
