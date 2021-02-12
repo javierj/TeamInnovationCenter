@@ -24,17 +24,21 @@
     %# Tabla de respuestas a las preguntas.
     <table>
 		    <tr>
-		    %for i in range(1, len(data['answer'][0])+1):
-		    <td> <strong> Respuestas pregunta {{i}} </strong> </td>
-		    %end
-		    </tr>
-		    %for answer_row in data['answer']:
-		    <tr>
-		        %for answer in answer_row:
-		        <td style="text-align:center">{{answer}} </td>
-		        %end
-		    </tr>
-		    %end
+            <td> <strong> Pregunta </strong> </td>
+            <td> <strong> Respuestas </strong> </td>
+            </tr>
+
+            %for q_id in question_answer.questions_id(char):
+            <tr>
+                <td> {{question_answer.question_text(q_id)}} </td>
+                <td> {{question_answer.question_answers(q_id)}} </td>
+             </tr>
+            %end
+
+
+
+
+
 	</table>
 
     <br/>
@@ -66,14 +70,6 @@
 <br/>
 %end
 
-<p>
-<strong> Preguntas de las encuestas y sus respuestas:  </strong>
-<br/>
- %for line in question_answer:
-{{line}}
-<br/>
-%end
-</p>
 
 
 

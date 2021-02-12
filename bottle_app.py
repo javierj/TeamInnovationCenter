@@ -1,11 +1,10 @@
 from bottle import route, template, request, static_file, redirect, default_app
 from tappraisal import AppraisalDirector, TestData, load_questions
-from analysis import generate_report, questions_answers
+from analysis import generate_report, _load_answers
 import os
 
 director = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-
 
 def _server_url(request_url):
     return request_url.split('/')[0]
@@ -30,7 +29,7 @@ def stylesheets_static(filename):
     return redirect("/static/stylesheets/"+filename)
 
 @route('/images/<filename:path>')
-def stylesheets_static(filename):
+def images_static(filename):
     return redirect("/static/images/"+filename)
 
 @route('/iwt2')
@@ -88,12 +87,15 @@ def report_test():
 # Aún no funciona, hay que añadir id de poryecto y equipo
 #@route('/report/<org_id>/<project_id>')
 @route('/report/<org_id>/<project_id>/')
-def report_test(org_id, project_id):
+def report(org_id, project_id):
     global director
-    data_report, date_info, has_answers = generate_report(director.get_repo(), org_id, project_id)
-    q_a_list = questions_answers(director.get_repo(), org_id, project_id)
+    test_results = _load_answers(director.get_repo())
+    data_report, date_info, has_answers = generate_report(test_results, org_id, project_id)
+    #q_a_list = questions_answers(test_results, org_id, project_id)
+    q_a_v = test_results.question_answers_to_view(org_id, project_id) # Necsita el sgeundo valor
+    #print(q_a_v)
     if has_answers:
-        return template('report_template', data_report=data_report, date_info = date_info, question_answer=q_a_list)
+        return template('report_template', data_report=data_report, date_info = date_info, question_answer=q_a_v)
     return template('noanswers_template', org_id=org_id, project_id = project_id)
 
 def set_up():

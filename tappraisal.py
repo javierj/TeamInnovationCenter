@@ -194,3 +194,8 @@ def load_questions():
     file.close()
 
     return repo
+
+
+def get_test_structure():
+    return {'A': "Precondiciones", 'B': "Precondiciones", 'C': "Seguridad sicológica", 'D': "Dependabilidad",
+                       'E': "Estructura y claridad", 'F': "Significado", 'G': "Impacto"}

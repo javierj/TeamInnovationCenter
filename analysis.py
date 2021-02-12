@@ -1,5 +1,7 @@
 import pandas as pd
-from tappraisal import _get_full_filename,  load_questions
+from tappraisal import _get_full_filename, load_questions, get_test_structure
+from view import QuestionsAnswersView
+
 
 class TestsResult(object):
 
@@ -18,10 +20,6 @@ class TestsResult(object):
         :return:
         """
         data = result_line.split('/')
-        #datetime = data[0]
-        #project_id = data[1]
-        #team_id = data[2]
-        #self._add_answers(data[3])
         answers_list = self._extract_answers(data[3])
         original_answers_list = self._extract_original_answers(data[3])
 
@@ -41,6 +39,7 @@ class TestsResult(object):
         answers_dict['datetime'] = data[0]
         answers_dict['project_id'] = data[1]
         answers_dict['team_id'] = data[2]
+        #print(answers_dict)
         self._original_answers.append(answers_dict)
 
         answers_id_list = self._extract_ids(data[3])
@@ -49,31 +48,6 @@ class TestsResult(object):
         answers_dict['project_id'] = data[1]
         answers_dict['team_id'] = data[2]
         self._answers_id.append(answers_dict)
-
-    # Deprecated. Testing a diferent approach.
-    """
-    def _add_answers(self, q_url):
-        self._answers = 0
-        answer_len = int(len(q_url) / 4)
-        for i in range(0, answer_len):
-            tmp = q_url[(4 * i):(4 * i) + 4]
-            q_id = tmp[0:3]
-            answer = tmp[3]
-            category = q_id[0]
-
-            if category not in self._questions:
-                self._questions[category] = list()
-                self._answers[category] = list()
-            self._questions[category].append(q_id[1:3])
-            self._answers[category].append(answer)
-            self._answers += 1
-    """
-
-    """
-    def _adjust_values(self, answers_list, category, q_id):
-        result_list = [self._get_answer_value(v, category, q_id) for v in answers_list]
-        return result_list
-"""
 
     def _get_answer_value(self, value_str, category, code):
         value = int(value_str)
@@ -129,13 +103,15 @@ class TestsResult(object):
         tokens = self._extract_tokens(q_url)
         return [token[0:3] for token in tokens]
 
-
     # Deprecated
-    def categories(self):
-        return self._questions.keys()
+    #def categories(self):
+        #return self._questions.keys()
 
-    def question_anwsers(self):
-        return self._questions
+    #def question_anwsers(self):
+        """
+        :return: dict {question id: list with answers} Example: {'A06': [5, 5, 5, 5]}
+        """
+        #return self._questions
 
     def __str__(self):
         return str(self._answers)
@@ -143,6 +119,7 @@ class TestsResult(object):
     def create_dataframe(self, project= None, data = None):
         if data is None:
             data = self._answers
+            #print(data)
         df_tmp = pd.DataFrame(data)
         if project is None:
             return df_tmp
@@ -163,15 +140,18 @@ class TestsResult(object):
     def question_answers(self, project = None):
         """
         :param project:
-        :return: A dict. Keys are questions as string and values the list of answers.
+        :return: A dict. Keys are questions as string and values the list of original answers. Example:
+            {'A06.Precondiciones. Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.': [5, 5]}
         """
         # Esto tiene que estar fuera
-        test_struct = {'A': "Precondiciones", 'B': "Precondiciones", 'C': "Seguridad sicológica", 'D': "Dependabilidad",
-                       'E': "Estructura y claridad", 'F': "Significado", 'G': "Impacto"}
+        test_struct = get_test_structure()
         df_tmp = self.create_ids_dataframe(project)
         df_ids = df_tmp[df_tmp.columns[0:self._answers_number]]
 
+        #print(self._original_answers)
+
         df_tmp = self.create_dataframe(project, data= self._original_answers)
+        #print(df_tmp)
         df_qs = df_tmp[df_tmp.columns[0:self._answers_number]]
 
         questions = self._q_repo.as_dict()
@@ -189,11 +169,41 @@ class TestsResult(object):
                     question_answers[key].append(ansewr)
         return question_answers
 
+    def question_answers_to_view(self, project, team):
+        """
+        :param project:
+        :return:
+        """
+
+        questions_answers_view = QuestionsAnswersView()
+        # Esto tiene que estar fuera
+        test_struct = get_test_structure()
+        df_tmp = self.create_ids_dataframe(project)
+        df_ids = df_tmp[df_tmp.columns[0:self._answers_number]]
+        #print(df_ids)
+        #print(self._original_answers)
+
+        df_tmp = self.create_dataframe(project, data= self._original_answers)
+        #print(project, "\n", df_tmp)
+        df_qs = df_tmp[df_tmp.columns[0:self._answers_number]]
+
+        questions = self._q_repo.as_dict()
+        for i in range(0,len(df_ids)):
+            for j in range(0, 9):
+                ansewr = df_qs.iloc[i].iat[j]
+                id = df_ids.iloc[i].iat[j]
+                #print("-", test_struct[questions[id].category()]+". "+questions[id].text()+str(ansewr))
+                questions_answers_view.add(id, test_struct[questions[id].category()], questions[id].text(), ansewr)
+
+        return questions_answers_view
+
+
     def original_answers(self):
         return self._original_answers
 
     def id_quesions(self):
         return self._answers_id
+
 
 class RadarAnalysis(object):
 
@@ -269,9 +279,11 @@ class RadarAnalysis(object):
         """
         self._result = dict()
         dataframe = self._filter(p_dataframe, id_proj, id_team)
+        #print("Dataframe: \n", dataframe)
         self._has_answers = len(dataframe) > 0
         for k, v in self._test_struct.items():
             self._result[k] = dict()
+            #print("V ", v,"\n Dataframe: \n", dataframe)
             df_factor = dataframe[v]
 
             answers = list()
@@ -308,16 +320,24 @@ def _load_answers(questions_repo, filename = "data.txt"):
 
 ## Facade methods
 
-def generate_report(questions_repo, id_proj, id_team):
-    test_results = _load_answers(questions_repo)
+def generate_report(test_results, id_proj, id_team):
+    #test_results = _load_answers(questions_repo)
     df = test_results.create_dataframe()
     ra = RadarAnalysis()
     data_report, date_info = ra.analyze(df, id_proj, id_team)
     return data_report, date_info, ra.has_answers()
 
 
-def questions_answers(questions_repo, id_proj, id_team):
-    test_results = _load_answers(questions_repo)
+def questions_answers(test_results, id_proj, id_team):
+    """
+
+    :param test_results:
+    :param id_proj:
+    :param id_team:
+    :return: A list of strings like this:
+        'G02.Impacto. Siento que tenemos los suficientes objetivos para poder estar centrados.:[5]'
+    """
+    #test_results = _load_answers(questions_repo)
     q_a_dict = test_results.question_answers(id_proj)
     sorted_keys = sorted(q_a_dict.keys())
     q_a_list = list()

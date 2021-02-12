@@ -127,3 +127,9 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Images
+*.png
+
+#IWT2 reports
+/IWT2_reports
