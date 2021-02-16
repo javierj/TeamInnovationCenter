@@ -1,6 +1,7 @@
 import pandas as pd
 from tappraisal import _get_full_filename, load_questions, get_test_structure
 from view import QuestionsAnswersView
+from datetime import datetime
 
 
 class TestsResult(object):
@@ -103,39 +104,50 @@ class TestsResult(object):
         tokens = self._extract_tokens(q_url)
         return [token[0:3] for token in tokens]
 
-    # Deprecated
-    #def categories(self):
-        #return self._questions.keys()
-
-    #def question_anwsers(self):
-        """
-        :return: dict {question id: list with answers} Example: {'A06': [5, 5, 5, 5]}
-        """
-        #return self._questions
-
     def __str__(self):
         return str(self._answers)
 
-    def create_dataframe(self, project= None, data = None):
+    def create_dataframe(self, project= None, group = None, data = None):
+        """
+        Creates a dataframe like this:
+
+           1  2  3  4  5  6  7  8  9                    datetime project_id team_id
+            0  5  5  5  5  5  5  5  5  4  2021-02-08 17:39:16.088294    GIMO-PD     T01
+            1  5  5  1  5  5  3  4  5  5  2021-02-08 17:39:16.090003    GIMO-PD     T01
+
+        :param project:
+        :param group:
+        :param data:
+        :return:
+        """
         if data is None:
             data = self._answers
             #print(data)
         df_tmp = pd.DataFrame(data)
         if project is None:
             return df_tmp
-        return df_tmp[ df_tmp['project_id'] == project ]
 
+        df_tmp = df_tmp[ df_tmp['project_id'] == project ]
 
-    def create_ids_dataframe(self, project = None):
+        if group is None:
+            return df_tmp
+
+        return df_tmp[ df_tmp['team_id'] == group ]
+
+    def create_ids_dataframe(self, project = None, group = None):
         """
-        TODO refactorizar con la anterior.
+        T    1    2    3    4  ...    9                    datetime project_id team_id
+0  A06  B08  C09  C12  ...  G01  2021-02-08 17:39:16.088294    GIMO-PD     T01
+1  A06  B07  C13  C12  ...  G02  2021-02-08 17:39:16.090003    GIMO-PD     T01
+
         :return: a dataframe with de ids of the questions instead their answer.
         """
 
-        df_tmp = pd.DataFrame(self._answers_id)
-        if project is None:
-            return df_tmp
-        return df_tmp[df_tmp['project_id'] == project]
+        #df_tmp = pd.DataFrame(self._answers_id)
+        #if project is None:
+            #return df_tmp
+        #return df_tmp[df_tmp['project_id'] == project]
+        return self.create_dataframe(project, group, self._answers_id)
 
     def question_answers(self, project = None):
         """
@@ -174,7 +186,6 @@ class TestsResult(object):
         :param project:
         :return:
         """
-
         questions_answers_view = QuestionsAnswersView()
         # Esto tiene que estar fuera
         test_struct = get_test_structure()
@@ -203,6 +214,24 @@ class TestsResult(object):
 
     def id_quesions(self):
         return self._answers_id
+
+    def years_months(self, project_id, group_id):
+        df = self.create_dataframe(project_id, group_id)
+        result = dict() # dict of dcit
+        datetimes = list(df['datetime'])
+        for dt_string in datetimes:
+            #print(datetime.fromisoformat(dt_string))
+            dt = datetime.fromisoformat(dt_string)
+            year = dt.year
+            month = dt.month
+            if year not in result:
+                result[year] = dict()
+            result[year][month] = month
+
+        y_m = dict()
+        for k, v in result.items():
+            y_m[k] = list(v)
+        return y_m
 
 
 class RadarAnalysis(object):
@@ -235,18 +264,18 @@ class RadarAnalysis(object):
             if self._all_over(mean, 2.9):
                 return "La media y la desviación indica que, aunque la mayoría del equipo tiene una buena opinión, hay una minoría de personas disconformes. Recomendamos conversaciones uno a uno para identificar a las personas con las valoraciones más bajas y concoer cuáles son sus motivos e intentar solucionarlos."
             if self._all_under(mean, 2.1):
-                return "La media y la desviación indica que, aunque la mayoría del equipo se muestra disconforme, hay un pequeño número de personas que están contentas. Recomendamos alguna actividad de grupo dónde estas personas puedan comaprtir sus visiones y se planteen soluciones que cuenten con el consenso de todos, para intentar aumentar el número de personas con una valoración positiva."
+                return "La media y la desviación indica que, aunque la mayoría del equipo se muestra disconforme, hay un pequeño número de personas que están contentas. Recomendamos alguna actividad de grupo dónde estas personas puedan compartir sus visiones y se planteen soluciones que cuenten con el consenso de todos, para intentar aumentar el número de personas con una valoración positiva."
             return "Los resultados son demasiado variables para poder extraer una conclusión. Recomendamos realizar actividades de equipo para marcar objetivos comunes y volver a repetir las encuestas para ver su progresión."
         if self._all_under(mad, 1):
             if self._all_over(mean, 2.5):
                 return "La media indica que la mayoría de las respuestas están en los valores superiores. Continuad trabajando de esta manera."
             if  self._all_under(mean, 2.5):
-                return "La media indica que la mayoría de las repsuestas están en los valores inferiores. recomenamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo."
-            return "El equipo está en un nivel intermedio, ni bien ni mal. Puedes aprovechar este estado para meorar otro factor que esté por detrás o seguir trabajando en actividades para potenciar este factor."
+                return "La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo."
+            return "El equipo está en un nivel intermedio, ni bien ni mal. Puedes aprovechar este estado para mejorar otro factor que esté por detrás o seguir trabajando en actividades para potenciar este factor."
         # Never reached.
         return "Las desviaciones indican que las preguntas de un mismo factor no son consistentes. Se recomienda repetir la encuesta en unas semanas."
 
-    def _filter(self, dataframe, id_proj, id_team):
+    def _filter(self, dataframe, id_proj, id_team, year = None, month = None):
         import datetime
         dataframe['month'] = dataframe['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
         dataframe['year'] = dataframe['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
@@ -254,17 +283,25 @@ class RadarAnalysis(object):
         proj_df = dataframe[ dataframe['project_id'] == id_proj ]
         team_df = proj_df[ proj_df['team_id'] == id_team ]
 
-        max_year = team_df['year'].max()
-        max_month = team_df[team_df['year'] == max_year]['month'].max()
-        self._date_info = dict()
-        self._date_info['year'] = max_year
-        self._date_info['month'] = max_month
+        if year is None:
+            year = team_df['year'].max()
+        else:
+            year = int(year)
 
-        dated_df = team_df[(team_df['year'] == max_year) & (team_df['month'] == max_month)]
+        if month is None:
+            month = team_df[team_df['year'] == year]['month'].max()
+        else:
+            month = int(month)
+
+        self._date_info = dict()
+        self._date_info['year'] = year
+        self._date_info['month'] = month
+
+        dated_df = team_df[(team_df['year'] == year) & (team_df['month'] == month)]
 
         return dated_df
 
-    def analyze(self, p_dataframe, id_proj, id_team):
+    def analyze(self, p_dataframe, id_proj, id_team, year = None, month = None):
         """
         Formato del dataframe de entrada
             1  2  3  4  5  6  7  8  9                    datetime project_id team_id
@@ -278,7 +315,7 @@ class RadarAnalysis(object):
         ¿Qué es date info?
         """
         self._result = dict()
-        dataframe = self._filter(p_dataframe, id_proj, id_team)
+        dataframe = self._filter(p_dataframe, id_proj, id_team, year, month)
         #print("Dataframe: \n", dataframe)
         self._has_answers = len(dataframe) > 0
         for k, v in self._test_struct.items():
@@ -320,11 +357,11 @@ def _load_answers(questions_repo, filename = "data.txt"):
 
 ## Facade methods
 
-def generate_report(test_results, id_proj, id_team):
+def generate_report(test_results, id_proj, id_team, year, month):
     #test_results = _load_answers(questions_repo)
     df = test_results.create_dataframe()
     ra = RadarAnalysis()
-    data_report, date_info = ra.analyze(df, id_proj, id_team)
+    data_report, date_info = ra.analyze(df, id_proj, id_team, year, month)
     return data_report, date_info, ra.has_answers()
 
 

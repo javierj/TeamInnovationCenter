@@ -27,9 +27,30 @@ class TestTestsResult(unittest.TestCase):
         self.assertEqual(6, len(qav.categories()))
         #print(qav)
 
+    def test_groups_of_results(self):
+        self.results.add_test_answer("2020-12-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
+        self.results.add_test_answer("2021-01-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
+        groups = self.results.years_months("01", "01")
+        #expected = "{'2020':[12], '2021': [1]}"
+        expected = "{2020: [12], 2021: [1]}"
+        self.assertEqual(expected, str(groups))
 
+    def test_create_dataframe(self):
+        self.results.add_test_answer("2020-12-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
+        self.results.add_test_answer("2020-12-23 15:24:17.008097/01/02/A035B033C032C065D121D023E075F053G022")
+        self.results.add_test_answer("2021-01-23 15:24:17.008097/02/02/A035B033C032C065D121D023E075F053G022")
+        df = self.results.create_dataframe()
+        self.assertEqual(3, len(df))
+        df = self.results.create_dataframe(project="01")
+        self.assertEqual(2, len(df))
+        df = self.results.create_dataframe(project="01", group="02")
+        self.assertEqual(1, len(df))
 
 class TestRadarAnalysis(unittest.TestCase):
+
+    def setUp(self):
+        self.analisis = RadarAnalysis()
+        self.results = TestsResult(q_repo=load_questions())  # Evitar esta dependencia
 
     def _get(self, data, key1, key2 = None):
         val = data[key1]
@@ -38,28 +59,33 @@ class TestRadarAnalysis(unittest.TestCase):
         return str(val)
 
     def test_analysis(self): # Este etst es muy frágil, poner solo los valores.
-        analisis = RadarAnalysis()
-        results = TestsResult(q_repo=load_questions())  # Evitar esta dependencia
-        results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
-        results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        self.results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
+        self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
         # crear el databrame directaente.
-        df = results.create_dataframe()
-        data = analisis.analyze(df, "01", "01")
+        df = self.results.create_dataframe()
+        data = self.analisis.analyze(df, "01", "01")
         #print(data)
-        expected = "({'Precondiciones': {'answer': [[1, 2], [2, 2]], 'mean': ['1.5', '2.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. recomenamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Seguridad sicológica': {'answer': [[1, 1], [2, 1]], 'mean': ['1.5', '1.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. recomenamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Dependabilidad': {'answer': [[1, 1], [1, 1]], 'mean': ['1.0', '1.0'], 'mad': ['0.0', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. recomenamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Estructura y claridad': {'answer': [[2], [2]], 'mean': ['2.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. recomenamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Significado': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. recomenamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Impacto': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. recomenamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}}, {'year': 2021, 'month': 1})"
+        expected = "({'Precondiciones': {'answer': [[1, 2], [2, 2]], 'mean': ['1.5', '2.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Seguridad sicológica': {'answer': [[1, 1], [2, 1]], 'mean': ['1.5', '1.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Dependabilidad': {'answer': [[1, 1], [1, 1]], 'mean': ['1.0', '1.0'], 'mad': ['0.0', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Estructura y claridad': {'answer': [[2], [2]], 'mean': ['2.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Significado': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Impacto': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}}, {'year': 2021, 'month': 1})"
         self.assertEqual(expected, str(data))
         expected = "['1.5', '2.0']"
         self.assertEqual(expected, self._get(data[0], "Precondiciones", "mean"))
 
-    def test_result_has_month_and_year(self): # Este etst es muy frágil, poner solo los valores.
-        analisis = RadarAnalysis()
-        results = TestsResult(q_repo=load_questions())  # Evitar esta dependencia
-        results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
-        results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+    def test_result_has__lastest_month_and_year(self): # Este etst es muy frágil, poner solo los valores.
+        self.results.add_test_answer("2020-01-01 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
+        self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
         # crear el databrame directaente.
-        data = analisis.analyze(results.create_dataframe(), "01", "01")
+        data = self.analisis.analyze(self.results.create_dataframe(), "01", "01")
         #print(data)
         expected = "{'year': 2021, 'month': 1}"
+        self.assertEqual(expected, str(data[1]))
+
+    def test_filter_month_and_year(self):
+        self.results.add_test_answer("2020-12-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
+        self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        # crear el databrame directaente.
+        data = self.analisis.analyze(self.results.create_dataframe(), "01", "01", "2020", "12")
+        print(data)
+        expected = "{'year': 2020, 'month': 12}"
         self.assertEqual(expected, str(data[1]))
 
 

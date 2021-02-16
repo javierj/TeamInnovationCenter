@@ -4,6 +4,7 @@ from analysis import RadarAnalysis, _load_answers, TestsResult, questions_answer
 
 questions_repo = load_questions()
 results = _load_answers(questions_repo, "IWT2_reports\\022021 - GIMO-PD.txt")
+#print(results.create_ids_dataframe())
 #results = _load_answers(questions_repo, "IWT2_reports\\072021 - APPIMEDEA.txt")
 #results = _load_answers(questions_repo, "IWT2_reports\\012021 - AIRPA")
 #results = _load_answers(questions_repo, "IWT2_reports\\022021 - G7D.txt")

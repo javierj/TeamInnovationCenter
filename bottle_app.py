@@ -6,8 +6,8 @@ import os
 director = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-def _server_url(request_url):
-    return request_url.split('/')[0]
+def _server_url():
+    return request.url.split('/')[0]
 
 @route('/')
 def home():
@@ -60,19 +60,12 @@ def question(org_id, project_id, questions=""):
 
     data = TestData(org_id, project_id, questions)
     question = director.next_question(data)
-    base_url = request.url
-
-    """
-    if base_url.endswith('/') == False:
-        base_url += "/"
-    """
 
     if question is None:
         #print("Server URL: ", _server_url(request.url))
-        return template('end_template', base_url=_server_url(base_url))
+        return template('end_template', base_url=_server_url())
 
-    #print("áéÍÓñÑ: " + question.text())
-    return template('question_template', question=question.text(), base_url = base_url, question_code = question.code(), question_index = data.len_questions() + 1)
+    return template('question_template', question=question.text(), base_url = request.url, question_code = question.code(), question_index = data.len_questions() + 1)
 
 #@route('/test/<org_id>/<project_id>')
 @route('/test/<org_id>/<project_id>/')
@@ -87,16 +80,26 @@ def report_test():
 # Aún no funciona, hay que añadir id de poryecto y equipo
 #@route('/report/<org_id>/<project_id>')
 @route('/report/<org_id>/<project_id>/')
-def report(org_id, project_id):
+def all_report(org_id, project_id):
+    return report(org_id, project_id, None, None)
+
+@route('/report/<org_id>/<project_id>/<year>/<month>/')
+def report(org_id, project_id, year, month):
     global director
     test_results = _load_answers(director.get_repo())
-    data_report, date_info, has_answers = generate_report(test_results, org_id, project_id)
-    #q_a_list = questions_answers(test_results, org_id, project_id)
-    q_a_v = test_results.question_answers_to_view(org_id, project_id) # Necsita el sgeundo valor
-    #print(q_a_v)
+    data_report, date_info, has_answers = generate_report(test_results, org_id, project_id, year=year, month=month)
+    q_a_v = test_results.question_answers_to_view(org_id, project_id)
     if has_answers:
         return template('report_template', data_report=data_report, date_info = date_info, question_answer=q_a_v)
     return template('noanswers_template', org_id=org_id, project_id = project_id)
+
+@route('/selector/<org_id>/<project_id>/')
+def report_selector(org_id, project_id):
+    global director
+    test_results = _load_answers(director.get_repo())
+    month_year = test_results.years_months(org_id, project_id)  # "{'2020':[12], '2021': [1]}"
+    base_url = _server_url()+"/report/"+org_id+"/"+project_id
+    return template('report_selector', org_id=org_id, project_id=project_id, month_year=month_year, base_url = base_url)
 
 def set_up():
     global director
