@@ -1,7 +1,8 @@
-# Versión 1.1
+# Versión 1.2
 # Código, texto de la pregunta, si hay que valorarla en positivo o negativo.
 # 1.0. Versión inicial, 60 preguntas
 # 1.1. Mejor redactadas las preguntas de condiciones. 66 preguntas
+# 1.2. Cambios en redacción y desahibilatadas preguntas ambiguas. 65 preguntas
 
 ## Precondicoones. Sueldo.
 A01:Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P
@@ -38,7 +39,7 @@ C14:El feedback que recibo de mis compañeros de trabajo no es constructivo ni m
 C08: Dudo en expresar ideas divergentes.:N
 C09: Dudo en hacer preguntas porque pienso que serán preguntas tontas.:N
 C10:Me preocupa que los demás piensen que las preguntas que hago son tontas.:N
-C11:No dudo en expresar ideas, aunque sean divergente.:P
+C11:No dudo en expresar mis ideas, aunque sean divergente.:P
 
 # Bloque 3. Pregunta original: "Do all team members feel comfortable brainstorming in front of each other?"
 
@@ -67,6 +68,7 @@ D06:No hay propietarios claros para las tareas.:N
 D07:No hay responsables claros para arreglar problemas.:N
 D08:Las tareas tienen un propietario que se encarga de que se realiza.:P
 D09:Los problemas tienen un responsable que se encarga de que se resuelva.:P
+#D14:Los problemas tienen un responsable que es quien debe resolverlo.:N
 
 # Cuando los miembros del equipo dicen que harán algo, ¿lo hacen?
 
@@ -87,10 +89,10 @@ E03:No hay claridad sobre quién es responsable de cada cosa en el proyecto.:N
 
 # Bloque 2:  Unclear decision-making process, owners, or rationale
 
-E04:Tenemos un proceso de toma de decisiones claro.:P
-E05:El proceso de toma de decisiones no es claro.:N
-E06:Tenemos claro cómo se asigna responsables.:P
-E07:Entendemos por qué se asignan responsables.:P
+E04:Siento que tenemos un proceso de toma de decisiones claro.:P
+E05:El proceso de toma de decisiones de mi equipo u organización no es claro.:N
+E06:Tengo claro cómo se asigna responsables a las personas de mi equipo.:P
+E07:Entiendo por qué se asignan responsables.:P
 
 # Faltan más
 
@@ -101,14 +103,16 @@ E07:Entendemos por qué se asignan responsables.:P
 F04: Hay poca consideración por las necesidades individuales en la asignación del trabajo.:N
 
 # Falta de reconocimiento regular de logros o hitos
-F05:Mi equipo celebra sus objetivos.:P
-F06:Mi equipo celebra alcanzar una milestone.:P
+F05:Mi equipo celebra los hitos o logros que alcanzamos.:P
+#F06:Mi equipo celebra alcanzar una milestone.:P - No tienen por qué saber que es una milestone
+F06:Mi equipo celebra terminar una iteración, o desplegar una nueva versión del sistema.:P
 F07:No hay celebraciones de éxitos alcanzados en el equipo.:N
 
 
 # ¿El trabajo le da a los miembros del equipo un sentido de realización personal y profesional?
 F08: El trabajo que realizo me da una sensación de crecimiento profesional.:P
 F09:El trabajo que realizo me permite sentirme realizado.:P
+F10:Siento que el trabajo que realizo no aporta nada en mi currículum.:N
 
 ## Impacto (IM). Signs that your team needs to improve impact:
 
@@ -116,8 +120,8 @@ F09:El trabajo que realizo me permite sentirme realizado.:P
 # Bloque 2. Too many goals, limiting ability to make meaningful progress
 
 G01:Siento que el equipo tiene demasiados objetivos.:N
-G02:Siento que tenemos los suficientes objetivos para poder estar centrados.:P
-G03:Siento que tenemos los suficientes objetivos para poder cumplirlos.:P
+G02:Siento que mi equipo tiene los suficientes objetivos para mantenernos centrados.:P
+G03:Siento que mi equipo tiene los suficientes objetivos para poder cumplirlos.:P
 G04:Siento que tengo la posibilidad de hacer que el proyecto avance.:P
 G05:Creo que no puedo conseguir ningún avance significativo con mi trabajo.:N
 
@@ -125,7 +129,7 @@ G05:Creo que no puedo conseguir ningún avance significativo con mi trabajo.:N
 
 # Bloque 5. How are current team processes affecting well-being/burnout?
 
-G06:La manera de trabajar me agota.:N
+G06:La manera de trabajar de mi equipo me agota.:N
 G07:Termino el trabajo y aún tengo energía.:P
 
 

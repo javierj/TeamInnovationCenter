@@ -1,6 +1,6 @@
 import unittest
 
-from view import QuestionsAnswersView
+from view import QuestionsAnswersView, ReportView
 
 
 class TestQuestionsAnswersView(unittest.TestCase):
@@ -31,6 +31,16 @@ class TestQuestionsAnswersView(unittest.TestCase):
     def test_has_no_anseers(self):
         qav = QuestionsAnswersView()
         self.assertFalse(qav.has_answers())
+
+
+class TestReportView(unittest.TestCase):
+
+    def test_has_answers(self):
+        report = ReportView()
+        self.assertFalse(report.has_answers())
+        report.with_factor("factor").add_means(list(), "1.0")
+        self.assertTrue(report.has_answers())
+
 
 
 if __name__ == '__main__':

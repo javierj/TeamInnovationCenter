@@ -87,10 +87,10 @@ def all_report(org_id, project_id):
 def report(org_id, project_id, year, month):
     global director
     test_results = _load_answers(director.get_repo())
-    data_report, date_info, has_answers = generate_report(test_results, org_id, project_id, year=year, month=month)
-    q_a_v = test_results.question_answers_to_view(org_id, project_id)
-    if has_answers:
-        return template('report_template', data_report=data_report, date_info = date_info, question_answer=q_a_v)
+    report = generate_report(test_results, org_id, project_id, year=year, month=month)
+    q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month)
+    if report.has_answers():
+        return template('report_template', report=report, question_answer=q_a_v)
     return template('noanswers_template', org_id=org_id, project_id = project_id)
 
 @route('/selector/<org_id>/<project_id>/')

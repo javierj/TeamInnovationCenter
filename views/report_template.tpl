@@ -13,13 +13,15 @@
 <br/>
 
 <h2> <span aria-hidden="true" class="octicon octicon-link">Informe Team Radar.</span></h2>
-<p> Las últimas encuestas realizadas son del mes {{date_info['month']}} del año {{date_info['year']}}.
+<p> Se muestran {{report.get_answers_len()}} encuestras.
+<br/>
+Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get_year()}}.
 </p>
 
-%for char, data in data_report.items():
+%for factor_name, factor in report.iter_factors():
 
-    <h3>{{char}}:</h3>
-    <p> {{defs[char]}} </p>
+    <h3>{{factor_name}}:</h3>
+    <p> {{defs[factor_name]}} </p>
     <p>
     %# Tabla de respuestas a las preguntas.
     <table>
@@ -28,16 +30,12 @@
             <td> <strong> Respuestas </strong> </td>
             </tr>
 
-            %for q_id in question_answer.questions_id(char):
+            %for q_id in question_answer.questions_id(factor_name):
             <tr>
                 <td> {{question_answer.question_text(q_id)}} </td>
                 <td> {{question_answer.question_answers(q_id)}} </td>
              </tr>
             %end
-
-
-
-
 
 	</table>
 
@@ -45,26 +43,53 @@
 
 	    <table>
 		    <tr> <td></td>
-		    %for i in range(1, len(data['mean'])+1):
+		    %for i in range(1, len(factor.means())+1):
 		    <td> <strong> Pregunta {{i}} </strong> </td>
 		    %end
 		    </tr>
 		    <tr>
 		    <td> <em> Media </em> </td>
-		    %for i in data['mean']:
+		    %for i in factor.means():
 		    <td style="text-align:center"> {{i}} </td>
 		    %end
 		    </tr>
 		    <tr>
 		    <td> <em> Desviación </em> </td>
-		    %for i in data['mad']:
+		    %for i in factor.mads():
 		    <td style="text-align:center"> {{i}} </td>
 		    %end
 		    </tr>
         </table>
  </p>
+
+ <p>
+ <strong>
+ Media total: {{factor.total_mean()}}
+ <br/>
+ Desviación media total: {{factor.total_mad()}}
+ </strong>
+ </p>
+
 <p>
-<strong> Análisis:  </strong> {{data['analysis']}}
+<strong> Análisis:  </strong> {{factor.get_analysis()}}
+</p>
+
+<p>
+Evolución temporal:
+
+<table>
+    <tr>
+        <td> Año </td> <td> Mes </td> <td> Encuestas </td><td> Valor medio </td> <td> Desviación media </td>
+    </tr>
+    %for i in range(0, factor.historical_series()):
+    <tr>
+        %for info in factor.get_historical_serie(i):
+            <td> {{info}} </td>
+        %end
+    </tr>
+    %end
+
+</table>
 </p>
 
 <br/>

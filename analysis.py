@@ -1,6 +1,6 @@
 import pandas as pd
 from tappraisal import _get_full_filename, load_questions, get_test_structure
-from view import QuestionsAnswersView
+from view import QuestionsAnswersView, ReportView
 from datetime import datetime
 
 
@@ -107,7 +107,7 @@ class TestsResult(object):
     def __str__(self):
         return str(self._answers)
 
-    def create_dataframe(self, project= None, group = None, data = None):
+    def create_dataframe(self, project= None, group = None, data = None, year=None, month=None):
         """
         Creates a dataframe like this:
 
@@ -124,6 +124,17 @@ class TestsResult(object):
             data = self._answers
             #print(data)
         df_tmp = pd.DataFrame(data)
+
+        if year is not None:
+            year = int(year)
+            month = int(month)
+            import datetime
+            df_tmp['month'] = df_tmp['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
+            df_tmp['year'] = df_tmp['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
+            #print("year", year, "month", month, "\n", df_tmp)
+            df_tmp = df_tmp[(df_tmp['year'] == year) & (df_tmp['month'] == month)]
+            #print("df_tmp", df_tmp)
+
         if project is None:
             return df_tmp
 
@@ -132,9 +143,10 @@ class TestsResult(object):
         if group is None:
             return df_tmp
 
+        #print(df_tmp[ df_tmp['team_id'] == group ])
         return df_tmp[ df_tmp['team_id'] == group ]
 
-    def create_ids_dataframe(self, project = None, group = None):
+    def create_ids_dataframe(self, project = None, group = None, year=None, month=None):
         """
         T    1    2    3    4  ...    9                    datetime project_id team_id
 0  A06  B08  C09  C12  ...  G01  2021-02-08 17:39:16.088294    GIMO-PD     T01
@@ -147,7 +159,7 @@ class TestsResult(object):
         #if project is None:
             #return df_tmp
         #return df_tmp[df_tmp['project_id'] == project]
-        return self.create_dataframe(project, group, self._answers_id)
+        return self.create_dataframe(project, group, self._answers_id, year=year, month=month)
 
     def question_answers(self, project = None):
         """
@@ -181,7 +193,7 @@ class TestsResult(object):
                     question_answers[key].append(ansewr)
         return question_answers
 
-    def question_answers_to_view(self, project, team):
+    def question_answers_to_view(self, project, team, year=None, month=None):
         """
         :param project:
         :return:
@@ -189,13 +201,14 @@ class TestsResult(object):
         questions_answers_view = QuestionsAnswersView()
         # Esto tiene que estar fuera
         test_struct = get_test_structure()
-        df_tmp = self.create_ids_dataframe(project)
+        df_tmp = self.create_ids_dataframe(project, team, year, month)
+        #print("df_tmp\n", df_tmp)
         df_ids = df_tmp[df_tmp.columns[0:self._answers_number]]
-        #print(df_ids)
-        #print(self._original_answers)
+        #print("df_ids\n", df_ids)
+        #print("_original_answers", self._original_answers)
 
-        df_tmp = self.create_dataframe(project, data= self._original_answers)
-        #print(project, "\n", df_tmp)
+        df_tmp = self.create_dataframe(project, group = team, year=year, month=month, data= self._original_answers)
+        #print("project:", project, "\n", df_tmp)
         df_qs = df_tmp[df_tmp.columns[0:self._answers_number]]
 
         questions = self._q_repo.as_dict()
@@ -206,8 +219,8 @@ class TestsResult(object):
                 #print("-", test_struct[questions[id].category()]+". "+questions[id].text()+str(ansewr))
                 questions_answers_view.add(id, test_struct[questions[id].category()], questions[id].text(), ansewr)
 
+        #print("questions_answers_view", questions_answers_view)
         return questions_answers_view
-
 
     def original_answers(self):
         return self._original_answers
@@ -234,18 +247,7 @@ class TestsResult(object):
         return y_m
 
 
-class RadarAnalysis(object):
-
-    def __init__(self):
-        self._test_struct = {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Dependabilidad": [5, 6],
-                             "Estructura y claridad":[7], "Significado": [8], "Impacto": [9]}
-        self._result = None
-        self._date_info= None
-        self._has_answers = False
-
-    def _add_result(self, main_key, sub_key, float_list):
-        trunc_list = [str(n)[:5] for n in float_list]
-        self._result[main_key][sub_key] = trunc_list
+class _FactorAnalisys(object):
 
     def _all_over(self, values, limit):
         for v in values:
@@ -259,7 +261,7 @@ class RadarAnalysis(object):
                 return False
         return True
 
-    def _stats_analysis(self, mean, mad):
+    def stats_analysis(self, mean, mad):
         if self._all_over(mad, 1):
             if self._all_over(mean, 2.9):
                 return "La media y la desviación indica que, aunque la mayoría del equipo tiene una buena opinión, hay una minoría de personas disconformes. Recomendamos conversaciones uno a uno para identificar a las personas con las valoraciones más bajas y concoer cuáles son sus motivos e intentar solucionarlos."
@@ -275,31 +277,60 @@ class RadarAnalysis(object):
         # Never reached.
         return "Las desviaciones indican que las preguntas de un mismo factor no son consistentes. Se recomienda repetir la encuesta en unas semanas."
 
-    def _filter(self, dataframe, id_proj, id_team, year = None, month = None):
+
+class RadarAnalysis(object):
+
+    def __init__(self):
+        self._test_struct = {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Dependabilidad": [5, 6],
+                             "Estructura y claridad":[7], "Significado": [8], "Impacto": [9]}
+        #self._result = None
+        self._date_info= None
+        #self._has_answers = False
+        self._factor_analisys = _FactorAnalisys()
+        self._df = None
+
+    # Deprecated
+    def _add_result(self, main_key, sub_key, float_list):
+        trunc_list = [str(n)[:5] for n in float_list]
+        self._result[main_key][sub_key] = trunc_list
+
+
+    def _filter_ids(self, id_proj, id_team):
+        self._df = self._df[self._df['project_id'] == id_proj]
+        self._df = self._df[self._df['team_id'] == id_team]
+
+    def _set_month_year(self):
         import datetime
-        dataframe['month'] = dataframe['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
-        dataframe['year'] = dataframe['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
+        self._df['month'] = self._df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
+        self._df['year'] = self._df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
 
-        proj_df = dataframe[ dataframe['project_id'] == id_proj ]
-        team_df = proj_df[ proj_df['team_id'] == id_team ]
+    def _get_year_month(self):
 
-        if year is None:
-            year = team_df['year'].max()
-        else:
-            year = int(year)
+        year = self._df['year'].max()
+        month = self._df[self._df['year'] == year]['month'].max()
+        return year, month
 
-        if month is None:
-            month = team_df[team_df['year'] == year]['month'].max()
-        else:
-            month = int(month)
+    def _filter(self, year = None, month = None):
+        dated_df = self._df[(self._df['year'] == year) & (self._df['month'] == month)]
 
         self._date_info = dict()
         self._date_info['year'] = year
         self._date_info['month'] = month
-
-        dated_df = team_df[(team_df['year'] == year) & (team_df['month'] == month)]
+        self._date_info['answers_num'] = len(dated_df)
 
         return dated_df
+
+    def _historic_data(self, factor_name, factor, report):
+        years = self._df['year'].unique()
+        for year in years:
+            months = self._df[self._df['year'] == year].month.unique()
+            for month in months:
+                df_tmp = self._filter(year, month)
+                df_factor = df_tmp[factor]
+                #print(year, month, factor, df_factor.mean(axis=0).mean(axis=0))
+                #print(df_factor)
+                #print("Len:", len(df_factor))
+                report.with_factor(factor_name).add_historical_serie(year, month, len(df_factor), df_factor.mean(axis=0).mean(axis=0), df_factor.mad(axis=0).mean(axis=0))
 
     def analyze(self, p_dataframe, id_proj, id_team, year = None, month = None):
         """
@@ -311,36 +342,63 @@ class RadarAnalysis(object):
 
         :param dataframe:
         :return:
-        Data { característica: {espuestas: [[.....], [....]], mean [...] mad [...] analysis: "......" } }
-        ¿Qué es date info?
+        Data: { característica: {answer: [[.....], [....]], mean [...] mad [...] analysis: "......" } }
+        Date_info: {'year': 2021, 'month': 1, 'answers_num': 1}
         """
-        self._result = dict()
-        dataframe = self._filter(p_dataframe, id_proj, id_team, year, month)
+        report = ReportView()
+        self._df = p_dataframe
+        self._filter_ids(id_proj, id_team)
+        self._set_month_year()
+
+        if year is None or month is None:
+            #print("Is None")
+            year, month = self._get_year_month()
+        else:
+            year = int(year)
+            month = int(month)
+        dataframe = self._filter(year, month)
+
+        #print(self._df)
+        #print("Dataframe", dataframe)
+        #print(len(dataframe))
+        report.answers_len(len(dataframe))
+
         #print("Dataframe: \n", dataframe)
-        self._has_answers = len(dataframe) > 0
         for k, v in self._test_struct.items():
-            self._result[k] = dict()
+            #self._result[k] = dict()
             #print("V ", v,"\n Dataframe: \n", dataframe)
             df_factor = dataframe[v]
 
-            answers = list()
-            for i in range(0, len(df_factor)):
-                answers.append(df_factor.iloc[i]. to_list())
-            self._result[k]['answer'] = answers
+            #answers = list()
+            #for i in range(0, len(df_factor)):
+                #answers.append(df_factor.iloc[i]. to_list())
+            #self._result[k]['answer'] = answers
+            #report.with_factor(k).add_answers(answers)
 
             #print("--", k)
             ser_mean = df_factor.mean(axis=0)
-            self._add_result(k,'mean', ser_mean.to_list())
+            #print("Means: ", ser_mean, " One mean", ser_mean.mean(axis=0))
+            #self._add_result(k,'mean', ser_mean.to_list())
+            report.with_factor(k).add_means(ser_mean.to_list(), ser_mean.mean(axis=0))
+
             #print("Medias:\n", ser_mean)
             ser_mad = df_factor.mad(axis=0)
-            self._add_result(k,'mad', ser_mad.to_list())
+            #self._add_result(k,'mad', ser_mad.to_list())
+            report.with_factor(k).add_mads(ser_mad.to_list(), ser_mad.mean(axis=0))
+
             #print("Desviaciones medias:\n",ser_mad)
-            self._result[k]['analysis'] = self._stats_analysis(ser_mean, ser_mad)
+            #self._result[k]['analysis'] = self._factor_analisys.stats_analysis(ser_mean, ser_mad)
+            #report.with_factor(k).add_analysis(self._result[k]['analysis'])
+            report.with_factor(k).add_analysis(self._factor_analisys.stats_analysis(ser_mean, ser_mad))
 
-        return self._result, self._date_info
+            self._historic_data(k, v, report)
 
-    def has_answers(self):
-        return self._has_answers
+        report.year(year)
+        report.month(month)
+
+        #return self._result, self._date_info
+        return report
+
 
 
 def _load_answers(questions_repo, filename = "data.txt"):
@@ -358,11 +416,10 @@ def _load_answers(questions_repo, filename = "data.txt"):
 ## Facade methods
 
 def generate_report(test_results, id_proj, id_team, year, month):
-    #test_results = _load_answers(questions_repo)
     df = test_results.create_dataframe()
     ra = RadarAnalysis()
-    data_report, date_info = ra.analyze(df, id_proj, id_team, year, month)
-    return data_report, date_info, ra.has_answers()
+    #data_report, date_info = ra.analyze(df, id_proj, id_team, year, month)
+    return ra.analyze(df, id_proj, id_team, year, month)
 
 
 def questions_answers(test_results, id_proj, id_team):
@@ -382,42 +439,3 @@ def questions_answers(test_results, id_proj, id_team):
         q_a_list.append(key + ":" + str(q_a_dict[key]))
     return q_a_list
 
-# Test
-"""
-questions_repo = load_questions()
-test_results = _load_answers(questions_repo)
-print(test_results)
-df = test_results.create_dataframe()
-print("-------------------------------")
-print(len(df))
-
-import datetime
-#df['obj_datetime'] = df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x))
-df['month'] = df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
-df['year'] = df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
-
-print(df.head())
-max_year = df['year'].max()
-print(max_year)
-print(df[ df['year'] == max_year ]['month'].max())
-"""
-
-# A partir de aquí hacer el análisis.
-#print(df[(1, 2)])
-"""
-print(df.mean(axis=0))
-print("-------------")
-print(df.mad(axis=0))
-print("-------------")
-print(df.mean(axis=0).mean())
-"""
-#ra = RadarAnalysis()
-#print(ra.analyze(df, "01", "01"))
-
-# Hacer un listado con todas las preguntas que han aparecido en los test y sus repsuestas.
-
-"""
-for i in range(0, len(df)):
-    print(df.iloc[i])
-print(type(df.iloc[0]))
-"""

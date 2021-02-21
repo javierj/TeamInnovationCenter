@@ -38,6 +38,7 @@ ax.grid(True)
 #fig.savefig("output.png")
 """
 
+"""
 N = 6
 values = stats
 
@@ -66,5 +67,24 @@ ax.plot(angles, values, linewidth=1, linestyle='solid')
 ax.fill(angles, values, 'b', alpha=0.1)
 
 fig.savefig("output.png")
+"""
+#----------------------------------------
+
+
+plt.style.use('ggplot')
+
+x = ['Nuclear', 'Hydro', 'Gas', 'Oil', 'Coal', 'Biofuel']
+energy = [5, 6, 15, 22, 24, 8]
+
+x_pos = [i for i, _ in enumerate(x)]
+
+plt.bar(x_pos, energy, color='green')
+plt.xlabel("Energy Source")
+plt.ylabel("Energy Output (GJ)")
+plt.title("Energy output from various fuel sources")
+
+plt.xticks(x_pos, x)
+
+plt.savefig("bar.png", dformat="png")
 
 

@@ -3,23 +3,24 @@ from tappraisal import load_questions
 from analysis import RadarAnalysis, _load_answers, TestsResult, questions_answers
 
 questions_repo = load_questions()
-results = _load_answers(questions_repo, "IWT2_reports\\022021 - GIMO-PD.txt")
+#results = _load_answers(questions_repo, "IWT2_reports\\022021 - GIMO-PD.txt")
 #print(results.create_ids_dataframe())
 #results = _load_answers(questions_repo, "IWT2_reports\\072021 - APPIMEDEA.txt")
 #results = _load_answers(questions_repo, "IWT2_reports\\012021 - AIRPA")
 #results = _load_answers(questions_repo, "IWT2_reports\\022021 - G7D.txt")
+results = _load_answers(questions_repo, "IWT2_reports\\data.txt")
 
 ra = RadarAnalysis()
 #data_report, date_info = ra.analyze(results.create_dataframe(), "AIRPA", "T01")
 df = results.create_dataframe()
-data_report, date_info = ra.analyze(df, "GIMO-PD", "T01")
-print( data_report)
+data_report = ra.analyze(df, "01", "01")
+#print( data_report)
 
-for key, value in data_report.items():
-    means = [float(v) for v in value['mean'] ]
-    print(key, "Respuestas:", value['answer'], "Means:", means, "MADS:", value['mad'])
-    total = sum(means)
-    print("Media de", key, "=", (total / len(means)))
+for key, factor in data_report.iter_factors():
+    #means = [float(v) for v in value['mean'] ]
+    print(key, "Respuestas:", "Means:", factor.means(), "MADS:", factor.mads(), "Media means:", factor.total_mean(), "Media mads:", factor.total_mad())
+    #total = sum(means)
+    #print("Media de", key, "=", (total / len(means)))
 
 print("------------------------------")
 test_struct = {'A': "Precondiciones",'B': "Precondiciones", 'C': "Seguridad sicológica", 'D': "Dependabilidad",
@@ -87,3 +88,28 @@ for line in questions_answers(results, "GIMO-PD", None):
     print(line)
 
 # El problema e sque no salen las repsuestas originales aquí.
+
+
+print("-----------------------------")
+import datetime
+df['month'] = df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
+df['year'] = df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
+
+print("Years", df['year'].unique())
+for year in df['year'].unique():
+    df_month = df[ df['year'] == year]
+    print(year, ":", df_month.month.unique())
+
+print("-------------------------------------")
+df_grouped = df.groupby(["year", "month"])
+print("index", df_grouped.as_index)
+
+df_means = df_grouped.mean()
+print("df", df_means, type(df_means))
+print(df_means.index)
+for index in df_means.index:
+    print(index)
+df_reset = df_means.reset_index()
+for i in range(0, len(df_reset)):
+    print(i, df_reset.iloc[i])
+    print(i, df_reset.iloc[i]['year'])
