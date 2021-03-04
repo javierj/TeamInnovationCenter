@@ -15,17 +15,16 @@ def _save_data(data, filename = "data.txt"):
     now = datetime.datetime.now()
     filename = _get_full_filename(filename)
     with open(filename, "a") as myfile:
-        myfile.write(str(now)+"/"+str(data) + "\n")
+        myfile.write(str(now)+"/"+str(data) + "/RADAR-9\n")
 
 
 # renombrar a WebTestInfo o algo así
 # como lo crea Bottle, es pisible que tenga que estar en su módulo y no aquí.
 class TestData(object):
 
-    # ToDo
     def __init__(self, org_id, project_id, questions):
-        self._answers = 0
         self._questions = dict()
+        self._id_set = dict()
         self._parse_questions_url(questions)
         self._url_questions = questions
         self._org_id = org_id
@@ -35,7 +34,6 @@ class TestData(object):
         return self._org_id+"/" + self._project_id+"/" + self._url_questions
 
     def _parse_questions_url(self, q_url):
-        question_answer = dict()
         self._answers = 0
 
         answer_len = int( len(q_url) / 4 )
@@ -48,36 +46,29 @@ class TestData(object):
             if category not in self._questions:
                 self._questions[category] = list()
             self._questions[category].append(q_id[1:3])
-            self._answers += 1
+            self._id_set[q_id] = q_id
 
     def len_questions(self):
-        return self._answers
+        return len(self.ids_set())
 
     def len_questions_in(self, category):
         if category not in self._questions:
             return 0
         return len(self._questions[category])
 
-    def questions_as_list(self):
-        """
-        Not in use. Analysis duplicates this code.
-        :return:
-        """
-        question_list = list()
-        for _, value in self._questions:
-            question_list.extend(value)
-        return question_list
+    def ids_set(self):
+        return self._id_set
 
 
 class TestQuestion(object):
 
     def __init__(self, text, code="", valoration=""):
-        self.text_question = text
+        self._text_question = text
         self._code = code
         self._valoration=valoration
 
     def text(self):
-        return self.text_question
+        return self._text_question
 
     def category(self):
         return self._code[0]
@@ -88,6 +79,9 @@ class TestQuestion(object):
     def is_positive(self):
         return self._valoration == "P"
 
+    def __str__(self):
+        return self._code+":"+self._text_question+":"+self._valoration
+
 
 class AppraisalDirector(object):
 
@@ -95,11 +89,18 @@ class AppraisalDirector(object):
         pass
         self._questions_repo = repo
 
+    def _random_question_from(self, cat, data):
+        ids = data.ids_set()
+        question = self._questions_repo.random_question_from(cat)
+        while question.code() in ids:
+            question = self._questions_repo.random_question_from(cat)
+        return question
+
     def next_question(self, data):
         """
         Veo las pregunats que ya se han hecho y busco y envío la siguiente pregunta a preguntar en el test
         o None si ya se han terminado las preguntas.
-        :param data:
+        :param data: TestData object
         :return:
         """
 
@@ -108,19 +109,19 @@ class AppraisalDirector(object):
             return None
 
         if data.len_questions_in("A") == 0:
-            return self._questions_repo.random_question_from("A")
+            return self._random_question_from("A", data)
         if data.len_questions_in("B") == 0:
-            return self._questions_repo.random_question_from("B")
+            return self._random_question_from("B", data)
         if data.len_questions_in("C") < 2:
-            return self._questions_repo.random_question_from("C")
+            return self._random_question_from("C", data)
         if data.len_questions_in("D") < 2:
-            return self._questions_repo.random_question_from("D")
+            return self._random_question_from("D", data)
         if data.len_questions_in("E") < 1:
-            return self._questions_repo.random_question_from("E")
+            return self._random_question_from("E", data)
         if data.len_questions_in("F") < 1:
-            return self._questions_repo.random_question_from("F")
+            return self._random_question_from("F", data)
         if data.len_questions_in("G") < 1:
-            return self._questions_repo.random_question_from("G")
+            return self._random_question_from("G", data)
 
         question = TestQuestion("05. ERROR")
         return question
@@ -133,7 +134,7 @@ class AppraisalDirector(object):
 class QuestionRepository(object):
 
     def __init__(self):
-        self._questions = dict()
+        self._questions = dict() # Key factor, Value list of questions
 
     def __str__(self):
         return str(self._questions)
@@ -160,16 +161,20 @@ class QuestionRepository(object):
 
     def random_question_from(self, category):
         index = random.randint(0, len(self._questions[category])-1)
-        print("Random question from", category, "max questions ", len(self._questions[category]), "index:", index)
+        #print("Random question from", category, "max questions ", len(self._questions[category]), "index:", index)
         return self._questions[category][index]
 
-    def get_question(self, category, code):
+    def get_question(self, code):
+        """
+        :param code:
+        :return: A TestQuestion object
+        """
         #print("Searching:", category, code)
-        questions = self._questions[category]
-        for question in questions:
-            #print("Code found: ", question.code())
-            if question.code() == code:
-                return question
+        for _, questions in self._questions.items():
+            for question in questions:
+                #print("Code found: ", question.code())
+                if question.code() == code:
+                    return question
         return None
 
     def as_dict(self):
@@ -182,12 +187,11 @@ class QuestionRepository(object):
                 result[question.code()] = question
         return result
 
+
 def load_questions():
     repo = QuestionRepository()
-
     file_name = _get_full_filename("preguntas.txt")
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
-    questions = list()
     for line in file:
         repo.commit_question(line)
         #print("áéÍÓñÑ: " + line)
@@ -197,5 +201,11 @@ def load_questions():
 
 
 def get_test_structure():
-    return {'A': "Precondiciones", 'B': "Precondiciones", 'C': "Seguridad sicológica", 'D': "Dependabilidad",
-                       'E': "Estructura y claridad", 'F': "Significado", 'G': "Impacto"}
+    # RADAR-9
+    return {'A': "Precondiciones", 'B': "Precondiciones", 'C': "Seguridad sicológica", 'D': "Compromiso con el trabajo",
+                       'E': "Perfiles y responsabilidad", 'F': "Resultados significativos", 'G': "Propósito e impacto"}
+    """
+    # Esto también hay que gestionarlo de alguna manera
+    self._test_struct = {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Compromiso con el trabajo": [5, 6],
+                             "Perfiles y responsabilidad":[7], "Resultados significativos": [8], "Propósito e impacto": [9]}
+    """

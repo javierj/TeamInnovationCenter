@@ -72,11 +72,6 @@ def question(org_id, project_id, questions=""):
 def first_question(org_id, project_id):
     return question(org_id, project_id)
 
-@route('/report_test')
-def report_test():
-    data_report = {'Precondiciones': {'answer': [[0, 3], [4, 2], [5, 5]], 'mean': ['3.0', '3.333'], 'mad': ['2.0', '1.111']}, 'Seguridad sicológica': {'answer': [[2, 0], [0, 1], [5, 5]], 'mean': ['2.333', '2.0'], 'mad': ['1.777', '2.0']}, 'Dependabilidad': {'answer': [[1, 2], [5, 1], [0, 0]], 'mean': ['2.0', '1.0'], 'mad': ['2.0', '0.666']}, 'Estructura y claridad': {'answer': [[5], [2], [5]], 'mean': ['4.0'], 'mad': ['1.333']}, 'Significado': {'answer': [[3], [2], [5]], 'mean': ['3.333'], 'mad': ['1.111']}, 'Impacto': {'answer': [[2], [0], [5]], 'mean': ['2.333'], 'mad': ['1.777']}}
-    return template('report_template', data_report=data_report)
-
 # Aún no funciona, hay que añadir id de poryecto y equipo
 #@route('/report/<org_id>/<project_id>')
 @route('/report/<org_id>/<project_id>/')

@@ -5,10 +5,10 @@
 %defs = dict()
 %defs['Precondiciones'] = "Recoge todos los factores higiénicos de motivación (o motivaciones extrínsecas)."
 %defs['Seguridad sicológica'] = "Poder expresar opiniones sin miedo a represalias."
-%defs['Dependabilidad'] = "Las personas de las que depende mi trabajo adquieren compromisos y los cumplen."
-%defs['Estructura y claridad'] = "Toma de decisiones clara, responsables definidas y tareas claras."
-%defs['Significado'] = "Me importa mi trabajo y me siento implicado haciéndolo."
-%defs['Impacto'] = "El trabajo que realizo tiene una utilidad y un impacto."
+%defs['Compromiso con el trabajo'] = "Las personas de las que depende mi trabajo adquieren compromisos y los cumplen."
+%defs['Perfiles y responsabilidad'] = "Toma de decisiones clara, responsables definidas y tareas claras."
+%defs['Resultados significativos'] = "Me importa mi trabajo y me siento implicado haciéndolo."
+%defs['Propósito e impacto'] = "El trabajo que realizo tiene una utilidad y un impacto."
 
 <br/>
 

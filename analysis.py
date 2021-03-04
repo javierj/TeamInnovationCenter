@@ -1,18 +1,211 @@
 import pandas as pd
-from tappraisal import _get_full_filename, load_questions, get_test_structure
+import numpy
+from tappraisal import _get_full_filename, get_test_structure
 from view import QuestionsAnswersView, ReportView
 from datetime import datetime
+
+
+class DF(object):
+    """
+    Encapsulates a panda dataframe
+    """
+
+    def __init__(self):
+        self._df = None
+
+    @staticmethod
+    def create(data):
+        df = DF()
+        df._df = pd.DataFrame(data)
+        return df
+
+    @staticmethod
+    def c_dataframe(dataframe):
+        df = DF()
+        df._df = pd.DataFrame(dataframe)
+        return df
+
+    def copy(self):
+        return DF.c_dataframe(self._df)
+
+    def view(self, columns):
+        df = DF()
+        df._df = self._df[columns]
+        return df
+
+    def _set_month_year(self):
+        if 'year' not in self._df:
+            self._df['month'] = self._df['datetime'].apply(lambda x: datetime.fromisoformat(x).month)
+            self._df['year'] = self._df['datetime'].apply(lambda x: datetime.fromisoformat(x).year)
+
+    def f_year_month(self, year = None, month = None):
+        if year is not None:
+            year = int(year)
+            month = int(month)
+
+            self._set_month_year()
+            #print("year", year, "month", month, "\n", df_tmp)
+            self._df = self._df[(self._df['year'] == year) & (self._df['month'] == month)]
+            #print("df_tmp", df_tmp)
+
+    def f_by(self, column, value):
+        #print("column", column, value)
+        #print("Before", self._df)
+        self._df = self._df[self._df[column] == value]
+        #print("After", self._df)
+
+    def f_project(self, id_proj, team_id):
+        self.f_by('project_id', id_proj)
+        self.f_by('team_id', team_id)
+
+    def dataframe(self):
+        return self._df
+
+    def max_year_month(self):
+        self._set_month_year()
+        year = self._df['year'].max()
+        month = self._df[self._df['year'] == year]['month'].max()
+        return year, month
+
+    def years_months(self, project_id, group_id):
+        self.f_project(project_id, group_id)
+        result = dict() # dict of dcit
+        #self._set_month_year()
+        datetimes = list(self._df['datetime'])
+        for dt_string in datetimes:
+            #print(datetime.fromisoformat(dt_string))
+            dt = datetime.fromisoformat(dt_string)
+            year = dt.year
+            month = dt.month
+            if year not in result:
+                result[year] = dict()
+            result[year][month] = month
+
+        return {k:list(v) for k, v in result.items()}
+
+    def size(self):
+        return len(self._df)
+
+    def means(self):
+        ser_mean = self._df.mean(axis=0).round(2)
+        return ser_mean.to_list(), numpy.format_float_positional(ser_mean.mean(axis=0), precision=3)
+
+    def mads(self):
+        ser_mean = self._df.mad(axis=0).round(2)
+        return ser_mean.to_list(), numpy.format_float_positional(ser_mean.mean(axis=0), precision=3)
+
+    def unique(self, key):
+        return self._df[key].unique()
+
+    def __str__(self):
+        return str(self._df)
+
+
+# Not in use
+class Survey(object):
+
+    def __init__(self, date_time, project_id, group_id):
+        self._date_time = datetime.fromisoformat(date_time)
+        self._project_id = project_id
+        self._group_id = group_id
+        self._a_qs = list()
+
+    def project_id(self):
+        return self._project_id
+
+    def team_id(self):
+        return self._group_id
+
+    def year(self):
+        return self._date_time.year
+
+    def month(self):
+        return self._date_time.month
+
+    """
+    @staticmethod
+    def create_surveis(a_q_list):
+        result = dict()
+        for a_q in a_q_list:
+            a_q_id =  a_q.id()
+            if a_q_id not in result:
+                result[a_q_id] = Survey()
+            result[a_q_id].add_a_q(a_q)
+        return result
+    """
+
+    def add_a_q(self, a_q):
+        self._a_qs.append(a_q)
+
+    def answers(self):
+        return self._a_qs
+
+    def __str__(self):
+        return self._project_id +" / "+ self._group_id + " / " + str(self._date_time)
+
+
+class AnsweredQuestion(object):
+
+    def __init__(self, _answer, _original_answer):
+        self._question_object = None
+        self._original_answer = _original_answer
+        self._adapted_answer = _answer
+        self._factor = None
+        self._survey_id = None
+
+    def set_question(self, question_obj):
+        self._question_object = question_obj
+
+    def id(self):
+        return self._question_object.code()
+
+    def adapted_answer(self):
+        return self._adapted_answer
+
+    def category(self):
+        return self._question_object.category()
+
+    def question_obj(self):
+        return self._question_object
+
+    def original_answer(self):
+        return self._original_answer
+
+    def set_survey_id(self, _id):
+        self._survey_id = _id
+
+    def survey_id(self):
+        return self._survey_id
+
+    def set_factor(self, factor):
+        self._factor = factor
+
+    def factor(self):
+        return self._factor
+
+    def __str__(self):
+        return self._factor+ ". " + str(self._question_object) + " " + str(self._original_answer) + "/" + str(self._adapted_answer)
 
 
 class TestsResult(object):
 
     def __init__(self, questions_number = 9, q_repo = None):
-        self._questions = dict() # avoid duplicates
+        """
+        :param questions_number:
+        :param q_repo: tappraisal::QuestionRepository object
+        """
+        #self._questions = dict() # avoid duplicates
         self._answers = list()
-        self._original_answers = list()
+        #self._original_answers = list()
         self._answers_id = list()
         self._q_repo = q_repo
         self._answers_number = questions_number
+        self._url_answers = list() #A013B021C114...
+        self._answered_questions = list()
+        self._surveys = list() # Survey objects
+
+    def url_answers(self):
+        return self._url_answers
 
     def add_test_answer(self, result_line):
         """
@@ -21,12 +214,26 @@ class TestsResult(object):
         :return:
         """
         data = result_line.split('/')
-        answers_list = self._extract_answers(data[3])
-        original_answers_list = self._extract_original_answers(data[3])
+        self._url_answers.append(data[3])
+        answers_list, original_answers_list = self._extract_answers(data[3]) # Cambiar esto
 
         if len(answers_list) < self._answers_number:
             #print("No hay las suficientes repsuestas")
             return
+
+        # Prueba
+        survey = Survey(data[0], data[1], data[2]) # not in use yet
+        self._surveys.append(survey)
+        answers_id_list = self._extract_ids(data[3])
+        questions_dict = self._q_repo.as_dict()
+        test_struct = get_test_structure()
+        for answer_index in range(0, len(answers_list)):
+            aq = AnsweredQuestion(answers_list[answer_index], original_answers_list[answer_index])
+            aq.set_question(questions_dict[answers_id_list[answer_index]])
+            aq.set_factor(test_struct[aq.id()[0]])
+            #aq.set_survey_id(int(len( self._answered_questions ) / self._answers_number))
+            self._answered_questions.append(aq) # Esto tiene que ser un survey
+            survey.add_a_q(aq)
 
         # Todo evitar esta duplicidad.
         #
@@ -36,12 +243,12 @@ class TestsResult(object):
         answers_dict['team_id'] = data[2]
         self._answers.append(answers_dict)
 
-        answers_dict = {k: original_answers_list[k-1] for k in range(1, len(original_answers_list)+1) }
-        answers_dict['datetime'] = data[0]
-        answers_dict['project_id'] = data[1]
-        answers_dict['team_id'] = data[2]
+        #answers_dict = {k: original_answers_list[k-1] for k in range(1, len(original_answers_list)+1) }
+        #answers_dict['datetime'] = data[0]
+        #answers_dict['project_id'] = data[1]
+        #answers_dict['team_id'] = data[2]
         #print(answers_dict)
-        self._original_answers.append(answers_dict)
+        #self._original_answers.append(answers_dict)
 
         answers_id_list = self._extract_ids(data[3])
         answers_dict = {k: answers_id_list[k - 1] for k in range(1, len(answers_id_list) + 1)}
@@ -50,9 +257,10 @@ class TestsResult(object):
         answers_dict['team_id'] = data[2]
         self._answers_id.append(answers_dict)
 
-    def _get_answer_value(self, value_str, category, code):
+
+    def _get_answer_value(self, value_str, code):
         value = int(value_str)
-        question = self._q_repo.get_question(category, code)
+        question = self._q_repo.get_question(code)
         if question.is_positive():
             return value
         return 6 - value
@@ -67,38 +275,15 @@ class TestsResult(object):
 
     def _extract_answers(self, q_url):
         answers = list()
+        org_answers = list()
         for token in self._extract_tokens(q_url):
             q_id = token[0:3]
-            category = q_id[0]
-            answer_value = self._get_answer_value(token[3], category, q_id)
-            #answer_value = token[3]
-
-            if q_id not in self._questions:
-                self._questions[q_id] = list()
-            self._questions[q_id].append(answer_value)
+            answer_value = self._get_answer_value(token[3], q_id)
+            org_answer_value = int(token[3])
 
             answers.append(answer_value) # Cambiar esto por si la pregunta es negativa
-        return answers
-
-    def _extract_original_answers(self, q_url):
-        """
-        TODO. evitar esta duplicidad de código
-        :param q_url:
-        :return:
-        """
-        answers = list()
-        for token in self._extract_tokens(q_url):
-            q_id = token[0:3]
-            category = q_id[0]
-            #answer_value = self._get_answer_value(token[3], category, q_id)
-            answer_value = int(token[3])
-
-            if q_id not in self._questions:
-                self._questions[q_id] = list()
-            self._questions[q_id].append(answer_value)
-
-            answers.append(answer_value) # Cambiar esto por si la pregunta es negativa
-        return answers
+            org_answers.append(org_answer_value) # Cambiar esto por si la pregunta es negativa
+        return answers, org_answers
 
     def _extract_ids(self, q_url):
         tokens = self._extract_tokens(q_url)
@@ -106,6 +291,17 @@ class TestsResult(object):
 
     def __str__(self):
         return str(self._answers)
+
+    def get_answered_questions_dict(self):
+        return {answer.id(): answer for answer in self._answered_questions}
+
+    """
+    def get_answered_questions(self):
+        return self._answered_questions
+    """
+
+    def get_surveys(self):
+        return self._surveys
 
     def create_dataframe(self, project= None, group = None, data = None, year=None, month=None):
         """
@@ -123,50 +319,39 @@ class TestsResult(object):
         if data is None:
             data = self._answers
             #print(data)
-        df_tmp = pd.DataFrame(data)
 
-        if year is not None:
-            year = int(year)
-            month = int(month)
-            import datetime
-            df_tmp['month'] = df_tmp['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
-            df_tmp['year'] = df_tmp['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
-            #print("year", year, "month", month, "\n", df_tmp)
-            df_tmp = df_tmp[(df_tmp['year'] == year) & (df_tmp['month'] == month)]
-            #print("df_tmp", df_tmp)
+        df = DF.create(data)
+        #print("DF:", df.dataframe())
+        df.f_year_month(year, month)
 
         if project is None:
-            return df_tmp
-
-        df_tmp = df_tmp[ df_tmp['project_id'] == project ]
+            return df.dataframe()
+        df.f_by('project_id', project)
+        #print("DF:", df.dataframe())
 
         if group is None:
-            return df_tmp
+            return df.dataframe()
+        df.f_by('team_id', group)
 
-        #print(df_tmp[ df_tmp['team_id'] == group ])
-        return df_tmp[ df_tmp['team_id'] == group ]
+        return df.dataframe()
 
     def create_ids_dataframe(self, project = None, group = None, year=None, month=None):
         """
         T    1    2    3    4  ...    9                    datetime project_id team_id
-0  A06  B08  C09  C12  ...  G01  2021-02-08 17:39:16.088294    GIMO-PD     T01
-1  A06  B07  C13  C12  ...  G02  2021-02-08 17:39:16.090003    GIMO-PD     T01
+        0  A06  B08  C09  C12  ...  G01  2021-02-08 17:39:16.088294    GIMO-PD     T01
+        1  A06  B07  C13  C12  ...  G02  2021-02-08 17:39:16.090003    GIMO-PD     T01
 
         :return: a dataframe with de ids of the questions instead their answer.
         """
-
-        #df_tmp = pd.DataFrame(self._answers_id)
-        #if project is None:
-            #return df_tmp
-        #return df_tmp[df_tmp['project_id'] == project]
         return self.create_dataframe(project, group, self._answers_id, year=year, month=month)
 
+    """ # Deprecated
     def question_answers(self, project = None):
-        """
+       
         :param project:
         :return: A dict. Keys are questions as string and values the list of original answers. Example:
             {'A06.Precondiciones. Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.': [5, 5]}
-        """
+   
         # Esto tiene que estar fuera
         test_struct = get_test_structure()
         df_tmp = self.create_ids_dataframe(project)
@@ -192,12 +377,38 @@ class TestsResult(object):
                     question_answers[key] = list()
                     question_answers[key].append(ansewr)
         return question_answers
+    """
 
     def question_answers_to_view(self, project, team, year=None, month=None):
         """
+        Returns original ansers, true value for negative questions.
         :param project:
+        :param team:
+        :param year:
+        :param month:
         :return:
         """
+        questions_answers_view = QuestionsAnswersView()
+        # Esto tiene que estar fuera
+        test_struct = get_test_structure()
+        answers_dict = self.get_answered_questions_dict()
+
+        df_tmp = self.create_ids_dataframe(project, team, year, month)
+        df_ids = df_tmp[df_tmp.columns[0:self._answers_number]]
+
+        for i in range(0, len(df_ids)):
+            for j in range(0, 9):
+                id_answer = df_ids.iloc[i].iat[j]
+                answer_obj = answers_dict[id_answer]
+                questions_answers_view.add(answer_obj.question_obj(), test_struct[answer_obj.category()], answer_obj.original_answer())
+
+        return questions_answers_view
+
+    """
+    def old_question_answers_to_view(self, project, team, year=None, month=None):
+
+        :return: A View::QuestionsAnswersView object
+        
         questions_answers_view = QuestionsAnswersView()
         # Esto tiene que estar fuera
         test_struct = get_test_structure()
@@ -217,10 +428,11 @@ class TestsResult(object):
                 ansewr = df_qs.iloc[i].iat[j]
                 id = df_ids.iloc[i].iat[j]
                 #print("-", test_struct[questions[id].category()]+". "+questions[id].text()+str(ansewr))
-                questions_answers_view.add(id, test_struct[questions[id].category()], questions[id].text(), ansewr)
+                questions_answers_view.add(questions[id], test_struct[questions[id].category()],  ansewr)
 
         #print("questions_answers_view", questions_answers_view)
         return questions_answers_view
+    """
 
     def original_answers(self):
         return self._original_answers
@@ -229,22 +441,8 @@ class TestsResult(object):
         return self._answers_id
 
     def years_months(self, project_id, group_id):
-        df = self.create_dataframe(project_id, group_id)
-        result = dict() # dict of dcit
-        datetimes = list(df['datetime'])
-        for dt_string in datetimes:
-            #print(datetime.fromisoformat(dt_string))
-            dt = datetime.fromisoformat(dt_string)
-            year = dt.year
-            month = dt.month
-            if year not in result:
-                result[year] = dict()
-            result[year][month] = month
-
-        y_m = dict()
-        for k, v in result.items():
-            y_m[k] = list(v)
-        return y_m
+        df = DF.c_dataframe(self.create_dataframe(project_id, group_id))
+        return df.years_months(project_id, group_id)
 
 
 class _FactorAnalisys(object):
@@ -281,57 +479,34 @@ class _FactorAnalisys(object):
 class RadarAnalysis(object):
 
     def __init__(self):
-        self._test_struct = {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Dependabilidad": [5, 6],
-                             "Estructura y claridad":[7], "Significado": [8], "Impacto": [9]}
-        #self._result = None
+        self._test_struct = {"Precondiciones": [1, 2], "Seguridad sicológica": [3, 4],
+                             "Compromiso con el trabajo": [5, 6],
+                             "Perfiles y responsabilidad": [7], "Resultados significativos": [8],
+                             "Propósito e impacto": [9]}
         self._date_info= None
-        #self._has_answers = False
         self._factor_analisys = _FactorAnalisys()
         self._df = None
+        self._results = None
 
-    # Deprecated
-    def _add_result(self, main_key, sub_key, float_list):
-        trunc_list = [str(n)[:5] for n in float_list]
-        self._result[main_key][sub_key] = trunc_list
-
-
-    def _filter_ids(self, id_proj, id_team):
-        self._df = self._df[self._df['project_id'] == id_proj]
-        self._df = self._df[self._df['team_id'] == id_team]
-
-    def _set_month_year(self):
-        import datetime
-        self._df['month'] = self._df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
-        self._df['year'] = self._df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
-
-    def _get_year_month(self):
-
-        year = self._df['year'].max()
-        month = self._df[self._df['year'] == year]['month'].max()
-        return year, month
-
-    def _filter(self, year = None, month = None):
-        dated_df = self._df[(self._df['year'] == year) & (self._df['month'] == month)]
-
-        self._date_info = dict()
-        self._date_info['year'] = year
-        self._date_info['month'] = month
-        self._date_info['answers_num'] = len(dated_df)
-
-        return dated_df
-
-    def _historic_data(self, factor_name, factor, report):
-        years = self._df['year'].unique()
+    def _historic_data(self, factor_name, factor, report, df, years):
+        #print("Years:", years)
         for year in years:
-            months = self._df[self._df['year'] == year].month.unique()
+            df_tmp = df.copy()
+            df_tmp.f_by('year', year)
+            #print("months", df_tmp.unique('month'))
+            months = df_tmp.unique('month')
             for month in months:
-                df_tmp = self._filter(year, month)
-                df_factor = df_tmp[factor]
-                #print(year, month, factor, df_factor.mean(axis=0).mean(axis=0))
-                #print(df_factor)
-                #print("Len:", len(df_factor))
-                report.with_factor(factor_name).add_historical_serie(year, month, len(df_factor), df_factor.mean(axis=0).mean(axis=0), df_factor.mad(axis=0).mean(axis=0))
+                df_month = df_tmp.copy()
+                df_month.f_year_month(year, month)
+                df_view = df_month.view(factor)
+                report.with_factor(factor_name).add_historical_serie(year, month, df_view.size(), df_view.means()[1], df_view.mads()[1])
 
+    def generate_report(self, results, id_proj, id_team, year = None, month = None):
+        self._results = results
+        df = results.create_dataframe(project=id_proj, group=id_team, year = year, month = month)
+        return self.analyze(df, id_proj, id_team, year = None, month = None)
+
+    # Move to inner
     def analyze(self, p_dataframe, id_proj, id_team, year = None, month = None):
         """
         Formato del dataframe de entrada
@@ -341,64 +516,43 @@ class RadarAnalysis(object):
             2  5  5  5  5  0  0  5  5  5  2021-01-09 20:23:14.744930         01      01
 
         :param dataframe:
-        :return:
-        Data: { característica: {answer: [[.....], [....]], mean [...] mad [...] analysis: "......" } }
-        Date_info: {'year': 2021, 'month': 1, 'answers_num': 1}
+        :return: ReportView object
         """
         report = ReportView()
-        self._df = p_dataframe
-        self._filter_ids(id_proj, id_team)
-        self._set_month_year()
+        df_org = DF.c_dataframe(p_dataframe)
+        df_org.f_project(id_proj, id_team)
+        df = df_org.copy()
 
         if year is None or month is None:
-            #print("Is None")
-            year, month = self._get_year_month()
-        else:
-            year = int(year)
-            month = int(month)
-        dataframe = self._filter(year, month)
+        # print("Is None")
+            year, month = df.max_year_month()
+            df.f_year_month(year, month)
 
-        #print(self._df)
-        #print("Dataframe", dataframe)
-        #print(len(dataframe))
-        report.answers_len(len(dataframe))
-
-        #print("Dataframe: \n", dataframe)
+        report.answers_len(df.size())
+        # print("Dataframe: \n", dataframe)
+        df_all = self._results.create_dataframe(project=id_proj, group=id_team)
+        df_object = DF.c_dataframe(df_all)
+        df_object._set_month_year()
+        years = df_object.unique('year')
         for k, v in self._test_struct.items():
-            #self._result[k] = dict()
-            #print("V ", v,"\n Dataframe: \n", dataframe)
-            df_factor = dataframe[v]
+            # print("V ", v,"\n Dataframe: \n", dataframe)
+            df_factor = df.view(v)
+            # print("--", k)
+            mean_list, mean = df_factor.means()
+            report.with_factor(k).add_means(mean_list, mean)
 
-            #answers = list()
-            #for i in range(0, len(df_factor)):
-                #answers.append(df_factor.iloc[i]. to_list())
-            #self._result[k]['answer'] = answers
-            #report.with_factor(k).add_answers(answers)
+            mad_list, mad = df_factor.mads()
+            report.with_factor(k).add_mads(mad_list, mad)
 
-            #print("--", k)
-            ser_mean = df_factor.mean(axis=0)
-            #print("Means: ", ser_mean, " One mean", ser_mean.mean(axis=0))
-            #self._add_result(k,'mean', ser_mean.to_list())
-            report.with_factor(k).add_means(ser_mean.to_list(), ser_mean.mean(axis=0))
+            # print("Desviaciones medias:\n",ser_mad)
+            report.with_factor(k).add_analysis(self._factor_analisys.stats_analysis(mean_list, mad_list))
 
-            #print("Medias:\n", ser_mean)
-            ser_mad = df_factor.mad(axis=0)
-            #self._add_result(k,'mad', ser_mad.to_list())
-            report.with_factor(k).add_mads(ser_mad.to_list(), ser_mad.mean(axis=0))
-
-            #print("Desviaciones medias:\n",ser_mad)
-            #self._result[k]['analysis'] = self._factor_analisys.stats_analysis(ser_mean, ser_mad)
-            #report.with_factor(k).add_analysis(self._result[k]['analysis'])
-            report.with_factor(k).add_analysis(self._factor_analisys.stats_analysis(ser_mean, ser_mad))
-
-            self._historic_data(k, v, report)
+            self._historic_data(k, v, report, df_object, years)
 
         report.year(year)
         report.month(month)
 
-        #return self._result, self._date_info
         return report
-
 
 
 def _load_answers(questions_repo, filename = "data.txt"):
@@ -416,21 +570,22 @@ def _load_answers(questions_repo, filename = "data.txt"):
 ## Facade methods
 
 def generate_report(test_results, id_proj, id_team, year, month):
-    df = test_results.create_dataframe()
+    #df = test_results.create_dataframe()
     ra = RadarAnalysis()
     #data_report, date_info = ra.analyze(df, id_proj, id_team, year, month)
-    return ra.analyze(df, id_proj, id_team, year, month)
+    #return ra.analyze(df, id_proj, id_team, year, month)
+    return ra.generate_report(test_results, id_proj, id_team, year, month)
 
-
+#Deprecated
+"""
 def questions_answers(test_results, id_proj, id_team):
-    """
 
     :param test_results:
     :param id_proj:
     :param id_team:
     :return: A list of strings like this:
         'G02.Impacto. Siento que tenemos los suficientes objetivos para poder estar centrados.:[5]'
-    """
+
     #test_results = _load_answers(questions_repo)
     q_a_dict = test_results.question_answers(id_proj)
     sorted_keys = sorted(q_a_dict.keys())
@@ -438,4 +593,4 @@ def questions_answers(test_results, id_proj, id_team):
     for key in sorted_keys:
         q_a_list.append(key + ":" + str(q_a_dict[key]))
     return q_a_list
-
+"""

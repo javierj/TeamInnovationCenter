@@ -2,19 +2,21 @@
 
 class QuestionsAnswersView(object):
 
-    def __init__(self):
+    def __init__(self): # TODO use quetsion object
         self._cats = dict()
         self._texts = dict()
         self._answers = dict()
+        self._questions = dict()
 
-    def add(self, question_id, questions_category, question_text, answer):
-        if questions_category not in self._cats:
-            self._cats[questions_category] = dict()
-        self._cats[questions_category][question_id] = question_id
-        self._texts[question_id] = question_text
-        if question_id not in self._answers:
-            self._answers[question_id] = list()
-        self._answers[question_id].append(answer)
+    def add(self, question_obj, category, answer):
+        if category not in self._cats:
+            self._cats[category] = dict()
+        self._cats[category][question_obj.code()] = question_obj.code()
+        self._texts[question_obj.code()] = question_obj.text()
+        if question_obj.code() not in self._answers:
+            self._answers[question_obj.code()] = list()
+        self._answers[question_obj.code()].append(answer)
+        self._questions[question_obj.code()] = question_obj
 
     def categories(self):
         return list(self._cats.keys())
@@ -28,8 +30,14 @@ class QuestionsAnswersView(object):
     def question_answers(self, p_id):
         return self._answers[p_id]
 
+    def question_obj(self, p_id):
+        return self._questions[p_id]
+
     def has_answers(self):
         return len(self._cats) > 0
+
+    def contains(self, id):
+        return id in self._questions
 
     def __str__(self):
         return str(self._cats)
@@ -86,6 +94,7 @@ class _Factor(object):
 
     def get_historical_serie(self, index):
         return self._his_year[index], self._his_month[index], self._his_answers_num[index], self._his_mean[index], self._his_mad[index]
+
 
 class ReportView(object):
 
