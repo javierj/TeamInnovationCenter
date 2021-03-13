@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy
 from tappraisal import _get_full_filename, get_test_structure
-from view import QuestionsAnswersView, ReportView
+from view import QuestionsAnswersView, ReportView, HierarchicalGroups, MONTHS
 from datetime import datetime
 
 
@@ -63,10 +63,12 @@ class DF(object):
 
     def max_year_month(self):
         self._set_month_year()
+        #print(self._df)
         year = self._df['year'].max()
         month = self._df[self._df['year'] == year]['month'].max()
         return year, month
 
+    """
     def years_months(self, project_id, group_id):
         self.f_project(project_id, group_id)
         result = dict() # dict of dcit
@@ -82,6 +84,7 @@ class DF(object):
             result[year][month] = month
 
         return {k:list(v) for k, v in result.items()}
+    """
 
     def size(self):
         return len(self._df)
@@ -101,7 +104,6 @@ class DF(object):
         return str(self._df)
 
 
-# Not in use
 class Survey(object):
 
     def __init__(self, date_time, project_id, group_id):
@@ -121,18 +123,6 @@ class Survey(object):
 
     def month(self):
         return self._date_time.month
-
-    """
-    @staticmethod
-    def create_surveis(a_q_list):
-        result = dict()
-        for a_q in a_q_list:
-            a_q_id =  a_q.id()
-            if a_q_id not in result:
-                result[a_q_id] = Survey()
-            result[a_q_id].add_a_q(a_q)
-        return result
-    """
 
     def add_a_q(self, a_q):
         self._a_qs.append(a_q)
@@ -203,6 +193,7 @@ class TestsResult(object):
         self._url_answers = list() #A013B021C114...
         self._answered_questions = list()
         self._surveys = list() # Survey objects
+        self.test_struct = get_test_structure()
 
     def url_answers(self):
         return self._url_answers
@@ -226,11 +217,11 @@ class TestsResult(object):
         self._surveys.append(survey)
         answers_id_list = self._extract_ids(data[3])
         questions_dict = self._q_repo.as_dict()
-        test_struct = get_test_structure()
+
         for answer_index in range(0, len(answers_list)):
             aq = AnsweredQuestion(answers_list[answer_index], original_answers_list[answer_index])
             aq.set_question(questions_dict[answers_id_list[answer_index]])
-            aq.set_factor(test_struct[aq.id()[0]])
+            aq.set_factor(self.test_struct[aq.id()[0]])
             #aq.set_survey_id(int(len( self._answered_questions ) / self._answers_number))
             self._answered_questions.append(aq) # Esto tiene que ser un survey
             survey.add_a_q(aq)
@@ -243,13 +234,6 @@ class TestsResult(object):
         answers_dict['team_id'] = data[2]
         self._answers.append(answers_dict)
 
-        #answers_dict = {k: original_answers_list[k-1] for k in range(1, len(original_answers_list)+1) }
-        #answers_dict['datetime'] = data[0]
-        #answers_dict['project_id'] = data[1]
-        #answers_dict['team_id'] = data[2]
-        #print(answers_dict)
-        #self._original_answers.append(answers_dict)
-
         answers_id_list = self._extract_ids(data[3])
         answers_dict = {k: answers_id_list[k - 1] for k in range(1, len(answers_id_list) + 1)}
         answers_dict['datetime'] = data[0]
@@ -258,6 +242,7 @@ class TestsResult(object):
         self._answers_id.append(answers_dict)
 
 
+    # Mover esto al repo - No puedo ir al report porque no sé su value
     def _get_answer_value(self, value_str, code):
         value = int(value_str)
         question = self._q_repo.get_question(code)
@@ -294,11 +279,6 @@ class TestsResult(object):
 
     def get_answered_questions_dict(self):
         return {answer.id(): answer for answer in self._answered_questions}
-
-    """
-    def get_answered_questions(self):
-        return self._answered_questions
-    """
 
     def get_surveys(self):
         return self._surveys
@@ -345,40 +325,6 @@ class TestsResult(object):
         """
         return self.create_dataframe(project, group, self._answers_id, year=year, month=month)
 
-    """ # Deprecated
-    def question_answers(self, project = None):
-       
-        :param project:
-        :return: A dict. Keys are questions as string and values the list of original answers. Example:
-            {'A06.Precondiciones. Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.': [5, 5]}
-   
-        # Esto tiene que estar fuera
-        test_struct = get_test_structure()
-        df_tmp = self.create_ids_dataframe(project)
-        df_ids = df_tmp[df_tmp.columns[0:self._answers_number]]
-
-        #print(self._original_answers)
-
-        df_tmp = self.create_dataframe(project, data= self._original_answers)
-        #print(df_tmp)
-        df_qs = df_tmp[df_tmp.columns[0:self._answers_number]]
-
-        questions = self._q_repo.as_dict()
-        question_answers = dict()
-        for i in range(0,len(df_ids)):
-            for j in range(0, 9):
-                ansewr = df_qs.iloc[i].iat[j]
-                id = df_ids.iloc[i].iat[j]
-                #print(test_struct[questions[id].category()]+". "+questions[id].text()+str(ansewr))
-                key = id+"."+test_struct[questions[id].category()]+". "+questions[id].text()
-                if key in question_answers:
-                    question_answers[key].append(ansewr)
-                else:
-                    question_answers[key] = list()
-                    question_answers[key].append(ansewr)
-        return question_answers
-    """
-
     def question_answers_to_view(self, project, team, year=None, month=None):
         """
         Returns original ansers, true value for negative questions.
@@ -404,46 +350,17 @@ class TestsResult(object):
 
         return questions_answers_view
 
-    """
-    def old_question_answers_to_view(self, project, team, year=None, month=None):
-
-        :return: A View::QuestionsAnswersView object
-        
-        questions_answers_view = QuestionsAnswersView()
-        # Esto tiene que estar fuera
-        test_struct = get_test_structure()
-        df_tmp = self.create_ids_dataframe(project, team, year, month)
-        #print("df_tmp\n", df_tmp)
-        df_ids = df_tmp[df_tmp.columns[0:self._answers_number]]
-        #print("df_ids\n", df_ids)
-        #print("_original_answers", self._original_answers)
-
-        df_tmp = self.create_dataframe(project, group = team, year=year, month=month, data= self._original_answers)
-        #print("project:", project, "\n", df_tmp)
-        df_qs = df_tmp[df_tmp.columns[0:self._answers_number]]
-
-        questions = self._q_repo.as_dict()
-        for i in range(0,len(df_ids)):
-            for j in range(0, 9):
-                ansewr = df_qs.iloc[i].iat[j]
-                id = df_ids.iloc[i].iat[j]
-                #print("-", test_struct[questions[id].category()]+". "+questions[id].text()+str(ansewr))
-                questions_answers_view.add(questions[id], test_struct[questions[id].category()],  ansewr)
-
-        #print("questions_answers_view", questions_answers_view)
-        return questions_answers_view
-    """
-
     def original_answers(self):
         return self._original_answers
 
     def id_quesions(self):
         return self._answers_id
 
+    """
     def years_months(self, project_id, group_id):
         df = DF.c_dataframe(self.create_dataframe(project_id, group_id))
         return df.years_months(project_id, group_id)
-
+    """
 
 class _FactorAnalisys(object):
 
@@ -504,6 +421,7 @@ class RadarAnalysis(object):
     def generate_report(self, results, id_proj, id_team, year = None, month = None):
         self._results = results
         df = results.create_dataframe(project=id_proj, group=id_team, year = year, month = month)
+        #print("generate_report.df=", df)
         return self.analyze(df, id_proj, id_team, year = None, month = None)
 
     # Move to inner
@@ -526,6 +444,7 @@ class RadarAnalysis(object):
         if year is None or month is None:
         # print("Is None")
             year, month = df.max_year_month()
+            #print("Max: ", year, month)
             df.f_year_month(year, month)
 
         report.answers_len(df.size())
@@ -576,21 +495,23 @@ def generate_report(test_results, id_proj, id_team, year, month):
     #return ra.analyze(df, id_proj, id_team, year, month)
     return ra.generate_report(test_results, id_proj, id_team, year, month)
 
-#Deprecated
-"""
-def questions_answers(test_results, id_proj, id_team):
 
-    :param test_results:
-    :param id_proj:
-    :param id_team:
-    :return: A list of strings like this:
-        'G02.Impacto. Siento que tenemos los suficientes objetivos para poder estar centrados.:[5]'
+def load_surveys_overview(project_id, team_id, filename = "data.txt"):
+    surveys_overview = HierarchicalGroups()
+    file_name = _get_full_filename(filename)
+    file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
+    for line in file:
+        data = line.split('/')
+        if len(data) >= 5:
+            test_type = data[4]
+        else:
+            test_type = "RADAR-9"
+        survey = Survey(date_time = data[0], project_id=project_id, group_id=team_id)
+        if project_id == data[1] and team_id == data[2]:
+            surveys_overview.begin().add_group(survey.year()).add_group(survey.month()).add_group(test_type).inc_counter()
+            #surveys_overview.begin().add_group(survey.year()).add_group(MONTHS[survey.month()]).add_group(test_type).inc_counter()
+            # si lo pongo con nombre, en vez de número, no genera bien la URL para acceder al report.
 
-    #test_results = _load_answers(questions_repo)
-    q_a_dict = test_results.question_answers(id_proj)
-    sorted_keys = sorted(q_a_dict.keys())
-    q_a_list = list()
-    for key in sorted_keys:
-        q_a_list.append(key + ":" + str(q_a_dict[key]))
-    return q_a_list
-"""
+    file.close()
+    return surveys_overview
+

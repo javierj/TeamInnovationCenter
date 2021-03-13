@@ -40,7 +40,7 @@ class TestData(object):
         for i in range(0, answer_len):
             tmp = q_url[(4*i):(4*i)+4]
             q_id = tmp[0:3]
-            answer = tmp[3]
+            #answer = tmp[3]
             category = q_id[0]
 
             if category not in self._questions:
@@ -85,9 +85,9 @@ class TestQuestion(object):
 
 class AppraisalDirector(object):
 
-    def __init__(self, repo = None):
-        pass
+    def __init__(self, repo = None, save_method = _save_data):
         self._questions_repo = repo
+        self._save_data_method = save_method
 
     def _random_question_from(self, cat, data):
         ids = data.ids_set()
@@ -105,7 +105,7 @@ class AppraisalDirector(object):
         """
 
         if data.len_questions() == 9: # 9 preguntas
-            _save_data(data)
+            self._save_data_method(data)
             return None
 
         if data.len_questions_in("A") == 0:
@@ -199,6 +199,38 @@ def load_questions():
 
     return repo
 
+##--- Aún no está en uso -------------------------------
+
+class SurveyStructure(object):
+
+    def __init__(self):
+        self._structure = {'A': 1, 'B': 2, 'C': 3, 'D': 4,
+                       'E': 5, 'F': 6, 'G': 1}
+        self._questions_x_factor = {'A': 1, 'B':1, 'C':2, 'D':2, 'E':1, 'F':1, 'G': 1} # Test original
+        self._factor_names = ["Precondiciones", "Precondiciones", "Seguridad sicológica", "Compromiso con el trabajo",
+                       "Perfiles y responsabilidad", "Resultados significativos",  "Propósito e impacto"]
+        self._questions = sum(self._questions_x_factor.values())
+
+    def _set(self, questions_x_factor):
+
+            #self._structure = {'A': 1, 'B': 2, 'C': 3, 'D': 4,
+                               #'E': 5, 'F': 6, 'G': 1}
+        self._questions_x_factor = questions_x_factor
+            #self._factor_names = ["Precondiciones", "Precondiciones", "Seguridad sicológica",
+                               #   "Compromiso con el trabajo",
+                               #   "Perfiles y responsabilidad", "Resultados significativos", "Propósito e impacto"]
+        self._questions = sum(self._questions_x_factor.values())
+
+
+    def factor_next_question(self, data):
+        for name, question_num in self._questions_x_factor.items():
+            if data.len_questions_in(name) < question_num:
+                return name
+        return None
+
+    def questions(self):
+        return self._questions
+
 
 def get_test_structure():
     # RADAR-9
@@ -209,3 +241,11 @@ def get_test_structure():
     self._test_struct = {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Compromiso con el trabajo": [5, 6],
                              "Perfiles y responsabilidad":[7], "Resultados significativos": [8], "Propósito e impacto": [9]}
     """
+
+
+def build_survey_structure(survey_name = "RADAR-9"):
+    ss = SurveyStructure()
+    if survey_name == "RADAR-9":
+        ss._set({'A': 1, 'B': 1, 'C': 2, 'D': 2, 'E': 1, 'F': 1, 'G': 1})
+
+    return ss

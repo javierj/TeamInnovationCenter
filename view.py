@@ -1,4 +1,7 @@
 
+# 0 not in use
+MONTHS =("", "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
+
 
 class QuestionsAnswersView(object):
 
@@ -93,7 +96,9 @@ class _Factor(object):
         return len(self._his_year)
 
     def get_historical_serie(self, index):
-        return self._his_year[index], self._his_month[index], self._his_answers_num[index], self._his_mean[index], self._his_mad[index]
+        global MONTHS
+        #print(int(self._his_month[index]))
+        return self._his_year[index], MONTHS[ int(self._his_month[index]) ], self._his_answers_num[index], self._his_mean[index], self._his_mad[index]
 
 
 class ReportView(object):
@@ -129,7 +134,8 @@ class ReportView(object):
         return self._year
 
     def get_month(self):
-        return self._month
+        global MONTHS
+        return MONTHS[ self._month ]
 
     def get_answers_len(self):
         return self._answers_len
@@ -142,3 +148,60 @@ class ReportView(object):
 
     def __str__(self):
         return str(self._factors)
+
+
+# Not in use
+class HierarchicalGroups(object):
+
+    def __init__(self):
+        self._root = dict()
+        self._actual = None # User must call begin
+
+    def begin(self):
+        self._actual = self._root
+        return self
+
+    def add_group(self, g_key):
+        if g_key not in self._actual:
+            self._actual[g_key] = dict()
+        return self.group(g_key)
+
+    def group(self, g_key):
+        self._actual = self._actual[g_key]
+        return self
+
+    def inc_counter(self):
+        if 'inc' not in self._actual:
+            self._actual['inc'] = 1
+            return 1
+        self._actual['inc'] = + self._actual['inc'] + 1
+
+    def keys(self):
+        return list(self._actual.keys())
+
+    def counter(self):
+        return self._actual['inc']
+
+    def __str__(self):
+        return str(self._root)
+
+        """
+        root.begin().add_key_value('year', '2021')
+        root.begin().key_value('year', '2021').add_key_value('month', '1')
+        root.begin().key_value('year', '2021').key_value('month', '1').add_key_value('report', 'RADAR-9')
+        root.begin().key_value('year', '2021').key_value('month', '1').key_value('report', 'RADAR-9').inc()
+        root.begin().key_value('year', '2021').key_value('month', '1').get()
+
+        root.begin().add_group('2021')
+        root.begin().group('2021').add_group('1')
+        root.begin().group('2021').group('1').add_group('RADAR-9')
+        root.begin().group('2021').group('1').group('RADAR-9').inc_counter()
+        root.begin().group('2021').group('1').get_keys()
+        root.begin().group('2021').group('1').get_keys()
+        root.begin().group('2021').group('1').group('RADAR-9').counter()
+
+        for year in root.begin().keys()
+            for month in root.begin().group(year).keys()
+
+        {'2021' : {'1': {'RADAR-9': 1}}}
+        """

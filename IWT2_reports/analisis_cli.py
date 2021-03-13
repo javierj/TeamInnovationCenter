@@ -2,7 +2,7 @@ import pandas as pd
 import numpy
 import xlwings as xw
 from tappraisal import load_questions, _get_full_filename
-from analysis import RadarAnalysis, _load_answers, DF
+from analysis import RadarAnalysis, _load_answers
 
 
 class Sheet(object):
@@ -59,9 +59,11 @@ def profile():
     # from pstats import SortKey, pstats
     import io
     # cProfile.run('ra.analyze(df, "01", "01")')
+    results = _load_answers(questions_repo, "IWT2_reports\\data.txt")
+    ra = RadarAnalysis()
     pr = cProfile.Profile()
     pr.enable()
-    ra.analyze(df, "01", "01")
+    _ = ra.generate_report(results, "01", "01")
     pr.disable()
     s = io.StringIO()
     ps = pstats.Stats(pr, stream=s)
@@ -73,6 +75,8 @@ def profile():
     # 20210302 - 263969 function calls (259795 primitive calls) in 0.147 seconds
     # 20210304 - 263969 function calls (259795 primitive calls) in 0.147 seconds
     # 20210304 - 216839 function calls (213195 primitive calls) in 0.117 seconds
+    # 20210305 - 222909 function calls (219202 primitive calls) in 0.118 seconds
+    # 20210310 - 222908 function calls (219201 primitive calls) in 0.134 seconds
 
 
 def load_question_cat(): # TODO Añadir esto al main.
@@ -103,6 +107,7 @@ def load_question_cat(): # TODO Añadir esto al main.
 
 
 # Deprecated
+"""
 def analize_categories(result):
     q_a_v = result.question_answers_to_view("01", "01", year=2021, month=2)
     cats, cat_questions = load_question_cat()
@@ -122,13 +127,13 @@ def analize_categories(result):
             df = DF.create({cat: answers_concat})
             print("Incorrectos - Media:", df.means(), "Desviación:", df.mads())
             # Estos datos son incorrectos porque usa q_a_v y ahí están las repsuestas originales, no adaptadas
-
+"""
 
 def filter_surveys(surveys):
     result = list()
     for survey in surveys:
         #print(survey)
-        if survey.project_id() == "01" and survey.team_id() == "01":
+        if survey.project_id() == "GIMO-PD" and survey.team_id() == "T01":
             #print(survey.year(), survey.month())
             if survey.year() == 2021 and survey.month() == 2:
                 #print(survey)
@@ -148,8 +153,7 @@ def get_answers_by_id(answers):
         result_adapted[key].append(a_question.adapted_answer())
     return result_original, result_adapted
 
-
-def analize_categories_2(results):
+def analize_categories_2(results, sheet):
     surveys = filter_surveys(results.get_surveys())
     answers = list()
     for survey in surveys:
@@ -159,12 +163,18 @@ def analize_categories_2(results):
     answers_dict = {a.id(): a for a in answers}
     cats, cat_questions = load_question_cat()
 
+    sheet.move_column(0)
+    sheet.set_column(0)
+    sheet.writeln("")
+    sheet.writeln("Respuestas por categorías")
     for cat, questions_id in cat_questions.items():
         print("--", cat)
+        sheet.writeln(cat)
         for q_id in questions_id:
             if q_id in answers_dict:
                 #print("questions_id", questions_id)
                 print(str(answers_dict[q_id].question_obj()), answers_org[q_id], answers_adp[q_id])
+                sheet.writeln(str(answers_dict[q_id].question_obj()), str(answers_org[q_id]))
 
         """
         answers_concat = list()
@@ -180,11 +190,13 @@ def analize_categories_2(results):
         """
 
 # Deprecated
+"""
 def search_by_answer(results, answer):
     urls = results.url_answers()
     for url in urls:
         if answer in url:
             print(answer, "in", url)
+"""
 
 def search_by_answer_2(results, answer_id, value):
     ansers = results.get_answered_questions()
@@ -201,10 +213,6 @@ def search_by_answer_2(results, answer_id, value):
         for answer in ansers:
             if answer.survey_id() == s_id:
                 print(answer)
-
-
-
-
 
 def answers_by_factor(surveys, factor):
     answer_answers = dict()
@@ -232,19 +240,20 @@ https://statisticsbyjim.com/hypothesis-testing/t-tests-excel/#:~:text=t%20Critic
 """
 sheet = Sheet()
 questions_repo = load_questions()
-#results = _load_answers(questions_repo, "IWT2_reports\\022021 - GIMO-PD.txt")
+print("GIMO-PD", "T01")
+results = _load_answers(questions_repo, "IWT2_reports\\022021 - GIMO-PD.txt")
 #print(results.create_ids_dataframe())
 #results = _load_answers(questions_repo, "IWT2_reports\\072021 - APPIMEDEA.txt")
 #results = _load_answers(questions_repo, "IWT2_reports\\012021 - AIRPA")
 #results = _load_answers(questions_repo, "IWT2_reports\\022021 - G7D.txt")
-results = _load_answers(questions_repo, "IWT2_reports\\data.txt")
+#results = _load_answers(questions_repo, "IWT2_reports\\data.txt")
 surveys = filter_surveys(results.get_surveys())
 #print(surveys)
 
 
 ra = RadarAnalysis()
-df = results.create_dataframe()
-data_report = ra.generate_report(results, "01", "01")
+#df = results.create_dataframe()
+data_report = ra.generate_report(results, "GIMO-PD", "T01")
 
 print("-----------------------")
 print("Surveys analizadas:", len(surveys))
@@ -273,20 +282,20 @@ print("------------------------------")
 
 # Lo repito para qu se vea más claro
 print("Preguntas y respuestas:")
-q_a_v = results.question_answers_to_view("01", "01", year="2021", month="02") # Year, month
+q_a_v = results.question_answers_to_view("GIMO-PD", "T01", year="2021", month="02") # Year, month
 sheet.set_column(2)
-sheet.writeln("Id", "Pregunta", "Respuestas", "Media", "Mediana")
+sheet.writeln("", "Id", "Pregunta", "Respuestas", "Media", "Desviación")
 
 for key, _ in data_report.iter_factors():
     answer_obj, answer_original_anwers, answer_answers  = answers_by_factor(surveys, key)
-
+    sheet.writeln(key)
     for a_id, answer in answer_obj.items():
         q_obj = answer.question_obj()
         means = numpy.mean(answer_answers[a_id])
         mads = numpy.std(answer_answers[a_id])
         print(q_obj, answer_original_anwers[a_id])
         print("Media", means , "Desviación estándar", mads)
-        sheet.writeln(q_obj.code(), q_obj.text(), str(answer_original_anwers[a_id]), str(means), str(mads))
+        sheet.writeln("", q_obj.code(), q_obj.text(), str(answer_original_anwers[a_id]), str(means), str(mads))
 
     """
     for question_id in q_a_v.questions_id(key):
@@ -306,8 +315,8 @@ print("Search A03 5:")
 #search_by_answer_2(results, "A03", 5) # Rehaer
 
 print("-----------------------------")
-analize_categories(results)
-analize_categories_2(results)
+print("Categorías de cada factor")
+#analize_categories_2(results, sheet)
 
 
 sheet.save()

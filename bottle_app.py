@@ -1,6 +1,6 @@
 from bottle import route, template, request, static_file, redirect, default_app
 from tappraisal import AppraisalDirector, TestData, load_questions
-from analysis import generate_report, _load_answers
+from analysis import generate_report, _load_answers, load_surveys_overview
 import os
 
 director = None
@@ -41,9 +41,13 @@ def iwt2_static():
 
 @route('/get_data')
 def get_data():
-    #data_file = _get_full_filename("data.txt")
     global BASE_DIR
     return static_file("data.txt", root=BASE_DIR)
+
+@route('/get_questions')
+def get_questions():
+    global BASE_DIR
+    return static_file("preguntas.txt", root=BASE_DIR)
 
 # Reducir el código de este método
 @route('/test/<org_id>/<project_id>/<questions>')
@@ -90,11 +94,12 @@ def report(org_id, project_id, year, month):
 
 @route('/selector/<org_id>/<project_id>/')
 def report_selector(org_id, project_id):
-    global director
-    test_results = _load_answers(director.get_repo())
-    month_year = test_results.years_months(org_id, project_id)  # "{'2020':[12], '2021': [1]}"
+    #global director
+    #test_results = _load_answers(director.get_repo())
+    #month_year = test_results.years_months(org_id, project_id)  # "{'2020':[12], '2021': [1]}"
+    surveys_overview = load_surveys_overview(org_id, project_id)
     base_url = _server_url()+"/report/"+org_id+"/"+project_id
-    return template('report_selector', org_id=org_id, project_id=project_id, month_year=month_year, base_url = base_url)
+    return template('report_selector', org_id=org_id, project_id=project_id, surveys_overview=surveys_overview, base_url = base_url)
 
 def set_up():
     global director

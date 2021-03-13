@@ -1,7 +1,7 @@
 import unittest
 
 from tappraisal import TestQuestion
-from view import QuestionsAnswersView, ReportView
+from view import QuestionsAnswersView, ReportView, HierarchicalGroups
 
 
 class TestQuestionsAnswersView(unittest.TestCase):
@@ -55,6 +55,58 @@ class TestReportView(unittest.TestCase):
         report.with_factor("factor").add_means(list(), "1.0")
         self.assertTrue(report.has_answers())
 
+
+class TestHierarchicalGroups(unittest.TestCase):
+
+    def setUp(self):
+        self._root = HierarchicalGroups()
+
+    def test_root_level(self):
+        self._root.begin().add_group('2021')
+        result = self._root.begin().keys()
+        self.assertEqual(['2021'], result)
+
+    def test_several_groups(self):
+        self._root.begin().add_group('2021')
+        self._root.begin().group('2021').add_group('1')
+        self._root.begin().group('2021').group('1').add_group('RADAR-9')
+        result = self._root.begin().group('2021').group('1').keys()
+        self.assertEqual(['RADAR-9'], result)
+
+    def test_add_several_groups(self):
+        self._root.begin().add_group('2021').add_group('1').add_group('RADAR-9')
+        result = self._root.begin().group('2021').group('1').keys()
+        self.assertEqual(['RADAR-9'], result)
+
+    def test_empty(self):
+        result = self._root.begin().keys()
+        self.assertEqual([], result)
+
+    def test_repeat_groups(self):
+        self._root.begin().add_group('2021')
+        self._root.begin().group('2021').add_group('1')
+        self._root.begin().group('2021').group('1').add_group('RADAR-9')
+
+        self._root.begin().add_group('2021')
+        result = self._root.begin().group('2021').group('1').keys()
+        self.assertEqual(['RADAR-9'], result)
+
+    def test_several_values(self):
+        self._root.begin().add_group('2021').add_group('1')
+        #self._root.begin().group('2021').add_group('1')
+        self._root.begin().group('2021').add_group('2')
+        self._root.begin().group('2021').add_group('3')
+        result = self._root.begin().group('2021').keys()
+        self.assertEqual(['1', '2', '3'], result)
+
+    def test_counter(self):
+        self._root.begin().add_group('2021')
+        self._root.begin().group('2021').add_group('1')
+        self._root.begin().group('2021').group('1').add_group('RADAR-9')
+        self._root.begin().group('2021').group('1').group('RADAR-9').inc_counter()
+        self._root.begin().group('2021').group('1').group('RADAR-9').inc_counter()
+        self._root.begin().group('2021').group('1').group('RADAR-9').inc_counter()
+        self.assertEqual(3, self._root.begin().group('2021').group('1').group('RADAR-9').counter())
 
 
 if __name__ == '__main__':

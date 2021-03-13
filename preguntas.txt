@@ -23,7 +23,7 @@ B04:No me veo capaz de realizar aportaciones valiosas en este proyecto.:N
 B05:No creo que sea capaz de aprender lo suficiente para  aportar algo útil a este proyecto.:N
 B06:Estoy adecuadamente formado para trabajar en este proyecto.:P
 B08:Siento que no estoy bien formado para trabajar en este proyecto.:N
-B07:Estoy adecuadamente formado, o puedo adquirir la formación que necesito para este poryecto mientras trabajo en el mismo.:P
+B07:Estoy adecuadamente formado, o puedo adquirir la formación que necesito para este proyecto mientras trabajo en el mismo.:P
 
 #-P03# Flujo (código FL)
 FL1:En general, puedo concentrarme para hacer mi trabajo.:P
