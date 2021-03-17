@@ -26,11 +26,24 @@ class Test_TestData(unittest.TestCase):
 
 class Test_QuestionRepository(unittest.TestCase):
 
+    def setUp(self):
+        self.repo = load_questions()
+
     def test_get_question(self):
-        repo = load_questions()
-        question_obj = repo.get_question("B01")
+        question_obj = self.repo.get_question("B01")
         expected = "B01:Siento que estoy preparado para hacer el trabajo que hago ahora mismo.:P"
         self.assertEqual(expected, str(question_obj))
+
+    def test_commit_question(self):
+        question = self.repo.commit_question("A01:Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P")
+        self.assertEqual("A01", question.code())
+        self.assertTrue(question.is_positive())
+
+    def test_get_category(self):
+        question_obj = self.repo.get_question("B01")
+        expected = "-P02. Precondiciones. Capacitación."
+        self.assertEqual(expected, question_obj.category_name())
+
 
 
 def _save_mock(data):
@@ -51,6 +64,13 @@ class Test_AppraisalDirector(unittest.TestCase):
         data = _test_data("A035B033C032C065D121D023E075F053G022")
         question = self.director.next_question(data)
         self.assertIsNone(question)
+
+    def test_ever_repeat_a_question(self):
+        data = _test_data("A035B033C032")
+        for index in range(0, 100):
+            question = self.director.next_question(data)
+            self.assertNotEqual("C03", question.code())
+            #print(question.code())
 
 
 class Test_SurveyStructure(unittest.TestCase):

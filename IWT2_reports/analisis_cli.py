@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy
 import xlwings as xw
 from tappraisal import load_questions, _get_full_filename
@@ -11,24 +10,29 @@ class Sheet(object):
         self._wb = xw.Book()  # this will create a new workbook
         self._sht = self._wb.sheets[0]
         self._x = 1
-        self._y = 1
+
         #self._areas = [[1, 1], [1, 8], [1, 14]]
         self._areas = [[1, 1], [10, 1], [1, 15]]
         self._current_area = 0
+        self._y = self._areas[self._current_area][1]
 
     def _write(self, *content):
         self._sht.range((self._x, self._y)).value = content
         self._sht.range((self._x, self._y)).expand().value
         #self._x += len(content) + 1
 
+    def set_y(self, y_val):
+        self._y = y_val
+
     def writeln(self, *content):
         self._x = self._areas[self._current_area][0]
-        self._y = self._areas[self._current_area][1]
+
         #for c in content:
         self._write(content)
         #self._y += 1
         #self._x -= len(content) - 1
         self._areas[self._current_area][0] += 1
+        self._y = self._areas[self._current_area][1]
 
     def writelst(self, conten_list):
         self._x = self._areas[self._current_area][0]
@@ -43,6 +47,7 @@ class Sheet(object):
 
     def set_column(self, column_index):
         self._current_area = column_index
+        self._y = self._areas[self._current_area][1]
 
     def move_column(self, column_index):
         val = self._areas[column_index][0]
@@ -52,90 +57,26 @@ class Sheet(object):
         self._areas[column_index][0] = val
 
 
-def profile():
-    print("--- Profilinig ----")
-    import cProfile
-    import pstats
-    # from pstats import SortKey, pstats
-    import io
-    # cProfile.run('ra.analyze(df, "01", "01")')
-    results = _load_answers(questions_repo, "IWT2_reports\\data.txt")
-    ra = RadarAnalysis()
-    pr = cProfile.Profile()
-    pr.enable()
-    _ = ra.generate_report(results, "01", "01")
-    pr.disable()
-    s = io.StringIO()
-    ps = pstats.Stats(pr, stream=s)
-    ps.sort_stats(pstats.SortKey.CUMULATIVE).print_stats(10)
-    print(s.getvalue())
-    # 20210226 - 190686 function calls (187522 primitive calls) in 0.102 seconds
-    # 20210227 - 208663 function calls (205144 primitive calls) in 0.127 seconds
-    # 20210228 - 208561 function calls (205024 primitive calls) in 0.115 seconds
-    # 20210302 - 263969 function calls (259795 primitive calls) in 0.147 seconds
-    # 20210304 - 263969 function calls (259795 primitive calls) in 0.147 seconds
-    # 20210304 - 216839 function calls (213195 primitive calls) in 0.117 seconds
-    # 20210305 - 222909 function calls (219202 primitive calls) in 0.118 seconds
-    # 20210310 - 222908 function calls (219201 primitive calls) in 0.134 seconds
-
-
-def load_question_cat(): # TODO Añadir esto al main.
-    file_name = _get_full_filename("preguntas.txt")
-    file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
+def load_question_cat(repo):
     question_cat = dict()
     cat_questions = dict()
-    cat = ""
-    for line in file:
-        s_line = line.strip()
-        if s_line.startswith("#-"):
-            tokens = s_line.split('#')
-            #print("tokens", tokens)
-            cat = tokens[1]+'.'+tokens[2]
-        if s_line == "" or '#' in s_line:
-            continue
 
-        elements = s_line.split(':')
-        code = elements[0].strip()
-        question_cat[code] = cat
-        if cat not in cat_questions:
-            cat_questions[cat] = list()
-        cat_questions[cat].append(code)
-
-    file.close()
+    for _, question in repo.as_dict().items():
+        question_cat[question.code()] = question.category_name()
+        if question.category_name() not in cat_questions:
+            cat_questions[question.category_name()] = list()
+        cat_questions[question.category_name()].append(question.code())
 
     return question_cat, cat_questions
 
-
-# Deprecated
-"""
-def analize_categories(result):
-    q_a_v = result.question_answers_to_view("01", "01", year=2021, month=2)
-    cats, cat_questions = load_question_cat()
-    #answers_org, answers_adp = results.get_answers_by_id()
-
-    for cat, questions_id in cat_questions.items():
-        #print("questions_id", questions_id)
-        print("--", cat)
-        answers_concat = list()
-        for id in questions_id:
-            #print(q_a_v)
-            if q_a_v.contains(id):
-                #print(id, q_a_v.question_text(id), q_a_v.question_answers(id), answers_org[id], answers_adp[id])
-                print(id, q_a_v.question_text(id), q_a_v.question_answers(id))
-                answers_concat.extend(q_a_v.question_answers(id))
-        if len(answers_concat) > 0:
-            df = DF.create({cat: answers_concat})
-            print("Incorrectos - Media:", df.means(), "Desviación:", df.mads())
-            # Estos datos son incorrectos porque usa q_a_v y ahí están las repsuestas originales, no adaptadas
-"""
-
-def filter_surveys(surveys):
+# Este código ya está en TestResult
+def filter_surveys(surveys, project, team):
     result = list()
     for survey in surveys:
         #print(survey)
-        if survey.project_id() == "GIMO-PD" and survey.team_id() == "T01":
+        if survey.project_id() == project and survey.team_id() == team:
             #print(survey.year(), survey.month())
-            if survey.year() == 2021 and survey.month() == 2:
+            if survey.year() == 2021 and survey.month() == 3:
                 #print(survey)
                 result.append(survey)
     return result
@@ -153,66 +94,54 @@ def get_answers_by_id(answers):
         result_adapted[key].append(a_question.adapted_answer())
     return result_original, result_adapted
 
-def analize_categories_2(results, sheet):
-    surveys = filter_surveys(results.get_surveys())
+
+def categories_titles(sheet):
+    #sheet.move_column(0)
+    sheet.set_column(1)
+    sheet.writeln("")
+    sheet.writeln("Respuestas por categorías")
+    #sheet.set_y(2)
+    sheet.writeln("Pregunta", "Respuestas adaptadas")
+
+
+def analize_categories( surveys, sheet):
     answers = list()
     for survey in surveys:
         answers.extend(survey.answers())
 
     answers_org, answers_adp = get_answers_by_id(answers)
     answers_dict = {a.id(): a for a in answers}
-    cats, cat_questions = load_question_cat()
+    cats, cat_questions = load_question_cat(questions_repo)
 
-    sheet.move_column(0)
-    sheet.set_column(0)
-    sheet.writeln("")
-    sheet.writeln("Respuestas por categorías")
+    categories_titles(sheet)
     for cat, questions_id in cat_questions.items():
         print("--", cat)
-        sheet.writeln(cat)
+        #sheet.set_y(1)
+        #sheet.writeln(cat)
+        answers_in_cat = list()
         for q_id in questions_id:
             if q_id in answers_dict:
-                #print("questions_id", questions_id)
-                print(str(answers_dict[q_id].question_obj()), answers_org[q_id], answers_adp[q_id])
-                sheet.writeln(str(answers_dict[q_id].question_obj()), str(answers_org[q_id]))
+                print(str(answers_dict[q_id].question_obj()), answers_adp[q_id])
+                #sheet.set_y(2)
+                answers_in_cat.extend(answers_adp[q_id])
+                sheet.writeln(str(answers_dict[q_id].question_obj()), str(answers_adp[q_id]))
 
-        """
-        answers_concat = list()
-        for id in questions_id:
-            #print(q_a_v)
-            if q_a_v.contains(id):
-                print(id, q_a_v.question_text(id), q_a_v.question_answers(id))
-                answers_concat.extend(q_a_v.question_answers(id))
-        if len(answers_concat) > 0:
-            df = DF.create({cat: answers_concat})
-            print("Incorrectos - Media:", df.means(), "Desviación:", df.mads())
-            # Estos datos son incorrectos porque usa q_a_v y ahí están las repsuestas originales, no adaptadas
-        """
+        if len(answers_in_cat) > 0:
+            media = numpy.mean(answers_in_cat)
+            desviacion = numpy.std(answers_in_cat)
+            sheet.set_y(1)
+            sheet.writeln(cat, "Respuestas:" + str(len(answers_in_cat)), "Media:" + str(media), "Desviación:" + str(desviacion))
 
-# Deprecated
-"""
-def search_by_answer(results, answer):
-    urls = results.url_answers()
-    for url in urls:
-        if answer in url:
-            print(answer, "in", url)
-"""
 
-def search_by_answer_2(results, answer_id, value):
-    ansers = results.get_answered_questions()
-    survey_id = list()
-    for answer in ansers:
-        #print(answer.id(), answer_id, answer.original_answer(), value)
-        #print(type(answer.id()), type(answer_id), type(answer.original_answer()), type(value))
-        if answer.id() == answer_id and answer.original_answer() == value:
-            survey_id.append(answer.survey_id())
+# Valorar meterlas en la sheet.
+def search_by_answer(results, answer_id, value):
+    for survey in results.get_surveys():
+        for answer in survey.answers():
+            if answer.id() == answer_id and answer.original_answer() == value:
+                #print("Survey: ", survey)
+                print("+ Answers: ", survey.answers_as_string())
+                break
 
-    #print(survey_id)
-    for s_id in survey_id:
-        print("Survey", s_id)
-        for answer in ansers:
-            if answer.survey_id() == s_id:
-                print(answer)
 
 def answers_by_factor(surveys, factor):
     answer_answers = dict()
@@ -233,6 +162,8 @@ def answers_by_factor(surveys, factor):
 
 
 # Main
+project = "IWT2"
+team = "T01"
 
 """
 Ver cómo aplicamos esto.
@@ -240,20 +171,15 @@ https://statisticsbyjim.com/hypothesis-testing/t-tests-excel/#:~:text=t%20Critic
 """
 sheet = Sheet()
 questions_repo = load_questions()
-print("GIMO-PD", "T01")
-results = _load_answers(questions_repo, "IWT2_reports\\022021 - GIMO-PD.txt")
-#print(results.create_ids_dataframe())
-#results = _load_answers(questions_repo, "IWT2_reports\\072021 - APPIMEDEA.txt")
-#results = _load_answers(questions_repo, "IWT2_reports\\012021 - AIRPA")
-#results = _load_answers(questions_repo, "IWT2_reports\\022021 - G7D.txt")
-#results = _load_answers(questions_repo, "IWT2_reports\\data.txt")
-surveys = filter_surveys(results.get_surveys())
+#print("GIMO-PD", "T01")
+results = _load_answers(questions_repo, "IWT2_reports\\202103 - IWT2_Fixed")
+surveys = filter_surveys(results.get_surveys(), project, team)
 #print(surveys)
 
 
 ra = RadarAnalysis()
 #df = results.create_dataframe()
-data_report = ra.generate_report(results, "GIMO-PD", "T01")
+data_report = ra.generate_report(results, project, team)
 
 print("-----------------------")
 print("Surveys analizadas:", len(surveys))
@@ -280,12 +206,12 @@ for key, factor in data_report.iter_factors():
 
 print("------------------------------")
 
-# Lo repito para qu se vea más claro
 print("Preguntas y respuestas:")
-q_a_v = results.question_answers_to_view("GIMO-PD", "T01", year="2021", month="02") # Year, month
+#q_a_v = results.question_answers_to_view(project, team, year="2021", month="03") # Year, month
 sheet.set_column(2)
-sheet.writeln("", "Id", "Pregunta", "Respuestas", "Media", "Desviación")
+sheet.writeln("", "Id", "Pregunta", "Respuestas org", "Respuestas adap", "Media", "Desviación")
 
+# Debería usar q_a_view de TestResult.
 for key, _ in data_report.iter_factors():
     answer_obj, answer_original_anwers, answer_answers  = answers_by_factor(surveys, key)
     sheet.writeln(key)
@@ -293,61 +219,32 @@ for key, _ in data_report.iter_factors():
         q_obj = answer.question_obj()
         means = numpy.mean(answer_answers[a_id])
         mads = numpy.std(answer_answers[a_id])
-        print(q_obj, answer_original_anwers[a_id])
-        print("Media", means , "Desviación estándar", mads)
-        sheet.writeln("", q_obj.code(), q_obj.text(), str(answer_original_anwers[a_id]), str(means), str(mads))
+        #print(q_obj, answer_original_anwers[a_id])
+        #print("Media", means , "Desviación estándar", mads)
+        sheet.writeln("", q_obj.code(), q_obj.text(), str(answer_original_anwers[a_id]), str(answer_answers[a_id]), str(means), str(mads))
 
-    """
-    for question_id in q_a_v.questions_id(key):
-        #print(question_id)
-        print(key, question_id, q_a_v.question_text(question_id), q_a_v.question_answers(question_id))
-        sheet.writeln(question_id, q_a_v.question_text(question_id), str(q_a_v.question_answers(question_id)))
-        # Estos datos NO son correctos porque tenemos als repsuestas originales
-        # sin aplicar la modifcación negativa
-        # Debería pode robtener los dos conjuntos de respuestas
-        print("Incorrecto - Media", numpy.mean(q_a_v.question_answers(question_id)), "Desviación estándar", numpy.std(q_a_v.question_answers(question_id)))
-        # Ver cómo solucionar esto
-"""
 print("------------------------------")
 
 print("Search A03 5:")
-#search_by_answer(results, "A035")
-#search_by_answer_2(results, "A03", 5) # Rehaer
+print("Búsquedas del informe IWT2:")
+print("B08: 4")
+search_by_answer(results, "B08", 4)
+print("A02: 2")
+search_by_answer(results, "A02", 2)
+print("D06: 4")
+search_by_answer(results, "D06", 4)
+print("F05: 2")
+search_by_answer(results, "F05", 2)
 
 print("-----------------------------")
 print("Categorías de cada factor")
-#analize_categories_2(results, sheet)
+#surveys = filter_surveys(results.get_surveys(), project, team)
+#analize_categories(surveys, sheet)
 
 
 sheet.save()
-profile()
+#profile()
 
-"""
-import datetime
-print(('month' in df))
-df['month'] = df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).month)
-df['year'] = df['datetime'].apply(lambda x: datetime.datetime.fromisoformat(x).year)
-print(('month' in df))
-
-print("Years", df['year'].unique())
-for year in df['year'].unique():
-    df_month = df[ df['year'] == year]
-    print(year, ":", df_month.month.unique())
-
-print("-------------------------------------")
-df_grouped = df.groupby(["year", "month"])
-print("index", df_grouped.as_index)
-
-df_means = df_grouped.mean()
-print("df", df_means, type(df_means))
-print(df_means.index)
-for index in df_means.index:
-    print(index)
-df_reset = df_means.reset_index()
-for i in range(0, len(df_reset)):
-    print(i, df_reset.iloc[i])
-    print(i, df_reset.iloc[i]['year'])
-"""
 
 
 

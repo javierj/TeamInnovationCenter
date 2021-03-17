@@ -137,3 +137,6 @@ IWT2_reports/
 
 !/IWT2_reports/*.py
 !IWT2_reports/*.py
+
+# Main
+main.py

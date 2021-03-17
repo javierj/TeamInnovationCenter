@@ -43,7 +43,7 @@ class QuestionsAnswersView(object):
         return id in self._questions
 
     def __str__(self):
-        return str(self._cats)
+        return str(self._cats) + " Answers: " + str(len(self._answers))
 
 
 class _Factor(object):
@@ -182,16 +182,18 @@ class HierarchicalGroups(object):
     def counter(self):
         return self._actual['inc']
 
+    def add_in_bag(self, attrib):
+        if 'attrib_list' not in self._actual:
+            self._actual['attrib_list'] = dict()
+        self._actual['attrib_list'][attrib] = attrib
+
+    def bag(self):
+        return self._actual['attrib_list']
+
     def __str__(self):
         return str(self._root)
 
         """
-        root.begin().add_key_value('year', '2021')
-        root.begin().key_value('year', '2021').add_key_value('month', '1')
-        root.begin().key_value('year', '2021').key_value('month', '1').add_key_value('report', 'RADAR-9')
-        root.begin().key_value('year', '2021').key_value('month', '1').key_value('report', 'RADAR-9').inc()
-        root.begin().key_value('year', '2021').key_value('month', '1').get()
-
         root.begin().add_group('2021')
         root.begin().group('2021').add_group('1')
         root.begin().group('2021').group('1').add_group('RADAR-9')

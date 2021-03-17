@@ -7,17 +7,20 @@ Esto es necesario proque las isntrucciones estaban mal y puntuaban 1 como la mej
 """
 
 questions_repo = load_questions()
-results = _load_answers(questions_repo, "IWT2_reports\\022021 - GIMO-PD.txt")
+results = _load_answers(questions_repo, "IWT2_reports\\202103 - IWT2")
 
-answers = results.original_answers()
-ids = results.id_quesions()
+#answers = results.original_answers()
+#ids = results.id_quesions()
 
-for index in range(0, len(answers)):
-    answer = answers[index]
-    id = ids[index]
-    line = answer['project_id']+"/"+answer['team_id']+'/'
-    for i_answer in range(1, 10):
-        line += str(id[i_answer])+str(6 - answer[i_answer])
+#for index in range(0, len(answers)):
+for survey in results.get_surveys():
+    #answer = answers[index]
+    #id = ids[index]
+    line = survey.project_id()+"/"+survey.team_id()+'/'
+    i_answer = 1
+    for answer in survey.answers():
+        line += answer.id()+str(6 - answer.original_answer())
+        i_answer +=1
     print(line)
-    _save_data(line, "GIMO-PD")
+    _save_data(line, "IWT2_reports\\202103 - IWT2_Fixed")
 

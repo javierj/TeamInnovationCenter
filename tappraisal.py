@@ -1,4 +1,3 @@
-
 import random
 
 # Candidato a refactorizarlo a otro sitio.
@@ -62,10 +61,11 @@ class TestData(object):
 
 class TestQuestion(object):
 
-    def __init__(self, text, code="", valoration=""):
+    def __init__(self, text, code="", valoration="", cat_name = ""):
         self._text_question = text
         self._code = code
         self._valoration=valoration
+        self._cat_name = cat_name
 
     def text(self):
         return self._text_question
@@ -78,6 +78,9 @@ class TestQuestion(object):
 
     def is_positive(self):
         return self._valoration == "P"
+
+    def category_name(self):
+        return self._cat_name
 
     def __str__(self):
         return self._code+":"+self._text_question+":"+self._valoration
@@ -135,13 +138,13 @@ class QuestionRepository(object):
 
     def __init__(self):
         self._questions = dict() # Key factor, Value list of questions
+        self._tmp_cat = ""
 
     def __str__(self):
         return str(self._questions)
 
     def _append(self, question):
         category = question.category()
-
         if category not in self._questions:
             self._questions[category] = list()
 
@@ -151,13 +154,19 @@ class QuestionRepository(object):
         s_line = line.strip()
         if s_line == "":
             return None
+        if s_line.startswith("#-"):
+            tokens = s_line.split('#')
+            #print("tokens", tokens)
+            self._tmp_cat = tokens[1]+'.'+tokens[2]
+            return None
         if '#' in s_line:
             return None
 
         elements = s_line.split(':')
-        question = TestQuestion(code=elements[0].strip(), text=elements[1].strip(), valoration=elements[2].strip())
+        question = TestQuestion(code=elements[0].strip(), text=elements[1].strip(), valoration=elements[2].strip(), cat_name= self._tmp_cat)
 
         self._append(question)
+        return question
 
     def random_question_from(self, category):
         index = random.randint(0, len(self._questions[category])-1)

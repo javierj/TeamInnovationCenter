@@ -1,5 +1,5 @@
 import unittest
-from analysis import TestsResult, RadarAnalysis, _load_answers, load_surveys_overview
+from analysis import TestsResult, RadarAnalysis, _load_answers, surveys_overview, load_test_results
 from tappraisal import load_questions
 
 
@@ -33,6 +33,8 @@ class TestTestsResult(unittest.TestCase):
         qav = self.results.question_answers_to_view("01", "01", year=2020, month=1)
         self.assertFalse(qav.has_answers())
         qav = self.results.question_answers_to_view("01", "01", year='2020', month='12')
+
+        #print("test_select_answers_in_view \n", qav)
         self.assertTrue(qav.has_answers())
         self.assertEqual(6, len(qav.categories()))
         self.assertTrue(qav.contains("A03"))
@@ -43,20 +45,12 @@ class TestTestsResult(unittest.TestCase):
         self.results.add_test_answer("2020-12-23 18:08:00.482801/01/01/A035B033C032C065D121D023E075F053G022")
         self.results.add_test_answer("2021-01-23 17:08:00.482801/01/01/A055B033C032C065D121D023E075F053G022")
         qav = self.results.question_answers_to_view("01", "01") # No year or month
+
+        #print(qav)
         self.assertTrue(qav.has_answers())
         self.assertTrue(qav.contains("A05"))
         self.assertTrue(qav.contains("A03"))
         #print(qav)
-
-    """
-    def test_groups_of_results(self):
-        self.results.add_test_answer("2020-12-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
-        self.results.add_test_answer("2021-01-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
-        groups = self.results.years_months("01", "01")
-        #expected = "{'2020':[12], '2021': [1]}"
-        expected = "{2020: [12], 2021: [1]}"
-        self.assertEqual(expected, str(groups))
-    """
 
     def test_create_dataframe(self):
         self.results.add_test_answer("2020-12-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
@@ -76,8 +70,9 @@ class TestTestsResult(unittest.TestCase):
         self.assertEqual(1, len(df))
 
     def test_return_original_answer_for_questions(self):
-        self.results = _load_answers(load_questions())
+        self.results = load_test_results(load_questions(), "APP-IMEDEA", "T01")
         answers = self.results.question_answers_to_view("APP-IMEDEA", None)
+        #print("test_return_original_answer_for_questions \n", answers)
         cat = answers.categories()[-1]
         id = answers.questions_id(cat)[-1]
         text = answers.question_text(id)
@@ -168,11 +163,21 @@ class TestRadarAnalysis(unittest.TestCase):
         expected = (2021, "enero", 1, '3.5', '0.')
         self.assertEqual(expected, report.with_factor("Precondiciones").get_historical_serie(1))
 
+    def test_question_answers_to_view(self):
+        self.results.add_test_answer("2020-12-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
+        self.results.add_test_answer("2020-12-28 17:08:00.482801/01/01/A022B012C121C105D065D135E062F051G055")
+        q_a_view = self.results.question_answers_to_view("01", "01", 2020, 12)
+        self.assertTrue(q_a_view.has_answers())
+
+        q_id = q_a_view.questions_id("Precondiciones")[0]
+        self.assertEqual("Pienso que mi sueldo actual es adecuado.", q_a_view.question_text(q_id) )
+        self.assertEqual([1, 2], q_a_view.question_answers(q_id))
+
 
 class Test_LoanSurveysOverview(unittest.TestCase):
 
     def test_surveys_overview(self):
-        s_overview = load_surveys_overview("01", "01")
+        s_overview = surveys_overview("01", "01")
         #print(s_overview)
         expected = "{2020: {12: {'RADAR-9': {'inc': 1}}}, 2021: {1: {'RADAR-9': {'inc': 3}}, 2: {'RADAR-9': {'inc': 2}}}}"
         self.assertEqual(expected, str(s_overview))

@@ -112,6 +112,9 @@ class Survey(object):
         self._group_id = group_id
         self._a_qs = list()
 
+    def date_time(self):
+        return self._date_time
+
     def project_id(self):
         return self._project_id
 
@@ -130,6 +133,12 @@ class Survey(object):
     def answers(self):
         return self._a_qs
 
+    def answers_as_string(self):
+        result = ""
+        for answer in self._a_qs:
+            result += str(answer.id()) + ":" + str(answer.original_answer()) + " "
+        return result
+
     def __str__(self):
         return self._project_id +" / "+ self._group_id + " / " + str(self._date_time)
 
@@ -141,7 +150,6 @@ class AnsweredQuestion(object):
         self._original_answer = _original_answer
         self._adapted_answer = _answer
         self._factor = None
-        self._survey_id = None
 
     def set_question(self, question_obj):
         self._question_object = question_obj
@@ -161,12 +169,6 @@ class AnsweredQuestion(object):
     def original_answer(self):
         return self._original_answer
 
-    def set_survey_id(self, _id):
-        self._survey_id = _id
-
-    def survey_id(self):
-        return self._survey_id
-
     def set_factor(self, factor):
         self._factor = factor
 
@@ -180,42 +182,42 @@ class AnsweredQuestion(object):
 class TestsResult(object):
 
     def __init__(self, questions_number = 9, q_repo = None):
-        """
-        :param questions_number:
-        :param q_repo: tappraisal::QuestionRepository object
-        """
         #self._questions = dict() # avoid duplicates
         self._answers = list()
         #self._original_answers = list()
         self._answers_id = list()
         self._q_repo = q_repo
         self._answers_number = questions_number
-        self._url_answers = list() #A013B021C114...
+        #self._url_answers = list() #A013B021C114...
         self._answered_questions = list()
         self._surveys = list() # Survey objects
         self.test_struct = get_test_structure()
 
+    """
     def url_answers(self):
         return self._url_answers
+    """
 
     def add_test_answer(self, result_line):
         """
-        TODO: evitar el código duplicado
+        TODO: quitar en un futuro
         :param result_line:
         :return:
         """
-        data = result_line.split('/')
-        self._url_answers.append(data[3])
-        answers_list, original_answers_list = self._extract_answers(data[3]) # Cambiar esto
+        #data = result_line.split('/')
+        self.add_raw_answer(RawAnswer.create(result_line))
+
+    def add_raw_answer(self, raw_answer):
+        #self._url_answers.append(data[3])
+        answers_list, original_answers_list = self._extract_answers(raw_answer.raw_data()) # Cambiar esto
 
         if len(answers_list) < self._answers_number:
             #print("No hay las suficientes repsuestas")
             return
 
-        # Prueba
-        survey = Survey(data[0], data[1], data[2]) # not in use yet
+        survey = Survey(raw_answer.date_time_str(), raw_answer.project_id(), raw_answer.team_id()) # not in use yet
         self._surveys.append(survey)
-        answers_id_list = self._extract_ids(data[3])
+        answers_id_list = self._extract_ids(raw_answer.raw_data())
         questions_dict = self._q_repo.as_dict()
 
         for answer_index in range(0, len(answers_list)):
@@ -229,16 +231,16 @@ class TestsResult(object):
         # Todo evitar esta duplicidad.
         #
         answers_dict = {k: answers_list[k-1] for k in range(1, len(answers_list)+1) }
-        answers_dict['datetime'] = data[0]
-        answers_dict['project_id'] = data[1]
-        answers_dict['team_id'] = data[2]
+        answers_dict['datetime'] =raw_answer.date_time_str()
+        answers_dict['project_id'] = raw_answer.project_id()
+        answers_dict['team_id'] = raw_answer.team_id()
         self._answers.append(answers_dict)
 
-        answers_id_list = self._extract_ids(data[3])
+        answers_id_list = self._extract_ids(raw_answer.raw_data())
         answers_dict = {k: answers_id_list[k - 1] for k in range(1, len(answers_id_list) + 1)}
-        answers_dict['datetime'] = data[0]
-        answers_dict['project_id'] = data[1]
-        answers_dict['team_id'] = data[2]
+        answers_dict['datetime'] = raw_answer.date_time_str()
+        answers_dict['project_id'] = raw_answer.project_id()
+        answers_dict['team_id'] = raw_answer.team_id()
         self._answers_id.append(answers_dict)
 
 
@@ -277,6 +279,7 @@ class TestsResult(object):
     def __str__(self):
         return str(self._answers)
 
+    #-- No funciona puede haber más d euna answer con el mismo id
     def get_answered_questions_dict(self):
         return {answer.id(): answer for answer in self._answered_questions}
 
@@ -328,15 +331,19 @@ class TestsResult(object):
     def question_answers_to_view(self, project, team, year=None, month=None):
         """
         Returns original ansers, true value for negative questions.
-        :param project:
-        :param team:
-        :param year:
-        :param month:
+        WARNING. this method does not filter by project or group.
+        you shouls use load_results..(), so results are filtered
+        :param year: as int
+        :param month: as int
         :return:
         """
         questions_answers_view = QuestionsAnswersView()
+
+        """
         # Esto tiene que estar fuera
         test_struct = get_test_structure()
+        # Este método no funciona proque usa estod e aquí abajo.
+        # Ver cómo lo hace analysis_cli
         answers_dict = self.get_answered_questions_dict()
 
         df_tmp = self.create_ids_dataframe(project, team, year, month)
@@ -348,19 +355,38 @@ class TestsResult(object):
                 answer_obj = answers_dict[id_answer]
                 questions_answers_view.add(answer_obj.question_obj(), test_struct[answer_obj.category()], answer_obj.original_answer())
 
+        """
+
+        filtered_surveys = self._surveys
+        if year is not None:
+            filtered_surveys = list()
+            for survey in self._surveys:
+                if str(survey.year()) == str(year) and str(survey.month()) == str(month):
+                    filtered_surveys.append(survey)
+
+        for survey in filtered_surveys:
+            for answer in survey.answers():
+                questions_answers_view.add(answer.question_obj(), answer.factor(), answer.original_answer())
+
+
         return questions_answers_view
 
+    """
     def original_answers(self):
         return self._original_answers
+    """
 
+    """
     def id_quesions(self):
         return self._answers_id
+    """
 
     """
     def years_months(self, project_id, group_id):
         df = DF.c_dataframe(self.create_dataframe(project_id, group_id))
         return df.years_months(project_id, group_id)
     """
+
 
 class _FactorAnalisys(object):
 
@@ -474,6 +500,55 @@ class RadarAnalysis(object):
         return report
 
 
+class RawAnswer(object):
+    def __init__(self):
+        self._test_type = None
+        self._date_time = None
+        self._project_id = None
+        self._team_id = None
+        self._raw_data = None
+        #self._date_time = None
+
+    @staticmethod
+    def create(line):
+        raw_answer = RawAnswer()
+        data = line.split('/')
+        if len(data) >= 5:
+            raw_answer._test_type = data[4]
+        else:
+            raw_answer._test_type = "RADAR-9"
+        raw_answer._date_time = datetime.fromisoformat(data[0])
+        #print(data[0], raw_answer._date_time)
+        #raw_answer._date_time = data[0]
+        raw_answer._project_id = data[1]
+        raw_answer._team_id = data[2]
+        raw_answer._raw_data = data[3]
+        return raw_answer
+
+    def project_id(self):
+        return self._project_id
+
+    def team_id(self):
+        return self._team_id
+
+    def year(self):
+        return self._date_time.year
+
+    def month(self):
+        return self._date_time.month
+
+    def test_type(self):
+        return self._test_type
+
+    def raw_data(self):
+        return self._raw_data
+
+    def date_time_str(self):
+        return str(self._date_time)
+
+## Facade methods
+
+# Depretace, intenta no usarla
 def _load_answers(questions_repo, filename = "data.txt"):
     answers = TestsResult(q_repo = questions_repo)
 
@@ -486,32 +561,34 @@ def _load_answers(questions_repo, filename = "data.txt"):
     return answers
 
 
-## Facade methods
-
 def generate_report(test_results, id_proj, id_team, year, month):
-    #df = test_results.create_dataframe()
     ra = RadarAnalysis()
-    #data_report, date_info = ra.analyze(df, id_proj, id_team, year, month)
-    #return ra.analyze(df, id_proj, id_team, year, month)
     return ra.generate_report(test_results, id_proj, id_team, year, month)
 
 
-def load_surveys_overview(project_id, team_id, filename = "data.txt"):
-    surveys_overview = HierarchicalGroups()
+def surveys_overview(project_id, team_id, filename = "data.txt"):
+    s_overview = HierarchicalGroups()
     file_name = _get_full_filename(filename)
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
-        data = line.split('/')
-        if len(data) >= 5:
-            test_type = data[4]
-        else:
-            test_type = "RADAR-9"
-        survey = Survey(date_time = data[0], project_id=project_id, group_id=team_id)
-        if project_id == data[1] and team_id == data[2]:
-            surveys_overview.begin().add_group(survey.year()).add_group(survey.month()).add_group(test_type).inc_counter()
+        raw_answer = RawAnswer.create(line)
+        if project_id == raw_answer.project_id() and team_id == raw_answer.team_id():
+            s_overview.begin().add_group(raw_answer.year()).add_group(raw_answer.month()).add_group(raw_answer.test_type()).inc_counter()
             #surveys_overview.begin().add_group(survey.year()).add_group(MONTHS[survey.month()]).add_group(test_type).inc_counter()
             # si lo pongo con nombre, en vez de número, no genera bien la URL para acceder al report.
 
     file.close()
-    return surveys_overview
+    return s_overview
 
+
+def load_test_results(questions_repo, project_id, team_id, filename = "data.txt"):
+    results = TestsResult(q_repo = questions_repo)
+    file_name = _get_full_filename(filename)
+    file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
+    for line in file:
+        raw_answer = RawAnswer.create(line)
+        if project_id == raw_answer.project_id() and team_id == raw_answer.team_id():
+            results.add_raw_answer(raw_answer) # Este método no existe
+
+    file.close()
+    return results

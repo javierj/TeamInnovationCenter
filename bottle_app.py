@@ -1,18 +1,21 @@
 from bottle import route, template, request, static_file, redirect, default_app
 from tappraisal import AppraisalDirector, TestData, load_questions
-from analysis import generate_report, _load_answers, load_surveys_overview
+from analysis import generate_report, surveys_overview, load_test_results
 import os
 
 director = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+
 def _server_url():
     return request.url.split('/')[0]
+
 
 @route('/')
 def home():
     #print('Home is Working')
     redirect("/static/index.html")
+
 
 @route('/static/<filename:path>')
 def send_static(filename):
@@ -24,9 +27,11 @@ def send_static(filename):
 
 # ver la manera de hacer estos dos métodos mejor.
 
+
 @route('/stylesheets/<filename:path>')
 def stylesheets_static(filename):
     return redirect("/static/stylesheets/"+filename)
+
 
 @route('/images/<filename:path>')
 def images_static(filename):
@@ -39,25 +44,24 @@ def images_static(filename):
 def iwt2_static():
     return redirect("/static/iwt2.html")
 
+
 @route('/get_data')
 def get_data():
     global BASE_DIR
     return static_file("data.txt", root=BASE_DIR)
+
 
 @route('/get_questions')
 def get_questions():
     global BASE_DIR
     return static_file("preguntas.txt", root=BASE_DIR)
 
+
 # Reducir el código de este método
 @route('/test/<org_id>/<project_id>/<questions>')
 def question(org_id, project_id, questions=""):
     """
     Usamos la palabra test en el url para diferenciarla d ela página base y que muestre información.
-    :param org_id:
-    :param project_id:
-    :param questions:
-    :return:
     """
     global director
     #print( "Recibido: ", org_id, project_id, questions )
@@ -71,10 +75,12 @@ def question(org_id, project_id, questions=""):
 
     return template('question_template', question=question.text(), base_url = request.url, question_code = question.code(), question_index = data.len_questions() + 1)
 
+
 #@route('/test/<org_id>/<project_id>')
 @route('/test/<org_id>/<project_id>/')
 def first_question(org_id, project_id):
     return question(org_id, project_id)
+
 
 # Aún no funciona, hay que añadir id de poryecto y equipo
 #@route('/report/<org_id>/<project_id>')
@@ -82,24 +88,27 @@ def first_question(org_id, project_id):
 def all_report(org_id, project_id):
     return report(org_id, project_id, None, None)
 
+
 @route('/report/<org_id>/<project_id>/<year>/<month>/')
 def report(org_id, project_id, year, month):
     global director
-    test_results = _load_answers(director.get_repo())
+    test_results = load_test_results(director.get_repo(), org_id, project_id) # Poner los ids y filtrar por ellos
     report = generate_report(test_results, org_id, project_id, year=year, month=month)
-    q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month)
+    q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month) # Método independiente, como generate_report
     if report.has_answers():
         return template('report_template', report=report, question_answer=q_a_v)
     return template('noanswers_template', org_id=org_id, project_id = project_id)
+
 
 @route('/selector/<org_id>/<project_id>/')
 def report_selector(org_id, project_id):
     #global director
     #test_results = _load_answers(director.get_repo())
     #month_year = test_results.years_months(org_id, project_id)  # "{'2020':[12], '2021': [1]}"
-    surveys_overview = load_surveys_overview(org_id, project_id)
+    s_overview = surveys_overview(org_id, project_id)
     base_url = _server_url()+"/report/"+org_id+"/"+project_id
-    return template('report_selector', org_id=org_id, project_id=project_id, surveys_overview=surveys_overview, base_url = base_url)
+    return template('report_selector', org_id=org_id, project_id=project_id, surveys_overview=s_overview, base_url = base_url)
+
 
 def set_up():
     global director
