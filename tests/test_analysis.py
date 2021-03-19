@@ -177,7 +177,7 @@ class TestRadarAnalysis(unittest.TestCase):
 class Test_LoanSurveysOverview(unittest.TestCase):
 
     def test_surveys_overview(self):
-        s_overview = surveys_overview("01", "01")
+        s_overview = surveys_overview("01", "01", filename="tests/data_test.txt")
         #print(s_overview)
         expected = "{2020: {12: {'RADAR-9': {'inc': 1}}}, 2021: {1: {'RADAR-9': {'inc': 3}}, 2: {'RADAR-9': {'inc': 2}}}}"
         self.assertEqual(expected, str(s_overview))

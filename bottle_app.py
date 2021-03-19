@@ -1,9 +1,9 @@
 from bottle import route, template, request, static_file, redirect, default_app
-from tappraisal import AppraisalDirector, TestData, load_questions
+from tappraisal import AppraisalDirector, TestData, load_questions, get_survey_structure
 from analysis import generate_report, surveys_overview, load_test_results
 import os
 
-director = None
+question_repo = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -57,29 +57,36 @@ def get_questions():
     return static_file("preguntas.txt", root=BASE_DIR)
 
 
-# Reducir el código de este método
 @route('/test/<org_id>/<project_id>/<questions>')
-def question(org_id, project_id, questions=""):
-    """
-    Usamos la palabra test en el url para diferenciarla d ela página base y que muestre información.
-    """
-    global director
-    #print( "Recibido: ", org_id, project_id, questions )
-
-    data = TestData(org_id, project_id, questions)
-    question = director.next_question(data)
-
-    if question is None:
-        #print("Server URL: ", _server_url(request.url))
-        return template('end_template', base_url=_server_url())
-
-    return template('question_template', question=question.text(), base_url = request.url, question_code = question.code(), question_index = data.len_questions() + 1)
-
+def question_radar9(org_id, project_id, questions=""):
+    return question("RADAR-9", org_id, project_id, questions)
 
 #@route('/test/<org_id>/<project_id>')
 @route('/test/<org_id>/<project_id>/')
-def first_question(org_id, project_id):
-    return question(org_id, project_id)
+def first_question_radar9(org_id, project_id):
+    return question("RADAR-9", org_id, project_id)
+
+@route('/safety/<org_id>/<project_id>/<questions>')
+def question_safety(org_id, project_id, questions=""):
+    return question("SAFETY", org_id, project_id, questions)
+
+@route('/safety/<org_id>/<project_id>/')
+def first_question_safety(org_id, project_id):
+    return question("SAFETY", org_id, project_id)
+
+
+def question(test, org_id, project_id, questions=""):
+    global question_repo # Tenemos que cargar aquí el director según el tipo de test
+
+    data = TestData(org_id, project_id, questions)
+    director = AppraisalDirector(get_survey_structure(question_repo, test))
+    next_question = director.next_question(data)
+
+    if next_question is None:
+        #print("Server URL: ", _server_url(request.url))
+        return template('end_template', base_url=_server_url())
+
+    return template('question_template', question=next_question.text(), base_url = request.url, question_code = next_question.code(), question_index = data.len_questions() + 1)
 
 
 # Aún no funciona, hay que añadir id de poryecto y equipo
@@ -91,8 +98,8 @@ def all_report(org_id, project_id):
 
 @route('/report/<org_id>/<project_id>/<year>/<month>/')
 def report(org_id, project_id, year, month):
-    global director
-    test_results = load_test_results(director.get_repo(), org_id, project_id) # Poner los ids y filtrar por ellos
+    global question_repo
+    test_results = load_test_results(question_repo, org_id, project_id) # Poner los ids y filtrar por ellos
     report = generate_report(test_results, org_id, project_id, year=year, month=month)
     q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month) # Método independiente, como generate_report
     if report.has_answers():
@@ -102,19 +109,16 @@ def report(org_id, project_id, year, month):
 
 @route('/selector/<org_id>/<project_id>/')
 def report_selector(org_id, project_id):
-    #global director
-    #test_results = _load_answers(director.get_repo())
-    #month_year = test_results.years_months(org_id, project_id)  # "{'2020':[12], '2021': [1]}"
     s_overview = surveys_overview(org_id, project_id)
     base_url = _server_url()+"/report/"+org_id+"/"+project_id
     return template('report_selector', org_id=org_id, project_id=project_id, surveys_overview=s_overview, base_url = base_url)
 
 
 def set_up():
-    global director
-    repo = load_questions()
+    global question_repo
+    question_repo = load_questions()
     #print("Questions: \n", str(repo))
-    director = AppraisalDirector(repo)
+
     #print("Set up ok!")
 
 set_up()

@@ -4,7 +4,7 @@
 
 %defs = dict()
 %defs['Precondiciones'] = "Recoge todos los factores higiénicos de motivación (o motivaciones extrínsecas)."
-%defs['Seguridad sicológica'] = "Poder expresar opiniones sin miedo a represalias."
+%defs['Seguridad sicológica'] = "Poder asumir riesgos sin miedo a represalias."
 %defs['Compromiso con el trabajo'] = "Las personas de las que depende mi trabajo adquieren compromisos y los cumplen."
 %defs['Perfiles y responsabilidad'] = "Toma de decisiones clara, responsables definidas y tareas claras."
 %defs['Resultados significativos'] = "Me importa mi trabajo y me siento implicado haciéndolo."
@@ -18,10 +18,22 @@
 Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get_year()}}.
 </p>
 
+<p></p>
+<br/>
+
 %for factor_name, factor in report.iter_factors():
 
     <h3>{{factor_name}}:</h3>
     <p> {{defs[factor_name]}} </p>
+
+     <p style="font-size:20px">
+ <strong>
+ Media total: {{factor.total_mean()}}
+ <br/>
+ Desviación media total: {{factor.total_mad()}}
+ </strong>
+ </p>
+
     <p>
     %# Tabla de respuestas a las preguntas.
     <table>
@@ -39,8 +51,10 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 
 	</table>
 
-    <br/>
 
+
+        <!-- Esta tabla no la uso
+        <br/>
 	    <table>
 		    <tr> <td></td>
 		    %for i in range(1, len(factor.means())+1):
@@ -59,23 +73,17 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 		    <td style="text-align:center"> {{i}} </td>
 		    %end
 		    </tr>
-        </table>
+        </table> -->
  </p>
 
- <p>
- <strong>
- Media total: {{factor.total_mean()}}
- <br/>
- Desviación media total: {{factor.total_mad()}}
- </strong>
- </p>
+
 
 <p>
 <strong> Análisis:  </strong> {{factor.get_analysis()}}
 </p>
 
 <p>
-Evolución temporal:
+<strong> Evolución temporal: </strong>
 
 <table>
     <tr>
@@ -93,6 +101,9 @@ Evolución temporal:
 </p>
 
 <br/>
+<hr/>
+<br/>
+
 %end
 
 

@@ -76,7 +76,7 @@ print(data)
 print(factors)
 
 df = pd.DataFrame(data = data, columns = columns)
-df_grouped = df.groupby(['year', 'month', 'survey_type'])
+df_grouped = df.groupby(['year', 'month', 'survey_type']) # <- No necesitamos agrupar por survey_type, sino filtrar.
 
 for name, group in df_grouped:
     #print('ID: ' + str(name))

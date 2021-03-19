@@ -279,9 +279,11 @@ class TestsResult(object):
     def __str__(self):
         return str(self._answers)
 
+    """
     #-- No funciona puede haber más d euna answer con el mismo id
     def get_answered_questions_dict(self):
         return {answer.id(): answer for answer in self._answered_questions}
+    """
 
     def get_surveys(self):
         return self._surveys
@@ -587,7 +589,7 @@ def load_test_results(questions_repo, project_id, team_id, filename = "data.txt"
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
         raw_answer = RawAnswer.create(line)
-        if project_id == raw_answer.project_id() and team_id == raw_answer.team_id():
+        if project_id == raw_answer.project_id() and team_id == raw_answer.team_id() and raw_answer.test_type() == "RADAR-9":
             results.add_raw_answer(raw_answer) # Este método no existe
 
     file.close()

@@ -5,6 +5,7 @@
 # 1.2. Cambios en redacción y desahibilatadas preguntas ambiguas. 65 preguntas
 # 1.3. Añadimos categorías a cada factor. 68 preguntas
 # 1.4. Añadimos la categoría de flujo a precondiciones. 71 preguntas
+# 1.5. Más preguntas de flujo, de impacto, significado y seguridad sicológica. 84 preguntas
 
 #-P01# Precondiciones. Sueldo.
 A01:Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P
@@ -26,9 +27,11 @@ B08:Siento que no estoy bien formado para trabajar en este proyecto.:N
 B07:Estoy adecuadamente formado, o puedo adquirir la formación que necesito para este proyecto mientras trabajo en el mismo.:P
 
 #-P03# Flujo (código FL)
-FL1:En general, puedo concentrarme para hacer mi trabajo.:P
-FL2:No suelo tener interrupciones no deseadas.:P
-FL3:Las interrupciones no deseadas no suelen interferir en mi rendimiento.:P
+BL1:En general, puedo concentrarme para hacer mi trabajo.:P
+BL2:En general, no soy capaz de concentrarme para hacer mi trabajo.:N
+BL3:No suelo tener interrupciones no deseadas.:P
+BL4:Tengo interrupciones no deseadas con mucha frecuencia.:N
+BL5:Las interrupciones no deseadas no suelen interferir en mi rendimiento.:P
 
 
 ## Seguridad sicológica (PS)
@@ -41,19 +44,27 @@ C04:Cuando doy feedback siento que ha ido bien recibido.:P
 C05:El feedback que recibo de mis compañeros es constructivo.:P
 C06:Intento evitar activamente dar feedback.:N
 C07:Intento evitar que me den feedback.:N
-C14:El feedback que recibo de mis compañeros de trabajo no es constructivo ni me sirve para mejorar.:N
+C16:El feedback que recibo de mis compañeros de trabajo no es constructivo ni me sirve para mejorar.:N
 
 #-SP02# Bloque 2. Pregunta original: Hesitance around expressing divergent ideas and asking 'silly' questions
-C08: Dudo en expresar ideas divergentes.:N
-C09: Dudo en hacer preguntas porque pienso que serán preguntas tontas.:N
+C08:Dudo en expresar ideas divergentes.:N
+C09:Dudo en hacer preguntas porque pienso que serán preguntas tontas.:N
 C10:Me preocupa que los demás piensen que las preguntas que hago son tontas.:N
 C11:No dudo en expresar mis ideas, aunque sean divergente.:P
 
-#-SP03# Bloque 3. Pregunta original: "Do all team members feel comfortable brainstorming in front of each other?"
+#-SP03# Bloque 3. Pregunta original: 'Do all team members feel comfortable brainstorming in front of each other?'
 C12:Me siendo cómodo cuando todo el equipo proponemos ideas juntos.:P
-C13:Prefiero exponer mis ideas en privado antes que en el equipo.:N
+C13:Prefiero exponer mis ideas en privado antes que exponerlas delante de todo el equipo.:N
 C14:Me siento cómodo haciendo preguntas en presencia de todo el equipo.:P
-C15:Prefiero hacer mis preguntas en privado cuando no esté reunido todo el equipo.:N
+C15:Prefiero hacer mis preguntas en privado en lugar de en presencia de todo el equipo.:N
+
+#-SP04# Bloque 4. Errores.
+C17:Todo el equipo habla de errores cometidos para aprende ry evitar que se vuelvan a producir.:P
+C18:En mi quipo no hacemos a nadie repsonsable por haber cometido un error.:P
+C19:Siento que puedo pedir ayuda a mis compañeros de equipo cuando la necesite.:P
+C20:Siento que hay compañeros de mi equipo a los que no puedo pedirles ayuda.:N
+
+
 
 # Faltan más
 
@@ -103,6 +114,7 @@ E07:Entiendo por qué se asignan responsables.:P
 
 #-ME01# Asignaciones de trabajo basadas únicamente en habilidad, experiencia, carga de trabajo; poca consideración por las necesidades e intereses del desarrollo individual
 F01: La asignación de trabajo en mi proyecto tiene en cuenta nuestras habilidades.:P
+F11: La asignación de trabajo en mi proyecto no tiene en cuenta nuestras habilidades.:N
 F02: La asignación de trabajo en mi proyecto tiene en cuenta nuestra experiencia.:P
 F03: La asignación de trabajo en mi proyecto tiene en cuenta la carga de trabajo de las personas.:P
 F04: Hay poca consideración por las necesidades individuales en la asignación del trabajo.:N
@@ -133,7 +145,12 @@ G05:Creo que no puedo conseguir ningún avance significativo con mi trabajo.:N
 G06:La manera de trabajar de mi equipo me agota.:N
 G07:Termino el trabajo y aún tengo energía.:P
 
+#-IM03# Bloque 6. Propio
+G08:Mi equipo comparte objetivos comunes en este proyecto.:P
+G09:No tengo claro cuáles son los objetivos de mi equipo.:N
+G10:Mis objetivos en este proyecto son diferentes a los objetivos del resto del equipo.:N
+G11:En mi equipo nunca hablamos de objetivos.:N
 
-
-
-
+#-IM04# Bloque 3. Do team members see their work as creating change for the better?
+G12: Con mi trabajo siento que estoy mejorando la vida de un grupo de personas.:P
+G12: No siento que mi trabajo contribuya a aportar valor a un grupo de personas.:N
