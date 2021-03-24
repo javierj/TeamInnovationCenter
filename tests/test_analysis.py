@@ -1,6 +1,7 @@
 import unittest
-from analysis import TestsResult, RadarAnalysis, _load_answers, surveys_overview, load_test_results
-from tappraisal import load_questions
+from analysis import TestsResult, RadarAnalysis, surveys_overview, load_test_results, \
+    HistoricDataAnalysis
+from tappraisal import load_questions, get_survey_structure
 
 
 class TestTestsResult(unittest.TestCase):
@@ -83,28 +84,48 @@ class TestTestsResult(unittest.TestCase):
 
 class TestRadarAnalysis(unittest.TestCase):
 
+    def _get_historical_data(self):
+        d_a = HistoricDataAnalysis()
+        return d_a.historical_data(self.results, get_survey_structure(load_questions()))
+
     def setUp(self):
-        self.analisis = RadarAnalysis()
+        self.analisis = RadarAnalysis(get_survey_structure(load_questions()))
+        #self.analisis = RadarAnalysis()
         self.results = TestsResult(q_repo=load_questions())  # Evitar esta dependencia
-        self._historical_diciembre = (2020, "diciembre", 1, '1.5', '0.')
+        self._historical_diciembre = (2020, "diciembre", 1, 1.5, 0.0)
 
     def test_analysis(self): # Este etst es muy frágil, poner solo los valores.
         self.results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
         self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
-        # crear el databrame directaente.
-        #df = self.results.create_dataframe()
-        #report = self.analisis.analyze(df, "01", "01")
-        report = self.analisis.generate_report(self.results, "01", "01")
 
+        report = self.analisis.generate_report(self.results, "01", "01", 2021, 1)
         #print(report)
         #expected = "{'Precondiciones': {'answer': [[1, 2], [2, 2]], 'mean': ['1.5', '2.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Seguridad sicológica': {'answer': [[1, 1], [2, 1]], 'mean': ['1.5', '1.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Dependabilidad': {'answer': [[1, 1], [1, 1]], 'mean': ['1.0', '1.0'], 'mad': ['0.0', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Estructura y claridad': {'answer': [[2], [2]], 'mean': ['2.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Significado': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Impacto': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}}"
+        self.assertEqual(6, len(report.factors()))
+        # Ya no da medias por pregunta
+        #self.assertEqual([1.5, 2.0], report.with_factor("Precondiciones").means())
+        self.assertEqual([1.75], report.with_factor("Precondiciones").means())
+        #self.assertEqual([0.5, 0.0], report.with_factor("Precondiciones").mads())
+        self.assertEqual([0.25], report.with_factor("Precondiciones").mads())
+
+    def test_analysis_2(self):
+        #self.analisis = RadarAnalysis(get_survey_structure(load_questions()))
+        self.results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
+        self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        # crear el databrame directaente.
+        # df = self.results.create_dataframe()
+        # report = self.analisis.analyze(df, "01", "01")
+        report = self.analisis.generate_report(self.results, "01", "01", 2021, 1)
+
+        # print(report)
+        # expected = "{'Precondiciones': {'answer': [[1, 2], [2, 2]], 'mean': ['1.5', '2.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Seguridad sicológica': {'answer': [[1, 1], [2, 1]], 'mean': ['1.5', '1.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Dependabilidad': {'answer': [[1, 1], [1, 1]], 'mean': ['1.0', '1.0'], 'mad': ['0.0', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Estructura y claridad': {'answer': [[2], [2]], 'mean': ['2.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Significado': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Impacto': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}}"
 
         self.assertEqual(6, len(report.factors()))
-        self.assertEqual([1.5, 2.0], report.with_factor("Precondiciones").means())
-        self.assertEqual([0.5, 0.0], report.with_factor("Precondiciones").mads())
-        #expected = "['1.5', '2.0']"
+        self.assertEqual([1.75], report.with_factor("Precondiciones").means())
+        self.assertEqual([0.25], report.with_factor("Precondiciones").mads())
+        # expected = "['1.5', '2.0']"
 
-
+    """ - Esta funcionalidad no existe, hay que indicar siempre me sy año.
     def test_result_has_lastest_month_and_year(self): # Este etst es muy frágil, poner solo los valores.
         self.results.add_test_answer("2020-01-01 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
         self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
@@ -116,6 +137,7 @@ class TestRadarAnalysis(unittest.TestCase):
         self.assertEqual(2021, report.get_year())
         self.assertEqual("enero", report.get_month())
         self.assertEqual(1, report.get_answers_len())
+    """
 
     def test_report_info_month_year_and_answers(self):
         self.results.add_test_answer("2020-12-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
@@ -137,16 +159,28 @@ class TestRadarAnalysis(unittest.TestCase):
         self.assertEqual(2, report.with_factor("Precondiciones").historical_series())
 
         self.assertEqual(self._historical_diciembre, report.with_factor("Precondiciones").get_historical_serie(0))
-        expected = (2021, "enero", 1, '2.', '0.')
+        expected = (2021, "enero", 1, 2.0, 0.0)
         self.assertEqual(expected, report.with_factor("Precondiciones").get_historical_serie(1))
 
-    def test_historical_data_for_my_project_only(self):
+    def test_historical_data_2(self):
+        self.analisis = RadarAnalysis(get_survey_structure(load_questions()))
+        self.results.add_test_answer("2020-12-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
+        self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        #report = self.analisis.analyze(self.results.create_dataframe(), "01", "01", "2020", "12")
+        report = self.analisis.generate_report(self.results, "01", "01", 2020, 12)
+
+        self.assertEqual(2, report.with_factor("Precondiciones").historical_series())
+        self.assertEqual((2020, "diciembre", 1, 1.5, 0.0), report.with_factor("Precondiciones").get_historical_serie(0))
+        expected = (2021, "enero", 1, 2.0, 0.0)
+        self.assertEqual(expected, report.with_factor("Precondiciones").get_historical_serie(1))
+
+    def test_historical_data_uses_all_data(self):
         self.results.add_test_answer("2020-12-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
         self.results.add_test_answer("2021-01-28 17:08:02.912267/02/01/A012B044C042C015D135D101E022F045G055")
         #report = self.analisis.analyze(self.results.create_dataframe(), "01", "01", "2020", "12")
         report = self.analisis.generate_report(self.results, "01", "01", "2020", "12")
         #print(data)
-        self.assertEqual(1, report.with_factor("Precondiciones").historical_series())
+        self.assertEqual(2, report.with_factor("Precondiciones").historical_series())
         self.assertEqual(self._historical_diciembre, report.with_factor("Precondiciones").get_historical_serie(0))
 
     def test_historical_data_until_date(self):
@@ -160,7 +194,7 @@ class TestRadarAnalysis(unittest.TestCase):
         self.assertEqual(2, report.with_factor("Precondiciones").historical_series())
 
         self.assertEqual(self._historical_diciembre, report.with_factor("Precondiciones").get_historical_serie(0))
-        expected = (2021, "enero", 1, '3.5', '0.')
+        expected = (2021, "enero", 1, 3.5, 0.0)
         self.assertEqual(expected, report.with_factor("Precondiciones").get_historical_serie(1))
 
     def test_question_answers_to_view(self):
@@ -179,9 +213,32 @@ class Test_LoanSurveysOverview(unittest.TestCase):
     def test_surveys_overview(self):
         s_overview = surveys_overview("01", "01", filename="tests/data_test.txt")
         #print(s_overview)
-        expected = "{2020: {12: {'RADAR-9': {'inc': 1}}}, 2021: {1: {'RADAR-9': {'inc': 3}}, 2: {'RADAR-9': {'inc': 2}}}}"
+        expected = "{2020: {12: {'RADAR-9': {'_inc': 1}}}, 2021: {1: {'RADAR-9': {'_inc': 3}}, 2: {'RADAR-9': {'_inc': 2}}}}"
         self.assertEqual(expected, str(s_overview))
         # Esto fallará cuando cambie data.txt
+
+
+class Test_HistoricDataAnalysis(unittest.TestCase):
+
+    def setUp(self):
+        results = TestsResult(q_repo=load_questions())
+        results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
+        results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        results.add_test_answer("2021-02-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        results.add_test_answer("2021-03-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+
+        d_a = HistoricDataAnalysis()
+        self.result = d_a.historical_data(results, get_survey_structure(load_questions()))
+
+    def test_historical_data(self):
+        expected = "{2021: {1: {'_value': 2, 'Precondiciones': {'_value': (1.75, 0.25)}, 'Seguridad sicológica': {'_value': (1.25, 0.25)}, 'Compromiso con el trabajo': {'_value': (1.0, 0.0)}, 'Perfiles y responsabilidad': {'_value': (2.0, 0.0)}, 'Resultados significativos': {'_value': (1.0, 0.0)}, 'Propósito e impacto': {'_value': (1.0, 0.0)}}"
+        #print(result)
+        self.assertTrue(str(self.result).startswith(expected))
+
+    def test_answer_number(self):
+        self.assertEqual(2, self.result.begin().group(2021).group(1).value())
+        self.assertEqual(1, self.result.begin().group(2021).group(2).value())
+        self.assertEqual(1, self.result.begin().group(2021).group(3).value())
 
 
 if __name__ == '__main__':

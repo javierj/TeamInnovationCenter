@@ -171,24 +171,35 @@ class HierarchicalGroups(object):
         return self
 
     def inc_counter(self):
-        if 'inc' not in self._actual:
-            self._actual['inc'] = 1
+        if '_inc' not in self._actual:
+            self._actual['_inc'] = 1
             return 1
-        self._actual['inc'] = + self._actual['inc'] + 1
+        self._actual['_inc'] = + self._actual['_inc'] + 1
 
     def keys(self):
-        return list(self._actual.keys())
+        #return list(self._actual.keys())
+        result = list()
+        for key in self._actual.keys():
+            if str(key).startswith("_") is False:
+                result.append(key)
+        return result
 
     def counter(self):
-        return self._actual['inc']
+        return self._actual['_inc']
 
     def add_in_bag(self, attrib):
-        if 'attrib_list' not in self._actual:
-            self._actual['attrib_list'] = dict()
-        self._actual['attrib_list'][attrib] = attrib
+        if '_attrib_list' not in self._actual:
+            self._actual['_attrib_list'] = dict()
+        self._actual['_attrib_list'][attrib] = attrib
 
     def bag(self):
-        return self._actual['attrib_list']
+        return self._actual['_attrib_list']
+
+    def add_value(self, value):
+        self._actual['_value'] = value
+
+    def value(self):
+        return self._actual['_value']
 
     def __str__(self):
         return str(self._root)

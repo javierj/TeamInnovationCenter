@@ -90,16 +90,23 @@ def question(test, org_id, project_id, questions=""):
 
 
 # Aún no funciona, hay que añadir id de poryecto y equipo
+# Esto creo que ya no lo necesitamos.
+# Ya no funciona, mes y año son obligatorios
 #@route('/report/<org_id>/<project_id>')
+"""
 @route('/report/<org_id>/<project_id>/')
 def all_report(org_id, project_id):
-    return report(org_id, project_id, None, None)
-
+    return report(org_id, project_id, None, None, "RADAR-9")
+"""
 
 @route('/report/<org_id>/<project_id>/<year>/<month>/')
-def report(org_id, project_id, year, month):
+def report_radar9(org_id, project_id, year, month):
+    return report(org_id, project_id, year, month, "RADAR-9")
+
+@route('/report/<org_id>/<project_id>/<year>/<month>/<survey_type>/')
+def report(org_id, project_id, year, month, survey_type):
     global question_repo
-    test_results = load_test_results(question_repo, org_id, project_id) # Poner los ids y filtrar por ellos
+    test_results = load_test_results(question_repo, org_id, project_id, survey_type = survey_type) # Poner los ids y filtrar por ellos
     report = generate_report(test_results, org_id, project_id, year=year, month=month)
     q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month) # Método independiente, como generate_report
     if report.has_answers():
@@ -117,9 +124,6 @@ def report_selector(org_id, project_id):
 def set_up():
     global question_repo
     question_repo = load_questions()
-    #print("Questions: \n", str(repo))
-
-    #print("Set up ok!")
 
 set_up()
 #run(host='0.0.0.0', port=8080)

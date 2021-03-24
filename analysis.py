@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy
-from tappraisal import _get_full_filename, get_test_structure
+from tappraisal import _get_full_filename, get_test_structure, load_questions, get_survey_structure
 from view import QuestionsAnswersView, ReportView, HierarchicalGroups, MONTHS
 from datetime import datetime
 
@@ -67,24 +67,6 @@ class DF(object):
         year = self._df['year'].max()
         month = self._df[self._df['year'] == year]['month'].max()
         return year, month
-
-    """
-    def years_months(self, project_id, group_id):
-        self.f_project(project_id, group_id)
-        result = dict() # dict of dcit
-        #self._set_month_year()
-        datetimes = list(self._df['datetime'])
-        for dt_string in datetimes:
-            #print(datetime.fromisoformat(dt_string))
-            dt = datetime.fromisoformat(dt_string)
-            year = dt.year
-            month = dt.month
-            if year not in result:
-                result[year] = dict()
-            result[year][month] = month
-
-        return {k:list(v) for k, v in result.items()}
-    """
 
     def size(self):
         return len(self._df)
@@ -182,21 +164,13 @@ class AnsweredQuestion(object):
 class TestsResult(object):
 
     def __init__(self, questions_number = 9, q_repo = None):
-        #self._questions = dict() # avoid duplicates
         self._answers = list()
-        #self._original_answers = list()
         self._answers_id = list()
         self._q_repo = q_repo
         self._answers_number = questions_number
-        #self._url_answers = list() #A013B021C114...
         self._answered_questions = list()
         self._surveys = list() # Survey objects
         self.test_struct = get_test_structure()
-
-    """
-    def url_answers(self):
-        return self._url_answers
-    """
 
     def add_test_answer(self, result_line):
         """
@@ -279,12 +253,6 @@ class TestsResult(object):
     def __str__(self):
         return str(self._answers)
 
-    """
-    #-- No funciona puede haber más d euna answer con el mismo id
-    def get_answered_questions_dict(self):
-        return {answer.id(): answer for answer in self._answered_questions}
-    """
-
     def get_surveys(self):
         return self._surveys
 
@@ -332,32 +300,12 @@ class TestsResult(object):
 
     def question_answers_to_view(self, project, team, year=None, month=None):
         """
-        Returns original ansers, true value for negative questions.
+        Returns  answers objects
         WARNING. this method does not filter by project or group.
         you shouls use load_results..(), so results are filtered
-        :param year: as int
-        :param month: as int
-        :return:
+        :return: questions_answers_view object
         """
         questions_answers_view = QuestionsAnswersView()
-
-        """
-        # Esto tiene que estar fuera
-        test_struct = get_test_structure()
-        # Este método no funciona proque usa estod e aquí abajo.
-        # Ver cómo lo hace analysis_cli
-        answers_dict = self.get_answered_questions_dict()
-
-        df_tmp = self.create_ids_dataframe(project, team, year, month)
-        df_ids = df_tmp[df_tmp.columns[0:self._answers_number]]
-
-        for i in range(0, len(df_ids)):
-            for j in range(0, 9):
-                id_answer = df_ids.iloc[i].iat[j]
-                answer_obj = answers_dict[id_answer]
-                questions_answers_view.add(answer_obj.question_obj(), test_struct[answer_obj.category()], answer_obj.original_answer())
-
-        """
 
         filtered_surveys = self._surveys
         if year is not None:
@@ -370,24 +318,7 @@ class TestsResult(object):
             for answer in survey.answers():
                 questions_answers_view.add(answer.question_obj(), answer.factor(), answer.original_answer())
 
-
         return questions_answers_view
-
-    """
-    def original_answers(self):
-        return self._original_answers
-    """
-
-    """
-    def id_quesions(self):
-        return self._answers_id
-    """
-
-    """
-    def years_months(self, project_id, group_id):
-        df = DF.c_dataframe(self.create_dataframe(project_id, group_id))
-        return df.years_months(project_id, group_id)
-    """
 
 
 class _FactorAnalisys(object):
@@ -421,7 +352,7 @@ class _FactorAnalisys(object):
         return "Las desviaciones indican que las preguntas de un mismo factor no son consistentes. Se recomienda repetir la encuesta en unas semanas."
 
 
-class RadarAnalysis(object):
+class RadarAnalysis_2(object):
 
     def __init__(self):
         self._test_struct = {"Precondiciones": [1, 2], "Seguridad sicológica": [3, 4],
@@ -502,6 +433,119 @@ class RadarAnalysis(object):
         return report
 
 
+class HistoricDataAnalysis:
+
+    def _create_data_for_dataframe(self, surveys):
+        data = list()
+        num_questions  = len(surveys[0].answers())
+        for survey in surveys:
+            s_list = list()
+            s_list.append(survey.year())
+            s_list.append(survey.month())
+            #s_list.append("Radar-9")
+            for index in range(0, num_questions):
+                answer = survey.answers()[index]
+                s_list.append(answer.adapted_answer())
+                #factors.begin().add_group(answer.factor()).add_in_bag(index)
+            data.append(s_list)
+        return data
+
+    def _create_column_for_dataframe(self, surveys):
+        columns = ['year', 'month']
+        questions = len(surveys[0].answers())
+        for ind in range(0, questions):
+            columns.append((ind+1))
+        return columns
+
+    def historical_data(self, results, survey_struct): # Necesito los dos objetos ?
+        surveys = results.get_surveys()
+        data = self._create_data_for_dataframe(surveys)
+        columns = self._create_column_for_dataframe(surveys)
+
+        #print(data)
+        #print(columns)
+        df = pd.DataFrame(data=data, columns=columns)
+        df_grouped = df.groupby(['year', 'month'])
+
+        h_data = HierarchicalGroups()
+        data_groups = survey_struct.get_groups() # Crear este método
+
+        for name, group in df_grouped:
+            # print('ID: ' + str(name))
+            year = group['year'].iloc[0]
+            month = group['month'].iloc[0]
+
+            #print(year)
+            for group_name, column_list in data_groups.items():
+                #index_list = list()
+                #print(group_name, column_list)
+                mean = group[column_list].mean().mean()
+                mad = group[column_list].mad().mean() # Cambiar
+                h_data.begin().add_group(year).add_group(month).add_value(len(group))
+
+                h_data.begin().add_group(year).add_group(month).add_group(group_name).add_value((mean, mad))
+
+        return h_data
+
+
+class RadarAnalysis(object):
+
+    def __init__(self, survey_structure):
+        self._survey_structure = survey_structure
+        self._factor_analisys = _FactorAnalisys()
+
+    def _historical_data(self, results):
+        d_a = HistoricDataAnalysis()
+        return d_a.historical_data(results, self._survey_structure)
+
+    def _add_historical_data(self, report, h_data):
+        #print("hist_data:", h_data)
+        years = h_data.begin().keys()
+        for year in years:
+            months = h_data.begin().group(year).keys()
+            for month in months:
+                answers = h_data.begin().group(year).group(month).value()
+                factors = h_data.begin().group(year).group(month).keys()
+                for factor_name in factors:
+                    stats = h_data.begin().group(year).group(month).group(factor_name).value()
+                    mean = stats[0]
+                    mad = stats[1]
+                    report.with_factor(factor_name).add_historical_serie(year, month, answers, mean, mad)
+
+    def generate_report(self, results, id_proj, id_team, year, month):
+        #self._results = results
+        #df = results.create_dataframe(project=id_proj, group=id_team, year = year, month = month)
+        #print("generate_report.df=", df)
+        #return self.analyze(df, id_proj, id_team, year = None, month = None)
+
+        year = int(year)
+        month = int(month)
+        historical_data = self._historical_data(results)
+
+        report = ReportView()
+        report.answers_len(historical_data.begin().group(year).group(month).value())
+
+        #factor_data = historical_data.begin().group(year).group(month)
+        keys = historical_data.begin().group(year).group(month).keys()
+
+        for factor in keys:
+            #print(keys, factor)
+            stats = historical_data.begin().group(year).group(month).group(factor).value()
+            mean = stats[0]
+            mad = stats[1]
+            report.with_factor(factor).add_means([mean], mean)
+            report.with_factor(factor).add_mads([mad], mad)
+            report.with_factor(factor).add_analysis(self._factor_analisys.stats_analysis([mean], [mad]))
+
+        report.year(year)
+        report.month(month)
+
+        # Meter los datos históricos en el report.
+        self._add_historical_data(report, historical_data)
+
+        return report
+
+
 class RawAnswer(object):
     def __init__(self):
         self._test_type = None
@@ -551,9 +595,9 @@ class RawAnswer(object):
 ## Facade methods
 
 # Depretace, intenta no usarla
+# Usa load_test_results en su lugar
 def _load_answers(questions_repo, filename = "data.txt"):
     answers = TestsResult(q_repo = questions_repo)
-
     file_name = _get_full_filename(filename)
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
@@ -564,7 +608,8 @@ def _load_answers(questions_repo, filename = "data.txt"):
 
 
 def generate_report(test_results, id_proj, id_team, year, month):
-    ra = RadarAnalysis()
+    #ra = RadarAnalysis()
+    ra = RadarAnalysis(get_survey_structure(load_questions())) # Quitar estas referencias para que venga de fuera
     return ra.generate_report(test_results, id_proj, id_team, year, month)
 
 
@@ -583,13 +628,13 @@ def surveys_overview(project_id, team_id, filename = "data.txt"):
     return s_overview
 
 
-def load_test_results(questions_repo, project_id, team_id, filename = "data.txt"):
+def load_test_results(questions_repo, project_id, team_id, survey_type="RADAR-9", filename = "data.txt"):
     results = TestsResult(q_repo = questions_repo)
     file_name = _get_full_filename(filename)
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
         raw_answer = RawAnswer.create(line)
-        if project_id == raw_answer.project_id() and team_id == raw_answer.team_id() and raw_answer.test_type() == "RADAR-9":
+        if project_id == raw_answer.project_id() and team_id == raw_answer.team_id() and raw_answer.test_type() == survey_type:
             results.add_raw_answer(raw_answer) # Este método no existe
 
     file.close()

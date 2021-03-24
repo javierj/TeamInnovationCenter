@@ -72,8 +72,8 @@ for survey in surveys:
         factors.begin().add_group(answer.factor()).add_in_bag(index)
     data.append(s_list)
 
-print(data)
-print(factors)
+print("data", data)
+print("factors", factors)
 
 df = pd.DataFrame(data = data, columns = columns)
 df_grouped = df.groupby(['year', 'month', 'survey_type']) # <- No necesitamos agrupar por survey_type, sino filtrar.
@@ -81,14 +81,15 @@ df_grouped = df.groupby(['year', 'month', 'survey_type']) # <- No necesitamos ag
 for name, group in df_grouped:
     #print('ID: ' + str(name))
     year = group['year'].iloc[0]
-    print(year)
+    month = group['month'].iloc[0]
+    print(year, month, len(group))
     for factor in factors.begin().keys():
         index_list = list()
         for index in factors.begin().group(factor).bag():
             index_list.append(index)
         print(factor, index_list)
     print(group[['1', '2']].mean().mean())
-    print(group[['3']].mean().iloc[0])
+    print(group[['3']].mean().mean())
     print("\n")
 
 # ¿Dónde guardamos los datos históricos?

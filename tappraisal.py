@@ -287,6 +287,10 @@ class SurveyStructureRadar9(object):
     def name(self):
         return "RADAR-9"
 
+    def get_groups(self):
+        return {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Compromiso con el trabajo": [5, 6],
+                             "Perfiles y responsabilidad":[7], "Resultados significativos": [8], "Propósito e impacto": [9]}
+
 
 class SurveyStructurePsychoSafety(object):
 
@@ -376,6 +380,9 @@ class SurveyStructurePsychoSafety(object):
     def name(self):
         return "SAFETY"
 
+    def get_groups(self): # Implementar !!!!
+        return {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Compromiso con el trabajo": [5, 6],
+                             "Perfiles y responsabilidad":[7], "Resultados significativos": [8], "Propósito e impacto": [9]}
 
 # Esto debe desaparecer
 def get_test_structure():

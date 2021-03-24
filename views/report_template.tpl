@@ -26,13 +26,16 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
     <h3>{{factor_name}}:</h3>
     <p> {{defs[factor_name]}} </p>
 
-     <p style="font-size:20px">
- <strong>
- Media total: {{factor.total_mean()}}
- <br/>
- Desviación media total: {{factor.total_mad()}}
- </strong>
- </p>
+    <div id="{{factor_name}}_stats">
+
+    <p style="font-size:20px">
+        <strong>
+            Media total: {{factor.total_mean()}}
+            <br/>
+            Desviación media total: {{factor.total_mad()}}
+        </strong>
+    </p>
+    </div>
 
     <p>
     %# Tabla de respuestas a las preguntas.
@@ -50,8 +53,6 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
             %end
 
 	</table>
-
-
 
         <!-- Esta tabla no la uso
         <br/>
@@ -75,8 +76,6 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 		    </tr>
         </table> -->
  </p>
-
-
 
 <p>
 <strong> Análisis:  </strong> {{factor.get_analysis()}}
