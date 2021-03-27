@@ -128,4 +128,4 @@ def set_up():
 set_up()
 #run(host='0.0.0.0', port=8080)
 application = default_app()
-#application.run() # Comentar esta líena para despliege en pythonanywhere
+application.run() # Comentar esta líena para despliege en pythonanywhere

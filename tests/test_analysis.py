@@ -1,6 +1,6 @@
 import unittest
 from analysis import TestsResult, RadarAnalysis, surveys_overview, load_test_results, \
-    HistoricDataAnalysis
+    HistoricDataAnalysis, RawAnswer
 from tappraisal import load_questions, get_survey_structure
 
 
@@ -53,6 +53,7 @@ class TestTestsResult(unittest.TestCase):
         self.assertTrue(qav.contains("A03"))
         #print(qav)
 
+    """
     def test_create_dataframe(self):
         self.results.add_test_answer("2020-12-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
         self.results.add_test_answer("2020-12-23 15:24:17.008097/01/02/A035B033C032C065D121D023E075F053G022")
@@ -69,6 +70,7 @@ class TestTestsResult(unittest.TestCase):
         self.assertEqual(0, len(df))
         df = self.results.create_dataframe(project="01", group="02", month="12", year="2020")
         self.assertEqual(1, len(df))
+"""
 
     def test_return_original_answer_for_questions(self):
         self.results = load_test_results(load_questions(), "APP-IMEDEA", "T01")
@@ -207,6 +209,11 @@ class TestRadarAnalysis(unittest.TestCase):
         self.assertEqual("Pienso que mi sueldo actual es adecuado.", q_a_view.question_text(q_id) )
         self.assertEqual([1, 2], q_a_view.question_answers(q_id))
 
+    def test_report_empty_if_year_does_not_exists(self):
+        report = self.analisis.generate_report(self.results, None, None, 2000, 13)
+        self.assertFalse(report.has_answers())
+        # Completar
+
 
 class Test_LoanSurveysOverview(unittest.TestCase):
 
@@ -216,6 +223,17 @@ class Test_LoanSurveysOverview(unittest.TestCase):
         expected = "{2020: {12: {'RADAR-9': {'_inc': 1}}}, 2021: {1: {'RADAR-9': {'_inc': 3}}, 2: {'RADAR-9': {'_inc': 2}}}}"
         self.assertEqual(expected, str(s_overview))
         # Esto fallará cuando cambie data.txt
+
+
+class Test_RawAnswer(unittest.TestCase):
+
+    def test_avoid_new_line_at_the_end(self):
+        line_no_new_line = "2021-03-24 15:20:50.278679/01/01/A045BL45C085C195D065D055E035F045G055/RADAR-9"
+        line_new_line = "2021-03-24 15:20:50.278679/01/01/A045BL45C085C195D065D055E035F045G055/RADAR-9\n"
+        raw_answer = RawAnswer.create(line_no_new_line)
+        self.assertEqual("RADAR-9", raw_answer.test_type())
+        raw_answer = RawAnswer.create(line_new_line)
+        self.assertEqual("RADAR-9", raw_answer.test_type())
 
 
 class Test_HistoricDataAnalysis(unittest.TestCase):
@@ -240,6 +258,11 @@ class Test_HistoricDataAnalysis(unittest.TestCase):
         self.assertEqual(1, self.result.begin().group(2021).group(2).value())
         self.assertEqual(1, self.result.begin().group(2021).group(3).value())
 
+    def test_no_surveys(self):
+        d_a = HistoricDataAnalysis()
+        results = TestsResult(q_repo=load_questions())
+        self.result = d_a.historical_data(results, get_survey_structure(load_questions()))
+        self.assertEqual(0, len(self.result.begin().keys()))
 
 if __name__ == '__main__':
     unittest.main()

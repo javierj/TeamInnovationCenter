@@ -222,6 +222,8 @@ class TestsResult(object):
     def _get_answer_value(self, value_str, code):
         value = int(value_str)
         question = self._q_repo.get_question(code)
+        if question is None:
+            print("Question is None from value, code:", value, code)
         if question.is_positive():
             return value
         return 6 - value
@@ -256,8 +258,9 @@ class TestsResult(object):
     def get_surveys(self):
         return self._surveys
 
+    """
     def create_dataframe(self, project= None, group = None, data = None, year=None, month=None):
-        """
+       
         Creates a dataframe like this:
 
            1  2  3  4  5  6  7  8  9                    datetime project_id team_id
@@ -268,7 +271,7 @@ class TestsResult(object):
         :param group:
         :param data:
         :return:
-        """
+        
         if data is None:
             data = self._answers
             #print(data)
@@ -287,16 +290,19 @@ class TestsResult(object):
         df.f_by('team_id', group)
 
         return df.dataframe()
+    """
 
+    """
     def create_ids_dataframe(self, project = None, group = None, year=None, month=None):
-        """
+        
         T    1    2    3    4  ...    9                    datetime project_id team_id
         0  A06  B08  C09  C12  ...  G01  2021-02-08 17:39:16.088294    GIMO-PD     T01
         1  A06  B07  C13  C12  ...  G02  2021-02-08 17:39:16.090003    GIMO-PD     T01
 
         :return: a dataframe with de ids of the questions instead their answer.
-        """
+        
         return self.create_dataframe(project, group, self._answers_id, year=year, month=month)
+    """
 
     def question_answers_to_view(self, project, team, year=None, month=None):
         """
@@ -351,7 +357,7 @@ class _FactorAnalisys(object):
         # Never reached.
         return "Las desviaciones indican que las preguntas de un mismo factor no son consistentes. Se recomienda repetir la encuesta en unas semanas."
 
-
+# Delete this class
 class RadarAnalysis_2(object):
 
     def __init__(self):
@@ -458,16 +464,22 @@ class HistoricDataAnalysis:
         return columns
 
     def historical_data(self, results, survey_struct): # Necesito los dos objetos ?
+        h_data = HierarchicalGroups()
+
         surveys = results.get_surveys()
+        if len(surveys) == 0:
+            return h_data
+
         data = self._create_data_for_dataframe(surveys)
         columns = self._create_column_for_dataframe(surveys)
 
         #print(data)
         #print(columns)
         df = pd.DataFrame(data=data, columns=columns)
+        #print(df)
         df_grouped = df.groupby(['year', 'month'])
 
-        h_data = HierarchicalGroups()
+
         data_groups = survey_struct.get_groups() # Crear este método
 
         for name, group in df_grouped:
@@ -475,16 +487,16 @@ class HistoricDataAnalysis:
             year = group['year'].iloc[0]
             month = group['month'].iloc[0]
 
-            #print(year)
+            #print(year, month)
             for group_name, column_list in data_groups.items():
-                #index_list = list()
-                #print(group_name, column_list)
+                #print(year, month, group_name, column_list)
                 mean = group[column_list].mean().mean()
                 mad = group[column_list].mad().mean() # Cambiar
                 h_data.begin().add_group(year).add_group(month).add_value(len(group))
 
                 h_data.begin().add_group(year).add_group(month).add_group(group_name).add_value((mean, mad))
 
+        #print("h_data \n", h_data)
         return h_data
 
 
@@ -513,16 +525,19 @@ class RadarAnalysis(object):
                     report.with_factor(factor_name).add_historical_serie(year, month, answers, mean, mad)
 
     def generate_report(self, results, id_proj, id_team, year, month):
-        #self._results = results
-        #df = results.create_dataframe(project=id_proj, group=id_team, year = year, month = month)
-        #print("generate_report.df=", df)
-        #return self.analyze(df, id_proj, id_team, year = None, month = None)
-
         year = int(year)
         month = int(month)
         historical_data = self._historical_data(results)
 
         report = ReportView()
+
+        if year not in historical_data.begin().keys():
+            return report
+        if month not in historical_data.begin().group(year).keys():
+            return report
+
+        #print(year, month)
+        #print(historical_data)
         report.answers_len(historical_data.begin().group(year).group(month).value())
 
         #factor_data = historical_data.begin().group(year).group(month)
@@ -560,7 +575,7 @@ class RawAnswer(object):
         raw_answer = RawAnswer()
         data = line.split('/')
         if len(data) >= 5:
-            raw_answer._test_type = data[4]
+            raw_answer._test_type = data[4].strip()
         else:
             raw_answer._test_type = "RADAR-9"
         raw_answer._date_time = datetime.fromisoformat(data[0])
@@ -635,7 +650,14 @@ def load_test_results(questions_repo, project_id, team_id, survey_type="RADAR-9"
     for line in file:
         raw_answer = RawAnswer.create(line)
         if project_id == raw_answer.project_id() and team_id == raw_answer.team_id() and raw_answer.test_type() == survey_type:
-            results.add_raw_answer(raw_answer) # Este método no existe
+            results.add_raw_answer(raw_answer)
+        else:
+            #print("project_id == raw_answer.project_id()", project_id, raw_answer.project_id())
+            #print("team_id == raw_answer.team_id()", team_id , raw_answer.team_id())
+            #print("raw_answer.test_type() == survey_type", raw_answer.test_type(), survey_type)
+            #print("Descartada: ", line)
+            pass
 
     file.close()
+    #print("Surveys: \n", results.get_surveys())
     return results

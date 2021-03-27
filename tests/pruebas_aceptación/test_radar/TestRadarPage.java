@@ -10,7 +10,7 @@ public abstract class TestRadarPage {
 	String team_id;
 	
 	String url = "http://127.0.0.1:8080/";
-	//String url = "http://javierj.pythonanywhere.com";
+	//String url = "http://javierj.pythonanywhere.com/";
 
 	public Boolean contains(String string) {
 		return driver.getPageSource().contains(string);

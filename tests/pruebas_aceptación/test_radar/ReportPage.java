@@ -10,15 +10,12 @@ public class ReportPage  extends TestRadarPage {
 		this.driver = driver;
 	}
 
-	@Override
-	public void load() {
-		// TODO Auto-generated method stub
-	}
+	
 
-	public void load(String project_id, String team_id) {
+	public void load(String project_id, String team_id, String year, String month) {
 		this.project_id = project_id;
 		this.team_id = team_id;
-		driver.get(this.getUrl() + "report/"+ this.project_id + "/" + this.team_id + "/2021/2/");
+		driver.get(this.getUrl() + "report/"+ this.project_id + "/" + this.team_id + "/" + year + "/" + month +"/");
 		//this.driver.get(url);
 	}
 
@@ -26,6 +23,14 @@ public class ReportPage  extends TestRadarPage {
 		//System.out.println()
 		WebElement html = this.driver.findElement(By.id(id));
 		return html.getText().contains(uno);
+	}
+
+
+
+	@Override
+	public void load() {
+		//Dont use this
+		System.err.print("No uses ReportPage::load");
 	}
 
 }

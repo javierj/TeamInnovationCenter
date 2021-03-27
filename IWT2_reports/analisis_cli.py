@@ -177,7 +177,7 @@ surveys = filter_surveys(results.get_surveys(), project, team)
 #print(surveys)
 
 
-ra = RadarAnalysis()
+ra = RadarAnalysis() # <- cambiar esto.
 #df = results.create_dataframe()
 data_report = ra.generate_report(results, project, team)
 

@@ -16,6 +16,8 @@ public class TestRadarSteps {
 	String team_id;
 	SelectorPage selectorPage;
 	ReportPage reportPage;
+	private String year;
+	private String month;
 	
 	//--- Given -----------------------------------------
 	
@@ -35,11 +37,17 @@ public class TestRadarSteps {
 	    this.empiezo_una_encuesta();
 	}
 	
-	@Given("una encuesta realizada en {string} de {string}")
+	@Given("una encuesta realizada el {string} de {string}")
 	public void encuesta_realizada_en(String mes, String año) {
-	    // No lo uso para nada
+	    this.year = año;
+	    this.month = mes;
 	}
-	
+
+	@Given("ninguna encuesta realizada el {string} de {string}")
+	public void ninguna_encuesta_realizada_en(String mes, String año) {
+	    this.encuesta_realizada_en(mes, año);
+	}
+
 
 	//--- When ---------------------------------------------------------
 	
@@ -75,7 +83,7 @@ public class TestRadarSteps {
 	public void consulto_informe_proyecto()
 	{
 		reportPage = this.mainPage.reportPage();
-		reportPage.load(this.project_id, this.team_id);
+		reportPage.load(this.project_id, this.team_id, this.year, this.month);
 	}
 	
 	//----------------------------------------------
@@ -129,6 +137,13 @@ public class TestRadarSteps {
 		//System.out.println(this.reportPage.toString());
 		assertTrue( this.reportPage.contains(factor + "_stats", uno));
 		assertTrue( this.reportPage.contains(factor + "_stats", dos));
+	}
+	
+	@Then("el informe indica que no hay ninguna respuesta.")
+	public void  informe_no_hay_ninguna_sespuesta() {
+		//System.out.println(this.reportPage.toString());
+		String expected = "No tenemos registrada ninguna respuesta";
+		assertTrue( this.reportPage.contains(expected));
 	}
 	
 
