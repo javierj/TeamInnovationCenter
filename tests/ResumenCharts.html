@@ -1,0 +1,115 @@
+
+
+<html>
+<head>
+<title> Demo gráficos. </title>
+</head>
+
+
+
+<body>
+<h2> Grafico: </h2>
+<div>
+  <canvas id="myChart" style="border:1px solid"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = [
+            'Precondiciones',
+            'Seguridad sicológica',
+            'Compromiso con el trabajo',
+            'Perfiles y responsabilidad',
+            'Resultados significativos',
+            'Propósito e impacto',
+            ''
+        ];
+        const factor_ok = 'rgba(75, 192, 192, 0.2)';
+        const border_factor_ok = 'rgb(75, 192, 192)';
+        const factor_bad = 'rgba(255, 99, 132, 0.2)';
+        const border_factor_bad = 'rgb(255, 99, 132)';
+        const mad_ok = 'rgba(54, 162, 235, 0.2)';
+        const border_mad_ok = 'rgb(54, 162, 235)';
+        const mad_bad = 'rgba(255, 159, 64, 0.2)';
+        const border_mad_bad = 'rgb(255, 159, 64)';
+        const data = {
+            labels: labels,
+            datasets: [{
+                axis: 'y',
+                label: '',
+                data: [
+                        3.0,
+                        3.833333333333333,
+                        2.6666666666666665,
+                        4.666666666666667,
+                        3.3333333333333335,
+                        3.3333333333333335,
+                    ],
+                    fill: false,
+                    backgroundColor: [
+                                factor_ok,
+                                factor_ok,
+                                factor_ok,
+                                factor_ok,
+                                factor_ok,
+                                factor_ok,
+                    ],
+                    borderColor: [
+                                border_factor_ok,
+                                border_factor_ok,
+                                border_factor_ok,
+                                border_factor_ok,
+                                border_factor_ok,
+                                border_factor_ok,
+                    ],
+                    borderWidth: 1
+                },
+                {
+	                axis: 'y',
+                    label: '',
+                    data: [
+                            1.9444444444444444,
+                            1.6388888888888893,
+                            1.9444444444444442,
+                            0.6111111111111108,
+                            1.9444444444444444,
+                            1.9444444444444444,
+                    ],
+                    fill: false,
+                    backgroundColor: [
+                                mad_bad,
+                                mad_bad,
+                                mad_bad,
+                                mad_ok,
+                                mad_bad,
+                                mad_bad,
+                    ],
+                    borderColor: [
+                                border_mad_bad,
+                                border_mad_bad,
+                                border_mad_bad,
+                                border_mad_ok,
+                                border_mad_bad,
+                                border_mad_bad,
+                    ],
+                    borderWidth: 1
+                }]
+            };
+        const config = {
+    type: 'bar',
+    data,
+    options: {
+    indexAxis: 'y',
+    }
+    };
+
+ var myChart = new Chart(
+    document.getElementById('myChart'),
+    config
+  );
+    </script>
+
+
+
+</body>
+</html>

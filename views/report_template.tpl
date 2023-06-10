@@ -1,21 +1,117 @@
 % include('header.tpl')
 
-%#Definiciones d elos factors evaluados en las encuestas.
-
-%defs = dict()
-%defs['Precondiciones'] = "Recoge todos los factores higiénicos de motivación (o motivaciones extrínsecas)."
-%defs['Seguridad sicológica'] = "Poder asumir riesgos sin miedo a represalias."
-%defs['Compromiso con el trabajo'] = "Las personas de las que depende mi trabajo adquieren compromisos y los cumplen."
-%defs['Perfiles y responsabilidad'] = "Toma de decisiones clara, responsables definidas y tareas claras."
-%defs['Resultados significativos'] = "Me importa mi trabajo y me siento implicado haciéndolo."
-%defs['Propósito e impacto'] = "El trabajo que realizo tiene una utilidad y un impacto."
-
 <br/>
-
 <h2> <span aria-hidden="true" class="octicon octicon-link">Informe Team Radar.</span></h2>
-<p> Se muestran {{report.get_answers_len()}} encuestras.
+<p> Se han encontrado {{report.get_answers_len()}} encuestras.
 <br/>
 Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get_year()}}.
+</p>
+
+<p></p>
+<br/>
+
+    <!-- Gráfico -->
+    <h3> Resumen: </h3>
+    <div>
+        <canvas id="myChart" style="border:1px solid"></canvas>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const labels = [
+            %for factor_name, _ in report.iter_factors():
+            '{{factor_name}}',
+            %end
+            'Sin uso'
+        ];
+        const factor_ok = 'rgba(75, 192, 192, 0.2)';
+        const border_factor_ok = 'rgb(75, 192, 192)';
+        const factor_bad = 'rgba(255, 99, 132, 0.2)';
+        const border_factor_bad = 'rgb(255, 99, 132)';
+        const mad_ok = 'rgba(54, 162, 235, 0.2)';
+        const border_mad_ok = 'rgb(54, 162, 235)';
+        const mad_bad = 'rgba(255, 159, 64, 0.2)';
+        const border_mad_bad = 'rgb(255, 159, 64)';
+        const data = {
+            labels: labels,
+            datasets: [{
+                axis: 'y',
+                label: '',
+                data: [
+                    %for _, factor in report.iter_factors():
+                        {{factor.total_mean()}},
+                    %end
+                    ],
+                    fill: false,
+                    backgroundColor: [
+                        %for _, factor in report.iter_factors():
+                            %if factor.total_mean() >= 2.5:
+                                factor_ok,
+                            %end
+                            %if factor.total_mean() < 2.5:
+                                factor_bad,
+                            %end
+                        %end
+                    ],
+                    borderColor: [
+                        %for _, factor in report.iter_factors():
+                            %if factor.total_mean() >= 2.5:
+                                border_factor_ok,
+                            %end
+                            %if factor.total_mean() < 2.5:
+                                border_factor_bad,
+                            %end
+                        %end
+                    ],
+                    borderWidth: 1
+                },
+                {
+	                axis: 'y',
+                    label: '',
+                    data: [
+                        %for _, factor in report.iter_factors():
+                            {{factor.total_mad()}},
+                        %end
+                    ],
+                    fill: false,
+                    backgroundColor: [
+                        %for _, factor in report.iter_factors():
+                            %if factor.total_mad() > 1:
+                                mad_bad,
+                            %end
+                            %if factor.total_mad() <= 1:
+                                mad_ok,
+                            %end
+                        %end
+                    ],
+                    borderColor: [
+                        %for _, factor in report.iter_factors():
+                            %if factor.total_mad() > 1:
+                                border_mad_bad,
+                            %end
+                            %if factor.total_mad() <= 1:
+                                border_mad_ok,
+                            %end
+                        %end
+                    ],
+                    borderWidth: 1
+                }]
+            };
+        const config = {
+    type: 'bar',
+    data,
+    options: {
+    indexAxis: 'y',
+    }
+    };
+
+ var myChart = new Chart(
+    document.getElementById('myChart'),
+    config
+  );
+    </script>
+
+<p> La primera barra de cada factor es el valor medio y la segunda barra es la desviació media.
+    <br/> Una barra azul o verde indica un valor adecuado y una barra roja o naranja indica un valor a mejorar.
 </p>
 
 <p></p>
@@ -54,27 +150,7 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 
 	</table>
 
-        <!-- Esta tabla no la uso
-        <br/>
-	    <table>
-		    <tr> <td></td>
-		    %for i in range(1, len(factor.means())+1):
-		    <td> <strong> Pregunta {{i}} </strong> </td>
-		    %end
-		    </tr>
-		    <tr>
-		    <td> <em> Media </em> </td>
-		    %for i in factor.means():
-		    <td style="text-align:center"> {{i}} </td>
-		    %end
-		    </tr>
-		    <tr>
-		    <td> <em> Desviación </em> </td>
-		    %for i in factor.mads():
-		    <td style="text-align:center"> {{i}} </td>
-		    %end
-		    </tr>
-        </table> -->
+
  </p>
 
 <p>
@@ -113,14 +189,6 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 <p>
 <hr/>
 <strong> Este informe se ha generado de manera automática </strong>
-<br/>
-Puedes solicitar un informe elaborado a mano más detallado, rellenando el siguiente formulario (Google Form)
- para recibir el informe con el resultado de las encuestas. Tienes un informe de ejemplo elaborado a mano
-   <A href="./files/InformeEjemplo.pdf">  aquí </a>.
-
-</p>
-<hr/>
-<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdO6iuXwFtZNsFjtxJkjNKUQGDGaX2Ru14tyfpClmEEginn-w/viewform?embedded=true" width="640" height="1000" frameborder="0" marginheight="0" marginwidth="0">Cargando…</iframe>
 
 <hr/>
 

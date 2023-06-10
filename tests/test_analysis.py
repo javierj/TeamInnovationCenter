@@ -1,8 +1,21 @@
 import unittest
 from analysis import TestsResult, RadarAnalysis, surveys_overview, load_test_results, \
-    HistoricDataAnalysis, RawAnswer
-from tappraisal import load_questions, get_survey_structure
+    HistoricDataAnalysis, RawAnswer, generate_report
+from tappraisal import get_survey_structure, QuestionRepository, _get_full_filename
 
+
+def load_questions():
+    repo = QuestionRepository()
+
+    # Cambiado para softIA
+    file_name = _get_full_filename("preguntas.txt")
+    file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
+    for line in file:
+        repo.commit_question(line)
+        #print("áéÍÓñÑ: " + line)
+    file.close()
+
+    return repo
 
 class TestTestsResult(unittest.TestCase):
 
@@ -26,7 +39,6 @@ class TestTestsResult(unittest.TestCase):
 
         self.assertTrue(qav.has_answers())
         self.assertEqual(6, len(qav.categories()))
-        #print(qav)
 
     def test_select_answers_in_view(self):
         self.results.add_test_answer("2020-12-23 18:08:00.482801/01/01/A035B033C032C065D121D023E075F053G022")
@@ -40,7 +52,6 @@ class TestTestsResult(unittest.TestCase):
         self.assertEqual(6, len(qav.categories()))
         self.assertTrue(qav.contains("A03"))
         self.assertFalse(qav.contains("A05"))
-        #print(qav)
 
     def test_select_all_answers(self):
         self.results.add_test_answer("2020-12-23 18:08:00.482801/01/01/A035B033C032C065D121D023E075F053G022")
@@ -51,26 +62,6 @@ class TestTestsResult(unittest.TestCase):
         self.assertTrue(qav.has_answers())
         self.assertTrue(qav.contains("A05"))
         self.assertTrue(qav.contains("A03"))
-        #print(qav)
-
-    """
-    def test_create_dataframe(self):
-        self.results.add_test_answer("2020-12-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
-        self.results.add_test_answer("2020-12-23 15:24:17.008097/01/02/A035B033C032C065D121D023E075F053G022")
-        self.results.add_test_answer("2021-01-23 15:24:17.008097/02/02/A035B033C032C065D121D023E075F053G022")
-        df = self.results.create_dataframe()
-        self.assertEqual(3, len(df))
-        df = self.results.create_dataframe(project="01")
-        self.assertEqual(2, len(df))
-        df = self.results.create_dataframe(project="01", group="02")
-        self.assertEqual(1, len(df))
-        df = self.results.create_dataframe(month="12", year="2020")
-        self.assertEqual(2, len(df))
-        df = self.results.create_dataframe(month="12", year="2021")
-        self.assertEqual(0, len(df))
-        df = self.results.create_dataframe(project="01", group="02", month="12", year="2020")
-        self.assertEqual(1, len(df))
-"""
 
     def test_return_original_answer_for_questions(self):
         self.results = load_test_results(load_questions(), "APP-IMEDEA", "T01")
@@ -83,17 +74,27 @@ class TestTestsResult(unittest.TestCase):
         resuts = answers.question_answers(id)
         self.assertEqual([5, 5], resuts)
 
+    def test_result_safety_test(self):
+        questions = load_questions()
+        test_struct = get_survey_structure(questions, "SAFETY")
+        results = TestsResult(q_repo=questions, questions_number=test_struct.num_of_questions())
+        results.add_test_answer("2021-03-19 18:42:14.254246/01/01/C055C075C105C145C195C205C185/SAFETY")
+        results.add_test_answer("2021-03-19 18:58:31.121013/01/01/C055C065C095C135C195C085C125/SAFETY")
+
+        self.assertEqual(2, len(results.get_surveys()))
+
 
 class TestRadarAnalysis(unittest.TestCase):
 
     def _get_historical_data(self):
         d_a = HistoricDataAnalysis()
-        return d_a.historical_data(self.results, get_survey_structure(load_questions()))
+        return d_a.historical_data(self.results, get_survey_structure(self.repo))
 
     def setUp(self):
-        self.analisis = RadarAnalysis(get_survey_structure(load_questions()))
+        self.repo = load_questions()
+        self.analisis = RadarAnalysis(get_survey_structure(self.repo))
         #self.analisis = RadarAnalysis()
-        self.results = TestsResult(q_repo=load_questions())  # Evitar esta dependencia
+        self.results = TestsResult(q_repo=self.repo)  # Evitar esta dependencia
         self._historical_diciembre = (2020, "diciembre", 1, 1.5, 0.0)
 
     def test_analysis(self): # Este etst es muy frágil, poner solo los valores.
@@ -125,29 +126,12 @@ class TestRadarAnalysis(unittest.TestCase):
         self.assertEqual(6, len(report.factors()))
         self.assertEqual([1.75], report.with_factor("Precondiciones").means())
         self.assertEqual([0.25], report.with_factor("Precondiciones").mads())
-        # expected = "['1.5', '2.0']"
-
-    """ - Esta funcionalidad no existe, hay que indicar siempre me sy año.
-    def test_result_has_lastest_month_and_year(self): # Este etst es muy frágil, poner solo los valores.
-        self.results.add_test_answer("2020-01-01 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
-        self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
-        # crear el databrame directaente.
-        #report = self.analisis.analyze(self.results.create_dataframe(), "01", "01")
-        report = self.analisis.generate_report(self.results, "01", "01")
-
-        # expected = "{'year': 2021, 'month': 1, 'answers_num': 1}"
-        self.assertEqual(2021, report.get_year())
-        self.assertEqual("enero", report.get_month())
-        self.assertEqual(1, report.get_answers_len())
-    """
 
     def test_report_info_month_year_and_answers(self):
         self.results.add_test_answer("2020-12-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
         self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
-        # crear el databrame directaente.
         #report = self.analisis.analyze(self.results.create_dataframe(), "01", "01", "2020", "12")
         report = self.analisis.generate_report(self.results, "01", "01", "2020", "12")
-        #print(data)
         #expected = "{'year': 2020, 'month': 12, 'answers_num': 1}"
         self.assertEqual("2020", str(report.get_year()))
         self.assertEqual("diciembre", str(report.get_month()))
@@ -165,7 +149,7 @@ class TestRadarAnalysis(unittest.TestCase):
         self.assertEqual(expected, report.with_factor("Precondiciones").get_historical_serie(1))
 
     def test_historical_data_2(self):
-        self.analisis = RadarAnalysis(get_survey_structure(load_questions()))
+        self.analisis = RadarAnalysis(get_survey_structure(self.repo))
         self.results.add_test_answer("2020-12-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
         self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
         #report = self.analisis.analyze(self.results.create_dataframe(), "01", "01", "2020", "12")
@@ -212,10 +196,46 @@ class TestRadarAnalysis(unittest.TestCase):
     def test_report_empty_if_year_does_not_exists(self):
         report = self.analisis.generate_report(self.results, None, None, 2000, 13)
         self.assertFalse(report.has_answers())
-        # Completar
 
 
-class Test_LoanSurveysOverview(unittest.TestCase):
+class TestRadarAnalysis_SafetyTest(unittest.TestCase):
+
+    def setUp(self):
+        self.repo = load_questions()
+        self.test_struct = get_survey_structure(self.repo, "SAFETY")
+        self.results = TestsResult(q_repo=self.repo, questions_number=self.test_struct.num_of_questions())
+
+    def test_analysis_safety_test(self):
+        self.results.add_test_answer("2021-03-19 18:42:14.254246/01/01/C055C075C105C145C195C205C185/SAFETY")
+        self.results.add_test_answer("2021-03-19 18:58:31.121013/01/01/C055C065C095C135C195C085C125/SAFETY")
+        self.assertEqual(2, len(self.results.get_surveys()))
+
+        self.analisis = RadarAnalysis(get_survey_structure(self.repo, survey_name = "SAFETY"))
+        report = self.analisis.generate_report(self.results, "01", "01", 2021, 3)
+        self.assertTrue(report.has_answers())
+        #print(report)
+        #print(report.factors().keys())
+        expected = "dict_keys(['SP01. Feedback', 'SP02. Preguntar y expresar ideas divergentes', 'SP03. Compartir ideas', 'SP04. Errores', 'Miscelanea'])"
+        self.assertEqual(expected, str(report.factors().keys()))
+
+    def test_load_safety_test_from_file(self):
+        results = load_test_results(self.repo, "01", "01", survey_name="SAFETY", filename="IWT2_reports\\safety.txt")
+        #print(results.get_surveys())
+        self.assertEqual(2, len(results.get_surveys()))
+
+    def test_analyze_safety_test_from_file(self):
+        results = load_test_results(self.repo, "01", "01", survey_name="SAFETY", filename="IWT2_reports\\safety.txt")
+        #print(results.get_surveys())
+        self.assertEqual(2, len(results.get_surveys()))
+        report = generate_report(results, "01", "01", year=2021, month=3, survey="SAFETY")
+        #print(report)
+        self.assertTrue(report.has_answers())
+        # print(report.factors().keys())
+        expected = "dict_keys(['SP01. Feedback', 'SP02. Preguntar y expresar ideas divergentes', 'SP03. Compartir ideas', 'SP04. Errores', 'Miscelanea'])"
+        self.assertEqual(expected, str(report.factors().keys()))
+
+
+class Test_SurveysOverview(unittest.TestCase):
 
     def test_surveys_overview(self):
         s_overview = surveys_overview("01", "01", filename="tests/data_test.txt")
@@ -239,14 +259,15 @@ class Test_RawAnswer(unittest.TestCase):
 class Test_HistoricDataAnalysis(unittest.TestCase):
 
     def setUp(self):
-        results = TestsResult(q_repo=load_questions())
-        results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
-        results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
-        results.add_test_answer("2021-02-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
-        results.add_test_answer("2021-03-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        self.repo = load_questions()
+        self.results = TestsResult(q_repo=self.repo)
+        self.results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
+        self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        self.results.add_test_answer("2021-02-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
+        self.results.add_test_answer("2021-03-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
 
-        d_a = HistoricDataAnalysis()
-        self.result = d_a.historical_data(results, get_survey_structure(load_questions()))
+        self.d_a = HistoricDataAnalysis()
+        self.result = self.d_a.historical_data(self.results, get_survey_structure(self.repo))
 
     def test_historical_data(self):
         expected = "{2021: {1: {'_value': 2, 'Precondiciones': {'_value': (1.75, 0.25)}, 'Seguridad sicológica': {'_value': (1.25, 0.25)}, 'Compromiso con el trabajo': {'_value': (1.0, 0.0)}, 'Perfiles y responsabilidad': {'_value': (2.0, 0.0)}, 'Resultados significativos': {'_value': (1.0, 0.0)}, 'Propósito e impacto': {'_value': (1.0, 0.0)}}"
@@ -259,10 +280,22 @@ class Test_HistoricDataAnalysis(unittest.TestCase):
         self.assertEqual(1, self.result.begin().group(2021).group(3).value())
 
     def test_no_surveys(self):
-        d_a = HistoricDataAnalysis()
-        results = TestsResult(q_repo=load_questions())
-        self.result = d_a.historical_data(results, get_survey_structure(load_questions()))
+        results = TestsResult(q_repo=self.repo)
+        self.result = self.d_a.historical_data(results, get_survey_structure(self.repo))
         self.assertEqual(0, len(self.result.begin().keys()))
+
+    def test_safety_test(self):
+        test_struct = get_survey_structure(self.repo, "SAFETY")
+        self.results = TestsResult(q_repo=self.repo, questions_number=test_struct.num_of_questions())
+        self.results.add_test_answer("2021-03-19 18:42:14.254246/01/01/C055C075C105C145C195C205C185/SAFETY")
+        self.results.add_test_answer("2021-03-19 18:58:31.121013/01/01/C055C065C095C135C195C085C125/SAFETY")
+        self.assertEqual(2, len(self.results.get_surveys()))
+        result = self.d_a.historical_data(self.results, get_survey_structure(self.repo, survey_name = "SAFETY"))
+        #print(result)
+        self.assertIn(2021, result.begin().keys())
+        self.assertIn(3, result.begin().group(2021).keys())
+        self.assertEqual(5, len(result.begin().group(2021).group(3).keys()))
+
 
 if __name__ == '__main__':
     unittest.main()

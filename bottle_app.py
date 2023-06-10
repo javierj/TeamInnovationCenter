@@ -37,12 +37,18 @@ def stylesheets_static(filename):
 def images_static(filename):
     return redirect("/static/images/"+filename)
 
+
 @route('/iwt2')
 @route('/IWT2')
 @route('/iwt2/')
 @route('/IWT2/')
 def iwt2_static():
     return redirect("/static/iwt2.html")
+
+
+@route('/softia')
+def iwt2_static():
+    return redirect("/static/softia.html")
 
 
 @route('/get_data')
@@ -52,6 +58,7 @@ def get_data():
 
 
 @route('/get_questions')
+@route('/get_questions/')
 def get_questions():
     global BASE_DIR
     return static_file("preguntas.txt", root=BASE_DIR)
@@ -61,18 +68,59 @@ def get_questions():
 def question_radar9(org_id, project_id, questions=""):
     return question("RADAR-9", org_id, project_id, questions)
 
-#@route('/test/<org_id>/<project_id>')
+
 @route('/test/<org_id>/<project_id>/')
 def first_question_radar9(org_id, project_id):
     return question("RADAR-9", org_id, project_id)
+
 
 @route('/safety/<org_id>/<project_id>/<questions>')
 def question_safety(org_id, project_id, questions=""):
     return question("SAFETY", org_id, project_id, questions)
 
+
 @route('/safety/<org_id>/<project_id>/')
 def first_question_safety(org_id, project_id):
     return question("SAFETY", org_id, project_id)
+
+
+@route('/classic/<org_id>/<project_id>/<questions>')
+def question_classic(org_id, project_id, questions=""):
+    return question("CLASSIC", org_id, project_id, questions)
+
+
+@route('/classic/<org_id>/<project_id>/')
+def first_question_classic(org_id, project_id):
+    return question("CLASSIC", org_id, project_id)
+
+
+###
+
+@route('/softia/<org_id>/<project_id>/<questions>')
+def question_sofia(org_id, project_id, questions=""):
+    return question("SoftIA", org_id, project_id, questions)
+
+
+@route('/softia/<org_id>/<project_id>/')
+def first_question_sofia(org_id, project_id):
+    return question("SoftIA", org_id, project_id)
+
+###
+
+
+def _softia_get_template_name(question):
+    """
+    Esto se ha hecho para SoftIA para poder implementar lapregunta de género
+    y de titulación
+    :param question: objeto de tipo TestQuestion
+    :return:
+    """
+    if question.category() == '0':
+        return 'softia_gender_question_template'
+    if question.category() == '1':
+        return 'softia_course_question_template'
+
+    return 'question_template'
 
 
 def question(test, org_id, project_id, questions=""):
@@ -86,31 +134,24 @@ def question(test, org_id, project_id, questions=""):
         #print("Server URL: ", _server_url(request.url))
         return template('end_template', base_url=_server_url())
 
-    return template('question_template', question=next_question.text(), base_url = request.url, question_code = next_question.code(), question_index = data.len_questions() + 1)
+    template_name = _softia_get_template_name(next_question)
+    return template(template_name, question=next_question.text(), base_url = request.url, question_code = next_question.code(), question_index = data.len_questions() + 1)
 
-
-# Aún no funciona, hay que añadir id de poryecto y equipo
-# Esto creo que ya no lo necesitamos.
-# Ya no funciona, mes y año son obligatorios
-#@route('/report/<org_id>/<project_id>')
-"""
-@route('/report/<org_id>/<project_id>/')
-def all_report(org_id, project_id):
-    return report(org_id, project_id, None, None, "RADAR-9")
-"""
 
 @route('/report/<org_id>/<project_id>/<year>/<month>/')
 def report_radar9(org_id, project_id, year, month):
     return report(org_id, project_id, year, month, "RADAR-9")
 
+
 @route('/report/<org_id>/<project_id>/<year>/<month>/<survey_type>/')
 def report(org_id, project_id, year, month, survey_type):
     global question_repo
-    test_results = load_test_results(question_repo, org_id, project_id, survey_type = survey_type) # Poner los ids y filtrar por ellos
-    report = generate_report(test_results, org_id, project_id, year=year, month=month)
-    q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month) # Método independiente, como generate_report
+    test_results = load_test_results(question_repo, org_id, project_id, survey_name = survey_type) # Poner los ids y filtrar por ellos
+    report = generate_report(test_results, org_id, project_id, year=year, month=month, survey= survey_type)
     if report.has_answers():
-        return template('report_template', report=report, question_answer=q_a_v)
+        q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month)  # Método independiente, como generate_report
+        desc = get_survey_structure(question_repo, survey_type).description_dict()
+        return template('report_template', report=report, question_answer=q_a_v, defs = desc)
     return template('noanswers_template', org_id=org_id, project_id = project_id)
 
 
@@ -121,6 +162,15 @@ def report_selector(org_id, project_id):
     return template('report_selector', org_id=org_id, project_id=project_id, surveys_overview=s_overview, base_url = base_url)
 
 
+#--- URLs erróneas ----------------------
+
+@route('/report/<org_id>/<project_id>')
+@route('/report/<org_id>/<project_id>/')
+@route('/test/<org_id>/<project_id>')
+def error_url(org_id, project_id):
+    return template('error_template', base_url = request.url)
+
+
 def set_up():
     global question_repo
     question_repo = load_questions()
@@ -128,4 +178,4 @@ def set_up():
 set_up()
 #run(host='0.0.0.0', port=8080)
 application = default_app()
-application.run() # Comentar esta líena para despliege en pythonanywhere
+#application.run() # Comentar esta líena para despliege en pythonanywhere

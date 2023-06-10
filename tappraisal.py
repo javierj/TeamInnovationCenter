@@ -139,6 +139,11 @@ class AppraisalDirector(object):
         self._save_data_method = save_method
 
     def next_question(self, data):
+        """
+
+        :param data:
+        :return: objeto TestQuestion
+        """
         question = self._survey_struct.next_question(data)
 
         if question is None:
@@ -215,7 +220,11 @@ class QuestionRepository(object):
 
 def load_questions():
     repo = QuestionRepository()
-    file_name = _get_full_filename("preguntas.txt")
+
+    # Cambiado para softIA
+    # file_name = _get_full_filename("preguntas.txt")
+    file_name = _get_full_filename("preguntas_sofia.txt")
+
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
         repo.commit_question(line)
@@ -224,7 +233,10 @@ def load_questions():
 
     return repo
 
-##--- Aún no está en uso -------------------------------
+
+################################################
+# Structures
+
 
 class SurveyStructureRadar9(object):
 
@@ -291,6 +303,70 @@ class SurveyStructureRadar9(object):
         return {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Compromiso con el trabajo": [5, 6],
                              "Perfiles y responsabilidad":[7], "Resultados significativos": [8], "Propósito e impacto": [9]}
 
+    def description_dict(self):
+        """ Usado por la plantilla que muestra el informe. """
+        defs = dict()
+        defs['Precondiciones'] = "Recoge todos los factores higiénicos de motivación (motivaciçon extrínseca)."
+        defs['Seguridad sicológica'] = "Poder asumir riesgos sin miedo a represalias."
+        defs['Compromiso con el trabajo'] = "Las personas de las que depende mi trabajo adquieren compromisos y los cumplen."
+        defs['Perfiles y responsabilidad'] = "Toma de decisiones clara, responsables definidas y tareas claras."
+        defs['Resultados significativos'] = "Me importa mi trabajo y me siento implicado haciéndolo."
+        defs['Propósito e impacto'] = "El trabajo que realizo tiene una utilidad y un impacto."
+        return defs
+
+
+    def get_test_structure(self):
+        # RADAR-9
+        return {'A': "Precondiciones", 'B': "Precondiciones", 'C': "Seguridad sicológica", 'D': "Compromiso con el trabajo",
+                       'E': "Perfiles y responsabilidad", 'F': "Resultados significativos", 'G': "Propósito e impacto"}
+
+
+class SurveyStructureRadarClassic(object):
+
+    def __init__(self, _questions_repo):
+        self._questions_repo = _questions_repo
+
+    def num_of_questions(self):
+        return 9
+
+    def _random_question_from(self, cat, data):
+        ids = data.ids_set()
+        question = self._questions_repo.random_question_from(cat)
+        while question.code() in ids:
+            question = self._questions_repo.random_question_from(cat)
+        return question
+
+    def next_question(self, data):
+        if data.len_questions_in("C") < 2:
+            return self._random_question_from("C", data)
+        if data.len_questions_in("D") < 2:
+            return self._random_question_from("D", data)
+        if data.len_questions_in("E") < 2:
+            return self._random_question_from("E", data)
+        if data.len_questions_in("F") < 2:
+            return self._random_question_from("F", data)
+        if data.len_questions_in("G") < 1:
+            return self._random_question_from("G", data)
+        return None
+
+    @staticmethod
+    def name():
+        return "CLASSIC"
+
+    def get_groups(self):
+        return {"Seguridad sicológica": [1, 2], "Compromiso con el trabajo": [3, 4],
+                             "Perfiles y responsabilidad":[5, 6], "Resultados significativos": [7, 8], "Propósito e impacto": [9]}
+
+    def description_dict(self):
+        """ Usado por la plantilla que muestra el informe. """
+        defs = dict()
+        defs['Seguridad sicológica'] = "Poder asumir riesgos sin miedo a represalias."
+        defs['Compromiso con el trabajo'] = "Las personas de las que depende mi trabajo adquieren compromisos y los cumplen."
+        defs['Perfiles y responsabilidad'] = "Toma de decisiones clara, responsables definidas y tareas claras."
+        defs['Resultados significativos'] = "Me importa mi trabajo y me siento implicado haciéndolo."
+        defs['Propósito e impacto'] = "El trabajo que realizo tiene una utilidad y un impacto."
+        return defs
+
 
 class SurveyStructurePsychoSafety(object):
 
@@ -308,6 +384,7 @@ class SurveyStructurePsychoSafety(object):
         self._category_list = None # not in use
         self._all_questions = list()
 
+        # Creo que este c´´oigo no hace nada
         self._questions_per_category()
         for question_set in self._questions_x_cat.values():
             self._all_questions.extend(question_set)
@@ -380,9 +457,126 @@ class SurveyStructurePsychoSafety(object):
     def name(self):
         return "SAFETY"
 
-    def get_groups(self): # Implementar !!!!
-        return {"Precondiciones": [1,2], "Seguridad sicológica": [3, 4], "Compromiso con el trabajo": [5, 6],
-                             "Perfiles y responsabilidad":[7], "Resultados significativos": [8], "Propósito e impacto": [9]}
+    def get_groups(self):
+        return {"SP01. Feedback": [1,2],
+                "SP02. Preguntar y expresar ideas divergentes": [3],
+                "SP03. Compartir ideas": [4],
+                "SP04. Errores":[5],
+                "Miscelanea": [6, 7]}
+
+    def description_dict(self):
+        """ Usado por la plantilla que muestra el informe. """
+        defs = dict()
+        defs['SP01. Feedback'] = "ToDo."
+        defs["SP02. Preguntar y expresar ideas divergentes"] = "ToDo."
+        defs["SP03. Compartir ideas"] = "ToDo"
+        defs["SP04. Errores"] = "ToDo"
+        defs["Miscelanea"] = "ToDo"
+        return defs
+
+    def get_test_structure(self):
+        # RADAR-9
+        return {'A': "Precondiciones", 'B': "Precondiciones", 'C': "Seguridad sicológica", 'D': "Compromiso con el trabajo",
+                       'E': "Perfiles y responsabilidad", 'F': "Resultados significativos", 'G': "Propósito e impacto"}
+
+
+#########
+
+class SurveyStructureSoftIA(object):
+
+    def __init__(self, _questions_repo):
+        self._questions_repo = _questions_repo
+
+    def num_of_questions(self):
+        return 33
+
+    def _random_question_from(self, cat, data):
+        ids = data.ids_set()
+        question = self._questions_repo.random_question_from(cat)
+        while question.code() in ids:
+            question = self._questions_repo.random_question_from(cat)
+        return question
+
+    def next_question(self, data):
+        if data.len_questions_in("0") < 1:
+            return self._random_question_from("0", data)
+        if data.len_questions_in("1") < 1:
+            return self._random_question_from("1", data)
+
+        if data.len_questions_in("A") < 3:
+            return self._random_question_from("A", data)
+        if data.len_questions_in("B") < 2:
+            return self._random_question_from("B", data)
+        if data.len_questions_in("C") < 3:
+            return self._random_question_from("C", data)
+        if data.len_questions_in("D") < 5:
+            return self._random_question_from("D", data)
+        if data.len_questions_in("E") < 3:
+            return self._random_question_from("E", data)
+        if data.len_questions_in("F") < 5:
+            return self._random_question_from("F", data)
+        if data.len_questions_in("G") < 2:
+            return self._random_question_from("G", data)
+        if data.len_questions_in("H") < 5:
+            return self._random_question_from("H", data)
+        if data.len_questions_in("I") < 3:
+            return self._random_question_from("I", data)
+        return None
+
+    @staticmethod
+    def name():
+        return "SOFTIA"
+
+    def get_groups(self):
+        return {
+            "Género": [1],
+            "Titulación": [2],
+            "Formación": [3],
+                "Flexibilidad": [4],
+                "Errores": [5],
+                "Automatización": [6],
+                "Herramientas": [7],
+                "Satisfacción": [8],
+                "Planificación y formación": [9],
+                "Desarrollo del proyecto": [10],
+                "Resultados": [11],
+                }
+
+    def description_dict(self):
+        """ Usado por la plantilla que muestra el informe. """
+        defs = dict()
+        defs['Género'] = "Género."
+        defs['Titulación'] = "Titulación."
+        defs['Formación'] = "Formación."
+        defs['Flexibilidad'] = "Flexibilidad."
+        defs['Errores'] = "Errores."
+        defs['Automatización'] = "Automatización."
+        defs['Herramientas'] = "Herramientas."
+        defs['Satisfacción'] = "Satisfacción."
+        defs['Planificación y formación'] = "Planificación y formación."
+        defs['Desarrollo del proyecto'] = "Desarrollo del proyecto."
+        defs['Resultados'] = "Resultados."
+        return defs
+
+    def get_test_structure(self):
+        # RADAR-9
+        return {
+            '0': "Género",
+            '1': "Titulación",
+            'A': "Formación",
+                'B': "Flexibilidad",
+                'C': "Errores",
+                'D': "Automatización",
+                       'E': "Herramientas",
+                'F': "Satisfacción",
+                'G': "Planificación y formación",
+                'H': "Desarrollo del proyecto",
+                'I': "Resultados",
+
+                }
+
+
+#########
 
 # Esto debe desaparecer
 def get_test_structure():
@@ -402,4 +596,11 @@ def get_survey_structure(question_repo, survey_name = "RADAR-9"):
         return SurveyStructureRadar9(question_repo)
     if survey_name.upper() == "SAFETY":
         return SurveyStructurePsychoSafety(question_repo)
+    if survey_name.upper() == SurveyStructureRadarClassic.name():
+        return SurveyStructureRadarClassic(question_repo)
+
+    if survey_name.upper() == SurveyStructureSoftIA.name():
+        return SurveyStructureSoftIA(question_repo)
+
+    print("WARNING. Unkown: " + survey_name)
     return None

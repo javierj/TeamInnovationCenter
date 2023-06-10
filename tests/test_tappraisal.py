@@ -1,6 +1,19 @@
 import unittest
-from tappraisal import TestData, QuestionRepository, TestQuestion, load_questions, AppraisalDirector, \
-    get_survey_structure, SurveyStructurePsychoSafety
+from tappraisal import TestData, QuestionRepository, TestQuestion,  AppraisalDirector, \
+    get_survey_structure, SurveyStructurePsychoSafety, _get_full_filename
+
+def load_questions():
+    repo = QuestionRepository()
+
+    # Cambiado para softIA
+    file_name = _get_full_filename("preguntas.txt")
+    file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
+    for line in file:
+        repo.commit_question(line)
+        #print("áéÍÓñÑ: " + line)
+    file.close()
+
+    return repo
 
 
 def _test_data( answers):
@@ -126,6 +139,30 @@ class Test_SurveyStructurePsychoSafety(unittest.TestCase):
         self.assertEqual(7, data.len_questions())
         question = self.ss.next_question(data)
         self.assertIsNone(question)
+
+
+####
+#
+
+class Test_PollStructure(unittest.TestCase):
+
+    def setUp(self):
+        self.poll_json = """[{"name": "Radar Classic", "number of questions": "9", "questions": [ { "block": "Seguridad sicologica", "category": "C"}, { "block": "Seguridad sicologica", "category": "C"} ], "blocks": [ {"Seguridad sicologica": "Descripcion"} ]}]"""
+
+    def test_from_josn_to_dict(self):
+        import json
+        list_data = json.loads(self.poll_json)
+        self.assertEqual(1, len(list_data))
+        first_dict = list_data[0]
+        self.assertIn('name', first_dict)
+        self.assertEqual(2, len(first_dict['questions']))
+
+
+
+# "questions": [
+#               { "block": 'Seguridad sicologica', "category": 'C'},
+#               { "block": 'Seguridad sicologica', "category": 'C'} ],
+#               'blocks': [ {'Seguridad sicologica': "Descripcion"}, ]
 
 
 if __name__ == '__main__':

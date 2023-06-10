@@ -1,7 +1,7 @@
 import numpy
 import xlwings as xw
-from tappraisal import load_questions, _get_full_filename
-from analysis import RadarAnalysis, _load_answers
+from tappraisal import load_questions, _get_full_filename, get_survey_structure
+from analysis import RadarAnalysis, _load_answers, load_test_results, generate_report
 
 
 class Sheet(object):
@@ -68,18 +68,6 @@ def load_question_cat(repo):
         cat_questions[question.category_name()].append(question.code())
 
     return question_cat, cat_questions
-
-# Este código ya está en TestResult
-def filter_surveys(surveys, project, team):
-    result = list()
-    for survey in surveys:
-        #print(survey)
-        if survey.project_id() == project and survey.team_id() == team:
-            #print(survey.year(), survey.month())
-            if survey.year() == 2021 and survey.month() == 3:
-                #print(survey)
-                result.append(survey)
-    return result
 
 
 def get_answers_by_id(answers):
@@ -161,9 +149,23 @@ def answers_by_factor(surveys, factor):
     return answer_obj, answer_original_anwers, answer_answers
 
 
+def analize_safety():
+    questions_repo = load_questions()
+    results = load_test_results(questions_repo, "01", "01", survey_type="SAFETY", filename = "IWT2_reports\\safety.txt")
+    print(results.get_surveys())
+    data_report = generate_report(results, "01", "01", year=2021, month=3, survey="SAFETY")
+    print(data_report)
+    print("Safety done.")
+    # -- qué más hago?
+
+
 # Main
 project = "IWT2"
 team = "T01"
+month = 3
+year = 2021
+
+analize_safety()
 
 """
 Ver cómo aplicamos esto.
@@ -172,14 +174,18 @@ https://statisticsbyjim.com/hypothesis-testing/t-tests-excel/#:~:text=t%20Critic
 sheet = Sheet()
 questions_repo = load_questions()
 #print("GIMO-PD", "T01")
-results = _load_answers(questions_repo, "IWT2_reports\\202103 - IWT2_Fixed")
-surveys = filter_surveys(results.get_surveys(), project, team)
+#results = _load_answers(questions_repo, "IWT2_reports\\202103 - IWT2_Fixed") # Cambiar esto, ya no hay que usarlo.
+#results = _load_answers(questions_repo, "IWT2_reports\\202103 - IWT2_Fixed") # Cambiar esto, ya no hay que usarlo.
+results = load_test_results(questions_repo, project, team, filename= "IWT2_reports\\202103 - IWT2_Fixed") # (questions_repo, ) # Cambiar esto, ya no hay que usarlo.
+#surveys = filter_surveys(results.get_surveys(), project, team)
+surveys = results.get_surveys()
 #print(surveys)
 
 
-ra = RadarAnalysis() # <- cambiar esto.
+#ra = RadarAnalysis() # <- cambiar esto.
+ra = RadarAnalysis(get_survey_structure(questions_repo, survey_name = "RADAR-9"))
 #df = results.create_dataframe()
-data_report = ra.generate_report(results, project, team)
+data_report = ra.generate_report(results, project, team, year, month)
 
 print("-----------------------")
 print("Surveys analizadas:", len(surveys))

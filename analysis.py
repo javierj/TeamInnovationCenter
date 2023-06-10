@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy
+
+from assistants import FactorAnalysisAssistant
 from tappraisal import _get_full_filename, get_test_structure, load_questions, get_survey_structure
-from view import QuestionsAnswersView, ReportView, HierarchicalGroups, MONTHS
+from view import QuestionsAnswersView, ReportView, HierarchicalGroups
 from datetime import datetime
 
-
+# Deprecated. Se puede borrar.
 class DF(object):
     """
     Encapsulates a panda dataframe
@@ -163,14 +165,17 @@ class AnsweredQuestion(object):
 
 class TestsResult(object):
 
-    def __init__(self, questions_number = 9, q_repo = None):
+    def __init__(self, questions_number = 9, q_repo = None, _survey_struct = None): # _survey_struct es el nombre, cambiarlo
         self._answers = list()
         self._answers_id = list()
         self._q_repo = q_repo
         self._answers_number = questions_number
         self._answered_questions = list()
         self._surveys = list() # Survey objects
-        self.test_struct = get_test_structure()
+        if _survey_struct is None:
+            self.test_struct = get_test_structure()
+        else:
+            self.test_struct = _survey_struct.get_test_structure()
 
     def add_test_answer(self, result_line):
         """
@@ -197,7 +202,15 @@ class TestsResult(object):
         for answer_index in range(0, len(answers_list)):
             aq = AnsweredQuestion(answers_list[answer_index], original_answers_list[answer_index])
             aq.set_question(questions_dict[answers_id_list[answer_index]])
-            aq.set_factor(self.test_struct[aq.id()[0]])
+
+            _key = aq.id()[0]
+            if _key not in self.test_struct:
+                print("Id ", aq.id())
+                print("Key ", _key)
+                print(" Not in ", self.test_struct)
+
+            aq.set_factor(self.test_struct[_key])
+
             #aq.set_survey_id(int(len( self._answered_questions ) / self._answers_number))
             self._answered_questions.append(aq) # Esto tiene que ser un survey
             survey.add_a_q(aq)
@@ -327,37 +340,8 @@ class TestsResult(object):
         return questions_answers_view
 
 
-class _FactorAnalisys(object):
-
-    def _all_over(self, values, limit):
-        for v in values:
-            if v <= limit:
-                return False
-        return True
-
-    def _all_under(self, values, limit):
-        for v in values:
-            if v >= limit:
-                return False
-        return True
-
-    def stats_analysis(self, mean, mad):
-        if self._all_over(mad, 1):
-            if self._all_over(mean, 2.9):
-                return "La media y la desviación indica que, aunque la mayoría del equipo tiene una buena opinión, hay una minoría de personas disconformes. Recomendamos conversaciones uno a uno para identificar a las personas con las valoraciones más bajas y concoer cuáles son sus motivos e intentar solucionarlos."
-            if self._all_under(mean, 2.1):
-                return "La media y la desviación indica que, aunque la mayoría del equipo se muestra disconforme, hay un pequeño número de personas que están contentas. Recomendamos alguna actividad de grupo dónde estas personas puedan compartir sus visiones y se planteen soluciones que cuenten con el consenso de todos, para intentar aumentar el número de personas con una valoración positiva."
-            return "Los resultados son demasiado variables para poder extraer una conclusión. Recomendamos realizar actividades de equipo para marcar objetivos comunes y volver a repetir las encuestas para ver su progresión."
-        if self._all_under(mad, 1):
-            if self._all_over(mean, 2.5):
-                return "La media indica que la mayoría de las respuestas están en los valores superiores. Continuad trabajando de esta manera."
-            if  self._all_under(mean, 2.5):
-                return "La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo."
-            return "El equipo está en un nivel intermedio, ni bien ni mal. Puedes aprovechar este estado para mejorar otro factor que esté por detrás o seguir trabajando en actividades para potenciar este factor."
-        # Never reached.
-        return "Las desviaciones indican que las preguntas de un mismo factor no son consistentes. Se recomienda repetir la encuesta en unas semanas."
-
-# Delete this class
+# Delete this class & DF
+"""
 class RadarAnalysis_2(object):
 
     def __init__(self):
@@ -391,7 +375,7 @@ class RadarAnalysis_2(object):
 
     # Move to inner
     def analyze(self, p_dataframe, id_proj, id_team, year = None, month = None):
-        """
+        
         Formato del dataframe de entrada
             1  2  3  4  5  6  7  8  9                    datetime project_id team_id
             0  0  3  2  0  1  2  5  3  2  2020-12-23 15:24:17.008097         01      01
@@ -400,7 +384,7 @@ class RadarAnalysis_2(object):
 
         :param dataframe:
         :return: ReportView object
-        """
+        
         report = ReportView()
         df_org = DF.c_dataframe(p_dataframe)
         df_org.f_project(id_proj, id_team)
@@ -437,7 +421,7 @@ class RadarAnalysis_2(object):
         report.month(month)
 
         return report
-
+"""
 
 class HistoricDataAnalysis:
 
@@ -479,8 +463,7 @@ class HistoricDataAnalysis:
         #print(df)
         df_grouped = df.groupby(['year', 'month'])
 
-
-        data_groups = survey_struct.get_groups() # Crear este método
+        data_groups = survey_struct.get_groups()
 
         for name, group in df_grouped:
             # print('ID: ' + str(name))
@@ -489,11 +472,13 @@ class HistoricDataAnalysis:
 
             #print(year, month)
             for group_name, column_list in data_groups.items():
-                #print(year, month, group_name, column_list)
+                #print(year, month, group_name, column_list, group)
+                #print(group[column_list])
+                #print("Mean", group[column_list].mean())
+                #print("Final mean", group[column_list].mean().mean())
                 mean = group[column_list].mean().mean()
                 mad = group[column_list].mad().mean() # Cambiar
                 h_data.begin().add_group(year).add_group(month).add_value(len(group))
-
                 h_data.begin().add_group(year).add_group(month).add_group(group_name).add_value((mean, mad))
 
         #print("h_data \n", h_data)
@@ -504,7 +489,7 @@ class RadarAnalysis(object):
 
     def __init__(self, survey_structure):
         self._survey_structure = survey_structure
-        self._factor_analisys = _FactorAnalisys()
+        self._factor_analisys = FactorAnalysisAssistant()
 
     def _historical_data(self, results):
         d_a = HistoricDataAnalysis()
@@ -622,9 +607,9 @@ def _load_answers(questions_repo, filename = "data.txt"):
     return answers
 
 
-def generate_report(test_results, id_proj, id_team, year, month):
+def generate_report(test_results, id_proj, id_team, year, month, survey = "RADAR9"):
     #ra = RadarAnalysis()
-    ra = RadarAnalysis(get_survey_structure(load_questions())) # Quitar estas referencias para que venga de fuera
+    ra = RadarAnalysis(get_survey_structure(load_questions(), survey_name= survey)) # Quitar estas referencias para que venga de fuera
     return ra.generate_report(test_results, id_proj, id_team, year, month)
 
 
@@ -643,18 +628,23 @@ def surveys_overview(project_id, team_id, filename = "data.txt"):
     return s_overview
 
 
-def load_test_results(questions_repo, project_id, team_id, survey_type="RADAR-9", filename = "data.txt"):
-    results = TestsResult(q_repo = questions_repo)
+def load_test_results(questions_repo, project_id, team_id, survey_name="RADAR-9", filename = "data.txt"):
+    survey_struct = get_survey_structure(questions_repo, survey_name)
+    results = TestsResult(q_repo = questions_repo,
+                          questions_number= survey_struct.num_of_questions(),
+                          _survey_struct = survey_struct)
     file_name = _get_full_filename(filename)
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
         raw_answer = RawAnswer.create(line)
-        if project_id == raw_answer.project_id() and team_id == raw_answer.team_id() and raw_answer.test_type() == survey_type:
+        if project_id == raw_answer.project_id() \
+                and team_id == raw_answer.team_id() \
+                and raw_answer.test_type().upper() == survey_name.upper():
             results.add_raw_answer(raw_answer)
         else:
             #print("project_id == raw_answer.project_id()", project_id, raw_answer.project_id())
             #print("team_id == raw_answer.team_id()", team_id , raw_answer.team_id())
-            #print("raw_answer.test_type() == survey_type", raw_answer.test_type(), survey_type)
+            #print("raw_answer.test_type() == survey_type", raw_answer.test_type(), survey_name)
             #print("Descartada: ", line)
             pass
 

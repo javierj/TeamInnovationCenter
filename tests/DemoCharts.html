@@ -1,0 +1,93 @@
+
+
+<html>
+<head>
+<title> Demo gráficos. </title>
+</head>
+
+
+
+<body>
+<h2> Grafico: </h2>
+<div>
+  <canvas id="myChart" style="border:1px solid"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+
+const labels = [
+  'Precondiciones',
+  'Seguridad sicológica',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July'
+];
+
+const factor_ok = 'rgba(75, 192, 192, 0.2)';
+const border_factor_ok = 'rgb(75, 192, 192)';
+const factor_bad = 'rgba(255, 99, 132, 0.2)';
+const border_factor_bad = 'rgb(255, 99, 132)'
+const mad_ok = 'rgba(54, 162, 235, 0.2)';
+const border_mad_ok = 'rgb(54, 162, 235)';
+const mad_bad = 'rgba(255, 159, 64, 0.2)';
+const border_mad_bad = 'rgb(255, 159, 64)';
+
+const data = {
+  labels: labels,
+  datasets: [{
+    axis: 'y',
+    label: 'Media de los factores',
+    data: [65, 59, 80, 81, 56, 55, 40,],
+    fill: false,
+    backgroundColor: [
+      factor_bad,
+      mad_bad,
+      'rgba(255, 205, 86, 0.2)',
+      factor_ok,
+      mad_ok,
+      'rgba(153, 102, 255, 0.2)',
+      'rgba(201, 203, 207, 0.2)'
+    ],
+    borderColor: [
+      border_factor_bad,
+      border_mad_bad,
+ 'rgb(255, 205, 86)',
+      border_factor_ok,
+      border_mad_ok,
+      'rgb(153, 102, 255)',
+      'rgb(201, 203, 207)'
+    ],
+    borderWidth: 1
+  },
+  {
+	axis: 'y',
+    label: 'Desviación de los factores',
+	data: [6.5, 5.9, 8.0, 8.1, 5.6, 5.5, 4.0],
+    fill: true,
+  }
+  ]
+};
+
+const config = {
+  type: 'bar',
+  data,
+  options: {
+    indexAxis: 'y',
+  }
+};
+
+ var myChart = new Chart(
+    document.getElementById('myChart'),
+    config
+  );
+  
+</script>
+
+
+</body>
+</html>

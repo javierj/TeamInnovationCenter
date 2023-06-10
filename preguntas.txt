@@ -39,12 +39,12 @@ BL5:Las interrupciones no deseadas no suelen interferir en mi rendimiento.:P
 #-SP01# Feedback
 C01:Tengo miedo de pedir o dar feedback en mi trabajo.:N
 C02:No tengo miedo de dar feedback constructivo a mis compañeros.:P
-C03:No tengo miedo de mis compañeros me den feedback sobre mi trabajo.:P
+C03:No tengo miedo de que mis compañeros me den feedback sobre mi trabajo.:P
 C04:Cuando doy feedback siento que ha ido bien recibido.:P
 C05:El feedback que recibo de mis compañeros es constructivo.:P
 C06:Intento evitar activamente dar feedback.:N
 C07:Intento evitar que me den feedback.:N
-C16:El feedback que recibo de mis compañeros de trabajo no es constructivo ni me sirve para mejorar.:N
+C16:El feedback que recibo de mis compañeros de trabajo ni es constructivo ni me sirve para mejorar.:N
 
 #-SP02# Bloque 2. Pregunta original: Hesitance around expressing divergent ideas and asking 'silly' questions
 C08:Dudo en expresar ideas divergentes.:N
@@ -64,10 +64,7 @@ C18:En mi quipo no hacemos a nadie repsonsable por haber cometido un error.:P
 C19:Siento que puedo pedir ayuda a mis compañeros de equipo cuando la necesite.:P
 C20:Siento que hay compañeros de mi equipo a los que no puedo pedirles ayuda.:N
 
-
-
 # Faltan más
-
 
 ## Dependabilitad (DP).
 # Signos de que tu equipo necesita mejorar su interdependencia y que hay comprmiso por el trabajo.
@@ -79,7 +76,7 @@ D03:Mi equipo tiene claro el progreso del proyecto en todo momento.:P
 D04:Mi equipo tiene claro las prioridades del proyecto en todo momento.:P
 
 #-DP02# Bloque 2: Diffusion of responsibility and no clear owners for tasks or problems
-D05:En mi equipo, la responsabilidad es difusa.:N
+D05:En mi equipo, la responsabilidad de realizar tareas es difusa.:N
 D06:No hay propietarios claros para las tareas.:N
 D07:No hay responsables claros para arreglar problemas.:N
 D08:Las tareas tienen un propietario que se encarga de que se realiza.:P
@@ -105,8 +102,8 @@ E03:No hay claridad sobre quién es responsable de cada cosa en el proyecto.:N
 #-SC02# Bloque 2:  Unclear decision-making process, owners, or rationale
 E04:Siento que tenemos un proceso de toma de decisiones claro.:P
 E05:El proceso de toma de decisiones de mi equipo u organización no es claro.:N
-E06:Tengo claro cómo se asigna responsables a las personas de mi equipo.:P
-E07:Entiendo por qué se asignan responsables.:P
+E06:Tengo claro cómo se asignan responsabilidades a las personas de mi equipo.:P
+E07:Entiendo por qué se asignan responsabilidades.:P
 
 # Faltan más
 

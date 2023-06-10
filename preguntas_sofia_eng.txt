@@ -1,0 +1,60 @@
+# Versión 1.1
+
+#-P00# Dimensión 1. Formación.
+001: What is your gender identity?:P
+102: What is your highest qualification?:P
+
+#-P01# Dimensión 1. Formación.
+A01:The information available from SoftIA has allowed me to understand all the concepts I need to develop an application.:P
+A02:The information available on SoftIA has allowed me to work autonomously without the need to ask questions or seek support from another person.:P
+A03:The information available on softIA has reduced the time I have needed to work with the tools.:P
+
+#-FL02# Dimensión 2. Flexibilidad.
+B01:SoftIA has allowed me to start the project specification from the aspect I wanted (functional requirements, screen prototypes, etc.).:P
+B02:I felt compelled to start the project specification with a specific aspect (functional requirements, screen prototypes, etc.).:N
+
+#-ER03# Dimensión 3. Errores
+C01:SoftIA has alerted me to important artifact errors during the project specification.:P
+C02:The errors SoftIA warns me about are important:P
+C03:I have fixed all (or most) of the bugs that SoftIA warned me about because they were important for the project.:P
+
+
+#-SP01# Dimensión 4. Automatización
+D01:La generación de documentación de manera automática con SoftIA me resulta de utilidad.:P
+D02:La documentación generada por SoftIA no necesita alguna modificación posterior.:P
+D03:Las funcionalidades de generación automática de artefactos que ofrece SoftIA me ha compensado el tiempo y trabajo dedicado.:P
+D04:Los artefactos generados automáticamente por SoftIA me han aportado valor para comprender las necesidades de usuarios finales en el proyecto.:P
+D05:Sólo he utilizado la documentación y los artefactos generados para incluirlos en la memoria del TFG.:N
+
+
+#-DP01# Dimensión 5. Herramientas
+E01:Trabajar con el toolbox de SoftIA dentro de Draw.io me ha resultado sencillo e intuitivo.:P
+E02:He podido utilizar SoftIA adecuadamente mediante la herramienta Draw.io.:P
+E03:Draw.io con SoftIA cubría todo lo que quería incluir en los productos de pantalla.:P
+
+
+#-SC01# Dimensión 6. Satisfacción
+F01:Ahora que he probado SoftIA, la utilizaría de nuevo en mi próximo proyecto.:P
+F02:Me gustaría recomendar el uso de SoftIA en mi próximo proyecto o trabajo.:P
+F03:Me ha resultado sencillo desarrollar el sistema a partir de la especificación del proyecto realizada con SoftIA.:P
+F04:Me ha resultado sencillo escribir el código del sistema a partir de los artefactos de SoftIA.:P
+F05:SoftIA me ha permitido generar mucho contenido para el TFG, pero a la hora de construir el sistema he preferido dejar de lado el contenido de SoftIA y trabajar por mi cuenta.:N
+
+
+#-ME01# Planificación y formación de la metodología y herramientas Sofía
+G01:La información y material didáctico-formativo sobre el uso de la herramienta SoftIA es adecuado.:P
+G11:El grado de usabilidad que ofrece el entorno de trabajo de la herramienta SoftIA.:P
+
+
+#-IM01# Desarrollo del proyecto usando Sofía
+H01:Mi grado de satisfacción con el grado de flexibilidad que ofrece la herramienta Sofía para empezar la especificación del proyecto por cualquier aspecto (ya sea definiendo requisitos funcionales, prototipos de pantalla, requisitos de almacenamiento, etc.).:P
+H02:Mi grado de satisfacción con el grado de automatismo para generar el catálogo de pruebas funcionales desde la definición de requisitos funcionales basados en caso de uso y diagramas de actividades.:P
+H03:Mi grado de satisfacción con la capacidad de Sofía para advertir sobre errores durante la especificación de diagramas de requisitos funcionales, diagramas de clases, o diagramas IFM:P
+H04:Mi grado de satisfacción con la integración de herramientas de prototipado (tipo draw.io) para relacionar la navegación entre pantallas con requisitos funcionales.:P
+H05:Mi grado de satisfacción con la capacidad de Sofía para generar documentación técnica a partir de la especificación de requisitos, diseño y pruebas que ofrece la metodología.:P
+
+
+#-XM02# Resultados. Mi grado de satisfacción con
+I01:El modo con el que SoftIA me ayuda alcanzar los objetivos del TFG.:P
+I02:El nivel de formación y capacitación como ingeniero software que he alcanzado para especificar requisitos y diseñar sistemas informáticos teniendo en cuenta mis conocimientos previos.:P
+I03:El nivel de calidad de la documentación técnica generada por SoftIA.:P
