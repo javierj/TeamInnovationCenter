@@ -1,20 +1,37 @@
 import random
 
 # Candidato a refactorizarlo a otro sitio.
-def _get_full_filename(filename):
+from utilities import Cache
+
+
+def _get_full_filename(filename, basedir = None):
     import os
     base_path = os.path.dirname(os.path.abspath(__file__))
-    my_path = os.path.join(base_path, filename)
+    if basedir is not None:
+        my_path = os.path.join(base_path, basedir)
+        my_path = os.path.join(my_path, filename)
+    else:
+        my_path = os.path.join(base_path, filename)
     return my_path
 
 
 def _save_data(data, survey_name, filename = "data.txt"):
+    """
+    No tests for this method. Should writ some.
+    :param data: TestData object
+    :param survey_name:
+    :param filename:
+    :return: nothing
+    """
     import datetime
+
+    if data.is_mock():
+        return
 
     now = datetime.datetime.now()
     filename = _get_full_filename(filename)
     with open(filename, "a") as myfile:
-        myfile.write(str(now)+"/"+str(data) + "/"+survey_name+"\n")
+        myfile.write(str(now)+"/"+str(data) + "/"+survey_name.upper()+"\n")
 
 
 # renombrar a WebTestInfo o algo así
@@ -25,17 +42,18 @@ class TestData(object):
     #def __init__(self,  questions):
         self._questions = dict()
         self._id_set = dict()
-        self._parse_questions_url(questions)
         self._url_questions = questions
         self._org_id = org_id
         self._project_id = project_id
+        self._parse_questions_url()
 
     def __str__(self):
         return self._org_id+"/" + self._project_id+"/" + self._url_questions
         #return self._url_questions
 
-    def _parse_questions_url(self, q_url):
+    def _parse_questions_url(self):
         self._answers = 0
+        q_url = self._url_questions
 
         answer_len = int( len(q_url) / 4 )
         for i in range(0, answer_len):
@@ -50,7 +68,10 @@ class TestData(object):
             self._id_set[q_id] = q_id
 
     def len_questions(self):
-        return len(self.ids_set())
+        questions = len(self.ids_set())
+        if self.is_mock():
+            return questions-1
+        return questions
 
     def len_questions_in(self, category):
         if category not in self._questions:
@@ -60,10 +81,13 @@ class TestData(object):
     def ids_set(self):
         return self._id_set
 
+    def is_mock(self):
+        return  self._url_questions[0:4] == "0000"
+
 
 class TestQuestion(object):
 
-    def __init__(self, text, code="", valoration="", cat_name = ""):
+    def __init__(self, text, code="", valoration="", cat_name=""):
         self._text_question = text
         self._code = code
         self._valoration=valoration
@@ -86,50 +110,6 @@ class TestQuestion(object):
 
     def __str__(self):
         return self._code+":"+self._text_question+":"+self._valoration
-
-
-class AppraisalDirector_old(object):
-
-    def __init__(self, repo = None, save_method = _save_data):
-        self._questions_repo = repo
-        self._save_data_method = save_method
-
-    def _random_question_from(self, cat, data):
-        ids = data.ids_set()
-        question = self._questions_repo.random_question_from(cat)
-        while question.code() in ids:
-            question = self._questions_repo.random_question_from(cat)
-        return question
-
-    def next_question(self, data):
-        """
-        Veo las pregunats que ya se han hecho y busco y envío la siguiente pregunta a preguntar en el test
-        o None si ya se han terminado las preguntas.
-        :param data: TestData object
-        :return:
-        """
-
-        if data.len_questions() == 9: # 9 preguntas
-            self._save_data_method(data)
-            return None
-
-        if data.len_questions_in("A") == 0:
-            return self._random_question_from("A", data)
-        if data.len_questions_in("B") == 0:
-            return self._random_question_from("B", data)
-        if data.len_questions_in("C") < 2:
-            return self._random_question_from("C", data)
-        if data.len_questions_in("D") < 2:
-            return self._random_question_from("D", data)
-        if data.len_questions_in("E") < 1:
-            return self._random_question_from("E", data)
-        if data.len_questions_in("F") < 1:
-            return self._random_question_from("F", data)
-        if data.len_questions_in("G") < 1:
-            return self._random_question_from("G", data)
-
-        question = TestQuestion("05. ERROR")
-        return question
 
 
 class AppraisalDirector(object):
@@ -155,7 +135,7 @@ class AppraisalDirector(object):
 class QuestionRepository(object):
 
     def __init__(self):
-        self._questions = dict() # Key factor, Value list of questions
+        self._questions = dict() # Key factor, Value list of questions (objects of TestQuestion)
         self._tmp_cat = ""
 
     def __str__(self):
@@ -218,12 +198,12 @@ class QuestionRepository(object):
         return result
 
 
-def load_questions():
+def load_questions(filename="preguntas_sofia.txt", basedir=None):
     repo = QuestionRepository()
 
     # Cambiado para softIA
     # file_name = _get_full_filename("preguntas.txt")
-    file_name = _get_full_filename("preguntas_sofia.txt")
+    file_name = _get_full_filename(filename, basedir)
 
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
@@ -238,36 +218,198 @@ def load_questions():
 # Structures
 
 
+class SurveyStructure(object):
+    def __init__(self):
+        self._name = "NOSET"
+        self._questions_filename = "NOSET"
+        self._num_of_questions = -1
+        self._questions_in_categories = None
+        self._questions_repo = None # It has to come from the outside
+        self._poll_structure = None
+        self._question_groups = None
+
+    """ - Pasamos a 100% JSon y ya no necesitamos esto
+    def _load_json(self, value):
+        json_txt = '{"key": ' + value + '}'
+        import json
+        raw_json = json.loads(json_txt)
+        return raw_json['key']
+
+    def set_property(self, key, value):
+        if key == "poll_name":
+            self._name = value
+        if key == "questions_file":
+            self._questions_filename = value
+        if key == "num_of_questions":
+            self._num_of_questions = int(value)
+        if key == "questions_in_categories":
+            self._questions_in_categories = self._load_json(value)
+        if key == "poll_structure":
+            self._poll_structure = self._load_json(value)
+        if key == "groups":
+            self._question_groups = self._load_json(value)
+    """
+
+    def name(self):
+        return self._name
+
+    def num_of_questions(self):
+        return  self._num_of_questions
+
+    def questions_in_categories(self):
+        return self._questions_in_categories
+
+    def get_test_structure(self):
+        return self._poll_structure
+
+    def get_groups(self):
+        return self._question_groups
+
+    def questions_filename(self):
+        return self._questions_filename
+
+    def _random_question_from(self, cat, data):
+        ids = data.ids_set()
+        question = self._questions_repo.random_question_from(cat)
+        while question.code() in ids:
+            question = self._questions_repo.random_question_from(cat)
+        return question
+
+    def set_questions_repo(self, repo):
+        self._questions_repo = repo
+
+    def questions_repo(self):
+        return self._questions_repo
+
+    def next_question(self, data):
+        for key, value in self._questions_in_categories.items():
+            if data.len_questions_in(key) < value:
+                return self._random_question_from(key, data)
+        # Poll is over.
+        return None
+
+    def load_json(self, raw_json):
+        self._name = raw_json["poll_name"]
+        self._questions_filename =raw_json["questions_file"]
+        self._num_of_questions = int(raw_json["num_of_questions"])
+        self._questions_in_categories = raw_json["questions_in_categories"]
+        self._poll_structure = raw_json["poll_structure"]
+        self._question_groups = raw_json[ "groups"]
+
+
+    @staticmethod
+    def _from_string_to_dict(raw_string):
+        result = dict()
+
+        for pair in raw_string.split(","):
+            tuple = pair.split(":")
+            if len(tuple) != 2:
+                print("_from_string_to_dict: pair has worng lenght ", pair)
+                continue
+            key = tuple[0].strip()
+            value = tuple[1].strip()
+
+            result[key] = value
+
+        return result
+
+
+    @staticmethod
+    def translate_to_json(form_request):
+        """
+        json_raw = dict()
+
+        json_raw['questions_file'] = form_request.forms.get('questions_file')
+        json_raw['poll_name'] = form_request.forms.get('poll_name')
+        json_raw['num_of_questions'] = form_request.forms.get('num_of_questions')
+
+        json_raw['questions_in_categories']=SurveyStructure._from_string_to_dict(form_request.forms.get('questions_in_categories'))
+        json_raw['poll_structure']=SurveyStructure._from_string_to_dict(form_request.forms.get('poll_structure'))
+        json_raw['groups']=SurveyStructure._from_string_to_dict(form_request.forms.get('groups'))
+        json_raw['descriptions']=SurveyStructure._from_string_to_dict(form_request.forms.get('descriptions'))
+
+        # Test
+        """
+        test_json = " {\"questions_file\": \"" \
+                    + form_request.forms.get('questions_file') \
+                    + "\", \"poll_name\": \"" + form_request.forms.get('poll_name') \
+                    + "\", \"num_of_questions\":" + form_request.forms.get('num_of_questions') \
+                    + ", \"questions_in_categories\": {" + form_request.forms.get('questions_in_categories') \
+                    + "}, \"poll_structure\": {" + form_request.forms.get('poll_structure') \
+                    + "}, \"groups\":{" + form_request.forms.get('groups') \
+                    + "}, \"descriptions\":{" + form_request.forms.get('descriptions') \
+                    +"}}"
+        #print("translate_to_json ", test_json)
+        #import json
+        #raw_json = json.loads(test_json)
+        #print(raw_json)
+
+        return test_json
+
+
+class SurveyStructureLoader(object):
+
+    """
+    def _clean_line(self, raw_line):
+        return raw_line.strip()
+
+    def _has_information(self, line):
+        if len(line) == 0:
+            return False
+        return line[0] == '$'
+    """
+    def load_structure(self, filename, basedir="polls"):
+        poll_structure = SurveyStructure()
+
+        file_name = _get_full_filename(filename, basedir)
+
+        import json
+        file = open(file_name, encoding="utf-8")  # No: encoding="latin-1" encoding="ascii"
+        raw_json = json.load(file)
+        file.close()
+
+        poll_structure.load_json(raw_json)
+
+        return poll_structure
+        """
+            
+            for raw_line in file:
+                line = self._clean_line(raw_line)
+                if self._has_information(line):
+                    self.process_line(line, poll_structure)
+
+            file.close()
+        """
+
+
+    def save_structure(self, form_request, basedir="polls"):
+        json_raw = SurveyStructure.translate_to_json(form_request)
+        filename = form_request.forms.get('poll_name') + ".txt"
+        file_name = _get_full_filename(filename, basedir)
+
+        #import json
+        file = open(file_name, "w", encoding="utf-8")  # No: encoding="latin-1" encoding="ascii"
+        #json.dump(json_raw, file)
+        file.write(json_raw)
+        file.close()
+
+
+    """ - Pasamos a JSon y ya no necesitamos este c´digo.
+    def process_line(self, line, poll_structure):
+        tupla = line[1:].split("=")
+        if len(tupla) != 2:
+            print("SurveyStructureLoader:: line has not a valid format (one = ). Line: ", line)
+        key = tupla[0].strip()
+        value = tupla[1].strip()
+        poll_structure.set_property(key, value)
+    """
+
+##
+
 class SurveyStructureRadar9(object):
 
     def __init__(self, _questions_repo):
-        """
-        self._structure = {'A': 1, 'B': 2, 'C': 3, 'D': 4,
-                       'E': 5, 'F': 6, 'G': 1}
-        self._questions_x_factor = {'A': 1, 'B':1, 'C':2, 'D':2, 'E':1, 'F':1, 'G': 1} # Test original
-        self._factor_names = ["Precondiciones", "Precondiciones", "Seguridad sicológica", "Compromiso con el trabajo",
-                       "Perfiles y responsabilidad", "Resultados significativos",  "Propósito e impacto"]
-        self._questions = sum(self._questions_x_factor.values())
-        """
         self._questions_repo = _questions_repo
-
-    """
-    def _set(self, questions_x_factor):
-
-            #self._structure = {'A': 1, 'B': 2, 'C': 3, 'D': 4,
-                               #'E': 5, 'F': 6, 'G': 1}
-        self._questions_x_factor = questions_x_factor
-            #self._factor_names = ["Precondiciones", "Precondiciones", "Seguridad sicológica",
-                               #   "Compromiso con el trabajo",
-                               #   "Perfiles y responsabilidad", "Resultados significativos", "Propósito e impacto"]
-        self._questions = sum(self._questions_x_factor.values())
-
-    def factor_next_question(self, data):
-        for name, question_num in self._questions_x_factor.items():
-            if data.len_questions_in(name) < question_num:
-                return name
-        return None
-    """
 
     def num_of_questions(self):
         return 9
@@ -371,14 +513,6 @@ class SurveyStructureRadarClassic(object):
 class SurveyStructurePsychoSafety(object):
 
     def __init__(self, _questions_repo):
-        """
-        self._structure = {'A': 1, 'B': 2, 'C': 3, 'D': 4,
-                       'E': 5, 'F': 6, 'G': 1}
-        self._questions_x_factor = {'A': 1, 'B':1, 'C':2, 'D':2, 'E':1, 'F':1, 'G': 1} # Test original
-        self._factor_names = ["Precondiciones", "Precondiciones", "Seguridad sicológica", "Compromiso con el trabajo",
-                       "Perfiles y responsabilidad", "Resultados significativos",  "Propósito e impacto"]
-        self._questions = sum(self._questions_x_factor.values())
-        """
         self._questions_repo = _questions_repo
         self._questions_x_cat = dict()
         self._category_list = None # not in use
@@ -488,7 +622,7 @@ class SurveyStructureSoftIA(object):
         self._questions_repo = _questions_repo
 
     def num_of_questions(self):
-        return 33
+        return 34
 
     def _random_question_from(self, cat, data):
         ids = data.ids_set()
@@ -505,7 +639,7 @@ class SurveyStructureSoftIA(object):
 
         if data.len_questions_in("A") < 3:
             return self._random_question_from("A", data)
-        if data.len_questions_in("B") < 2:
+        if data.len_questions_in("B") < 3:
             return self._random_question_from("B", data)
         if data.len_questions_in("C") < 3:
             return self._random_question_from("C", data)
@@ -559,7 +693,6 @@ class SurveyStructureSoftIA(object):
         return defs
 
     def get_test_structure(self):
-        # RADAR-9
         return {
             '0': "Género",
             '1': "Titulación",
@@ -572,9 +705,7 @@ class SurveyStructureSoftIA(object):
                 'G': "Planificación y formación",
                 'H': "Desarrollo del proyecto",
                 'I': "Resultados",
-
                 }
-
 
 #########
 
@@ -604,3 +735,36 @@ def get_survey_structure(question_repo, survey_name = "RADAR-9"):
 
     print("WARNING. Unkown: " + survey_name)
     return None
+
+
+## Cache
+
+class TestStructsCache(object):
+
+    @staticmethod
+    def _load_struct(struct_name):
+        loader = SurveyStructureLoader()
+        return loader.load_structure(struct_name + ".txt")
+
+    @staticmethod
+    def _load_questions_repo(struct):
+        repo = load_questions(struct.questions_filename(), "polls")
+        if repo is None:
+            print("TestStructsCache::_load_questions_repo Error, questions repo is none, ", struct.questions_filename())
+        struct.set_questions_repo(repo)
+
+    @staticmethod
+    def get_struct(struct_name):
+        struct = Cache.get(struct_name)
+        if struct is not None:
+            return struct
+
+        struct = TestStructsCache._load_struct(struct_name)
+        if struct is None:
+            print("TestStructsCache::get_struct - error loading ", struct_name)
+            return None
+        Cache.put(struct_name, struct)
+        if struct.questions_repo() is None:
+            TestStructsCache._load_questions_repo(struct)
+
+        return struct

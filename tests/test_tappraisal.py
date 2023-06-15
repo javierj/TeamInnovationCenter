@@ -1,18 +1,15 @@
 import unittest
-from tappraisal import TestData, QuestionRepository, TestQuestion,  AppraisalDirector, \
-    get_survey_structure, SurveyStructurePsychoSafety, _get_full_filename
+from tappraisal import TestData, QuestionRepository, TestQuestion, AppraisalDirector, \
+    get_survey_structure, SurveyStructurePsychoSafety, _get_full_filename, SurveyStructureLoader, SurveyStructure
+
 
 def load_questions():
     repo = QuestionRepository()
-
-    # Cambiado para softIA
     file_name = _get_full_filename("preguntas.txt")
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
         repo.commit_question(line)
-        #print("áéÍÓñÑ: " + line)
     file.close()
-
     return repo
 
 
@@ -36,6 +33,12 @@ class Test_TestData(unittest.TestCase):
         self.assertIn("B13", data.ids_set())
         self.assertNotIn("A04", data.ids_set())
 
+    def test_mock_data(self):
+        data = _test_data("A034B135")
+        self.assertFalse(data.is_mock())
+        data = _test_data("0000B135")
+        self.assertTrue(data.is_mock())
+
 
 class Test_QuestionRepository(unittest.TestCase):
 
@@ -57,6 +60,15 @@ class Test_QuestionRepository(unittest.TestCase):
         expected = "-P02. Precondiciones. Capacitación."
         self.assertEqual(expected, question_obj.category_name())
 
+    def test_as_dict(self):
+        questions_dict = self.repo.as_dict()
+        self.assertIn("B01", questions_dict)
+        question_obj = self.repo.get_question("B01")
+        self.assertEqual(question_obj.text(), questions_dict["B01"].text())
+        self.assertEqual("Siento que estoy preparado para hacer el trabajo que hago ahora mismo.", questions_dict["B01"].text())
+        self.assertEqual(83, len(questions_dict))
+
+########
 
 def _save_mock(data, survey_name):
     pass
@@ -142,12 +154,13 @@ class Test_SurveyStructurePsychoSafety(unittest.TestCase):
 
 
 ####
-#
+# Not in use.
 
 class Test_PollStructure(unittest.TestCase):
 
     def setUp(self):
-        self.poll_json = """[{"name": "Radar Classic", "number of questions": "9", "questions": [ { "block": "Seguridad sicologica", "category": "C"}, { "block": "Seguridad sicologica", "category": "C"} ], "blocks": [ {"Seguridad sicologica": "Descripcion"} ]}]"""
+        self.poll_json = """[{"name": "Radar Classic", "#":"Comentario", "#":"Comentario","number of questions": "9", "questions": [ { "block": "Seguridad sicologica", "category": "C"}, { "block": "Seguridad sicologica", "category": "C"} ], "blocks": [ {"Seguridad sicologica": "Descripcion"} ]}]"""
+        self.poll_json2 = """{"name": "Radar Classic", "#":"Comentario", "#":"Comentario","number of questions": "9", "questions": [ { "block": "Seguridad sicologica", "category": "C"}, { "block": "Seguridad sicologica", "category": "C"} ], "blocks": [ {"Seguridad sicologica": "Descripcion"} ]}"""
 
     def test_from_josn_to_dict(self):
         import json
@@ -157,12 +170,95 @@ class Test_PollStructure(unittest.TestCase):
         self.assertIn('name', first_dict)
         self.assertEqual(2, len(first_dict['questions']))
 
+    def test_from_josn_to_dict_2(self):
+        import json
+        list_data = json.loads(self.poll_json2)
+        self.assertIn('name', list_data)
+        self.assertEqual(2, len(list_data['questions']))
 
 
 # "questions": [
 #               { "block": 'Seguridad sicologica', "category": 'C'},
 #               { "block": 'Seguridad sicologica', "category": 'C'} ],
 #               'blocks': [ {'Seguridad sicologica': "Descripcion"}, ]
+
+
+###############################################
+
+class FakeForm(object):
+    def __init__(self):
+        self.data = {'questions_file': "preguntas_sofia.txt", "poll_name": "Borrar", "questions_in_categories": "\"A\":1", "poll_structure": "\"A\":1", "groups":"\"A\":1", "descriptions":"\"A\":1"}
+
+    def get(self, key):
+        if key in self.data:
+            return self.data[key]
+        else:
+            return "\"Key not found\""
+
+
+class FakeRequest(object):
+    def __init__(self):
+        self.forms = FakeForm()
+
+
+class Test_LoadPollStructureFromFile(unittest.TestCase):
+
+    def setUp(self):
+        self.loader = SurveyStructureLoader()
+        self.structure = self.loader.load_structure("softia.txt")
+
+    def test_load_name(self):
+        self.assertEqual("SoftIA", self.structure.name())
+
+    def test_load_nun_of_questions(self):
+        self.assertEqual(33, self.structure.num_of_questions())
+
+    def test_load_questions_in_categories(self):
+        self.assertIsNotNone(self.structure.questions_in_categories())
+        self.assertEqual(1, self.structure.questions_in_categories()["0"])
+
+    def test_save_structure(self):
+        self.loader.save_structure(FakeRequest())
+
+
+class Test_SurveyStructure(unittest.TestCase):
+
+    def setUp(self):
+        loader = SurveyStructureLoader()
+        self.structure = loader.load_structure("radar9.txt")
+        self.structure.set_questions_repo(load_questions())
+        self._sp01 = ["A01", "A02", "A03", "A04", "A05", "A06", "A07"]
+        self._sp02 = ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "BL1", "BL2", "BL3", "BL4", "BL5"]
+
+    def test_first_question(self):
+        data = _test_data("")
+        question = self.structure.next_question(data)
+        self.assertEqual("A", question.category())
+        self.assertIn(question.code(), self._sp01)
+
+    def test_second_question(self):
+        data = _test_data("A011")
+        question = self.structure.next_question(data)
+        self.assertEqual("B", question.category())
+        self.assertIn(question.code(), self._sp02)
+
+    def test_last_question(self):
+        data = _test_data("A011B022C083C134D185D036E047F011G011")
+        self.assertEqual(self.structure.num_of_questions(), data.len_questions())
+        question = self.structure.next_question(data)
+        self.assertIsNone(question)
+
+    def test_translate_to_json(self):
+        result = SurveyStructure.translate_to_json(FakeRequest()) # Result is a string
+        #print(expected)
+        #print(result)
+        self.assertIn("preguntas_sofia.txt", result)
+
+    def test_from_string_to_dict(self):
+        result = SurveyStructure._from_string_to_dict(""" 0:Género,1:Titulación necesaria,A:Formación """)
+        self.assertTrue( len(result) > 0 )
+        print("test_from_string_to_dict", result)
+        self.assertEqual(result["0"], "Género")
 
 
 if __name__ == '__main__':

@@ -1,0 +1,1 @@
+{"questions_file": "xx", "poll_name": "borrar_f", "num_of_questions":3, "questions_in_categories": {"A":3, "B":1}, "poll_structure": {"A":"FormaciÃ³n", "B":"Flexibilidad"}, "groups":{"FormaciÃ³n":[3], "Flexibilidad":[4]}, "descriptions":{"FormaciÃ³n":"FormaciÃ³n.", "Flexibilidad":"Flexibilidad."}}

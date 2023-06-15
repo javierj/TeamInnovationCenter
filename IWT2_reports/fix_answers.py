@@ -1,5 +1,14 @@
 from analysis import _load_answers, TestsResult
-from tappraisal import load_questions, _save_data
+from tappraisal import load_questions, _get_full_filename
+
+
+def _save_data(data, survey_name, filename = "data.txt"):
+    import datetime
+
+    now = datetime.datetime.now()
+    filename = _get_full_filename(filename)
+    with open(filename, "a") as myfile:
+        myfile.write(str(now)+"/"+str(data) + "/"+survey_name+"\n")
 
 """
 Script para cmabiar las respuestas de encuestas, cambia los 1 por 5, 2 por 4, etc.

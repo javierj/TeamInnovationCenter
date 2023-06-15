@@ -5,7 +5,7 @@
 # 1.2. Cambios en redacción y desahibilatadas preguntas ambiguas. 65 preguntas
 # 1.3. Añadimos categorías a cada factor. 68 preguntas
 # 1.4. Añadimos la categoría de flujo a precondiciones. 71 preguntas
-# 1.5. Más preguntas de flujo, de impacto, significado y seguridad sicológica. 83 preguntas
+# 1.5. Más preguntas de flujo, de impacto, significado y seguridad sicológica. 84 preguntas
 
 #-P01# Precondiciones. Sueldo.
 A01:Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P
