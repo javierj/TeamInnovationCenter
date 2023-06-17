@@ -181,7 +181,9 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 
 %end
 
-
+<p>
+<a href="{{base_url}}/cvs/{{report.get_project_id()}}/{{report.get_struct_name()}}/"> Descargar todos los datos en CVS. </a>
+</p>
 
 
 %# Comentario.
@@ -190,9 +192,6 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 <hr/>
 <strong> Este informe se ha generado de manera automática </strong>
 
-<hr/>
-
-<center><img src="./images/img01.jpg"/></center>
 <hr/>
 <h2>
 <span aria-hidden="true" class="octicon octicon-link">Contacto</span></h2>

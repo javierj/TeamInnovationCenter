@@ -6,87 +6,6 @@ from tappraisal import _get_full_filename, get_test_structure, load_questions, g
 from view import QuestionsAnswersView, ReportView, HierarchicalGroups
 from datetime import datetime
 
-# Deprecated. Se puede borrar.
-class DF(object):
-    """
-    Encapsulates a panda dataframe
-    """
-
-    def __init__(self):
-        self._df = None
-
-    @staticmethod
-    def create(data):
-        df = DF()
-        df._df = pd.DataFrame(data)
-        return df
-
-    @staticmethod
-    def c_dataframe(dataframe):
-        df = DF()
-        df._df = pd.DataFrame(dataframe)
-        return df
-
-    def copy(self):
-        return DF.c_dataframe(self._df)
-
-    def view(self, columns):
-        df = DF()
-        df._df = self._df[columns]
-        return df
-
-    def _set_month_year(self):
-        if 'year' not in self._df:
-            self._df['month'] = self._df['datetime'].apply(lambda x: datetime.fromisoformat(x).month)
-            self._df['year'] = self._df['datetime'].apply(lambda x: datetime.fromisoformat(x).year)
-
-    def f_year_month(self, year = None, month = None):
-        if year is not None:
-            year = int(year)
-            month = int(month)
-
-            self._set_month_year()
-            #print("year", year, "month", month, "\n", df_tmp)
-            self._df = self._df[(self._df['year'] == year) & (self._df['month'] == month)]
-            #print("df_tmp", df_tmp)
-
-    def f_by(self, column, value):
-        #print("column", column, value)
-        #print("Before", self._df)
-        self._df = self._df[self._df[column] == value]
-        #print("After", self._df)
-
-    def f_project(self, id_proj, team_id):
-        self.f_by('project_id', id_proj)
-        self.f_by('team_id', team_id)
-
-    def dataframe(self):
-        return self._df
-
-    def max_year_month(self):
-        self._set_month_year()
-        #print(self._df)
-        year = self._df['year'].max()
-        month = self._df[self._df['year'] == year]['month'].max()
-        return year, month
-
-    def size(self):
-        return len(self._df)
-
-    def means(self):
-        ser_mean = self._df.mean(axis=0).round(2)
-        return ser_mean.to_list(), numpy.format_float_positional(ser_mean.mean(axis=0), precision=3)
-
-    def mads(self):
-        ser_mean = self._df.mad(axis=0).round(2)
-        return ser_mean.to_list(), numpy.format_float_positional(ser_mean.mean(axis=0), precision=3)
-
-    def unique(self, key):
-        return self._df[key].unique()
-
-    def __str__(self):
-        return str(self._df)
-
 
 class Survey(object):
 
@@ -94,7 +13,7 @@ class Survey(object):
         self._date_time = datetime.fromisoformat(date_time)
         self._project_id = project_id
         self._group_id = group_id
-        self._a_qs = list()
+        self._a_qs = list() # list of AnsweredQuestion
 
     def date_time(self):
         return self._date_time
@@ -112,16 +31,22 @@ class Survey(object):
         return self._date_time.month
 
     def add_a_q(self, a_q):
+        """
+        :param a_q: object of type AnsweredQuestion
+        :return: no return
+        """
         self._a_qs.append(a_q)
 
     def answers(self):
         return self._a_qs
 
+    """ Sólo se usa en analisis_clie
     def answers_as_string(self):
         result = ""
         for answer in self._a_qs:
             result += str(answer.id()) + ":" + str(answer.original_answer()) + " "
         return result
+    """
 
     def __str__(self):
         return self._project_id +" / "+ self._group_id + " / " + str(self._date_time)
@@ -191,7 +116,7 @@ class TestsResult(object):
         answers_list, original_answers_list = self._extract_answers(raw_answer.raw_data()) # Cambiar esto
 
         if len(answers_list) < self._answers_number:
-            #print("No hay las suficientes repsuestas")
+            print("Answers ", len(answers_list), " Expected: ", self._answers_number, " Discarted: ", str(answers_list))
             return
 
         survey = Survey(raw_answer.date_time_str(), raw_answer.project_id(), raw_answer.team_id()) # not in use yet
@@ -271,52 +196,6 @@ class TestsResult(object):
     def get_surveys(self):
         return self._surveys
 
-    """
-    def create_dataframe(self, project= None, group = None, data = None, year=None, month=None):
-       
-        Creates a dataframe like this:
-
-           1  2  3  4  5  6  7  8  9                    datetime project_id team_id
-            0  5  5  5  5  5  5  5  5  4  2021-02-08 17:39:16.088294    GIMO-PD     T01
-            1  5  5  1  5  5  3  4  5  5  2021-02-08 17:39:16.090003    GIMO-PD     T01
-
-        :param project:
-        :param group:
-        :param data:
-        :return:
-        
-        if data is None:
-            data = self._answers
-            #print(data)
-
-        df = DF.create(data)
-        #print("DF:", df.dataframe())
-        df.f_year_month(year, month)
-
-        if project is None:
-            return df.dataframe()
-        df.f_by('project_id', project)
-        #print("DF:", df.dataframe())
-
-        if group is None:
-            return df.dataframe()
-        df.f_by('team_id', group)
-
-        return df.dataframe()
-    """
-
-    """
-    def create_ids_dataframe(self, project = None, group = None, year=None, month=None):
-        
-        T    1    2    3    4  ...    9                    datetime project_id team_id
-        0  A06  B08  C09  C12  ...  G01  2021-02-08 17:39:16.088294    GIMO-PD     T01
-        1  A06  B07  C13  C12  ...  G02  2021-02-08 17:39:16.090003    GIMO-PD     T01
-
-        :return: a dataframe with de ids of the questions instead their answer.
-        
-        return self.create_dataframe(project, group, self._answers_id, year=year, month=month)
-    """
-
     def question_answers_to_view(self, project, team, year=None, month=None):
         """
         Returns  answers objects
@@ -340,88 +219,6 @@ class TestsResult(object):
         return questions_answers_view
 
 
-# Delete this class & DF
-"""
-class RadarAnalysis_2(object):
-
-    def __init__(self):
-        self._test_struct = {"Precondiciones": [1, 2], "Seguridad sicológica": [3, 4],
-                             "Compromiso con el trabajo": [5, 6],
-                             "Perfiles y responsabilidad": [7], "Resultados significativos": [8],
-                             "Propósito e impacto": [9]}
-        self._date_info= None
-        self._factor_analisys = _FactorAnalisys()
-        self._df = None
-        self._results = None
-
-    def _historic_data(self, factor_name, factor, report, df, years):
-        #print("Years:", years)
-        for year in years:
-            df_tmp = df.copy()
-            df_tmp.f_by('year', year)
-            #print("months", df_tmp.unique('month'))
-            months = df_tmp.unique('month')
-            for month in months:
-                df_month = df_tmp.copy()
-                df_month.f_year_month(year, month)
-                df_view = df_month.view(factor)
-                report.with_factor(factor_name).add_historical_serie(year, month, df_view.size(), df_view.means()[1], df_view.mads()[1])
-
-    def generate_report(self, results, id_proj, id_team, year = None, month = None):
-        self._results = results
-        df = results.create_dataframe(project=id_proj, group=id_team, year = year, month = month)
-        #print("generate_report.df=", df)
-        return self.analyze(df, id_proj, id_team, year = None, month = None)
-
-    # Move to inner
-    def analyze(self, p_dataframe, id_proj, id_team, year = None, month = None):
-        
-        Formato del dataframe de entrada
-            1  2  3  4  5  6  7  8  9                    datetime project_id team_id
-            0  0  3  2  0  1  2  5  3  2  2020-12-23 15:24:17.008097         01      01
-            1  4  2  0  1  5  1  2  2  0  2021-01-09 20:19:47.775812         01      01
-            2  5  5  5  5  0  0  5  5  5  2021-01-09 20:23:14.744930         01      01
-
-        :param dataframe:
-        :return: ReportView object
-        
-        report = ReportView()
-        df_org = DF.c_dataframe(p_dataframe)
-        df_org.f_project(id_proj, id_team)
-        df = df_org.copy()
-
-        if year is None or month is None:
-        # print("Is None")
-            year, month = df.max_year_month()
-            #print("Max: ", year, month)
-            df.f_year_month(year, month)
-
-        report.answers_len(df.size())
-        # print("Dataframe: \n", dataframe)
-        df_all = self._results.create_dataframe(project=id_proj, group=id_team)
-        df_object = DF.c_dataframe(df_all)
-        df_object._set_month_year()
-        years = df_object.unique('year')
-        for k, v in self._test_struct.items():
-            # print("V ", v,"\n Dataframe: \n", dataframe)
-            df_factor = df.view(v)
-            # print("--", k)
-            mean_list, mean = df_factor.means()
-            report.with_factor(k).add_means(mean_list, mean)
-
-            mad_list, mad = df_factor.mads()
-            report.with_factor(k).add_mads(mad_list, mad)
-
-            # print("Desviaciones medias:\n",ser_mad)
-            report.with_factor(k).add_analysis(self._factor_analisys.stats_analysis(mean_list, mad_list))
-
-            self._historic_data(k, v, report, df_object, years)
-
-        report.year(year)
-        report.month(month)
-
-        return report
-"""
 
 class HistoricDataAnalysis:
 
@@ -488,6 +285,10 @@ class HistoricDataAnalysis:
 class RadarAnalysis(object):
 
     def __init__(self, survey_structure):
+        """
+
+        :param survey_structure: stringwith the name of the survey
+        """
         self._survey_structure = survey_structure
         self._factor_analisys = FactorAnalysisAssistant()
 
@@ -515,6 +316,9 @@ class RadarAnalysis(object):
         historical_data = self._historical_data(results)
 
         report = ReportView()
+        report.project_id(id_proj)
+        report.group_id(id_team)
+        report.struct_name(self._survey_structure.name())
 
         if year not in historical_data.begin().keys():
             return report
@@ -592,6 +396,56 @@ class RawAnswer(object):
     def date_time_str(self):
         return str(self._date_time)
 
+
+#####
+
+class CVSResults(object):
+
+    def _ids_from_answer(self, survey):
+        answer_ids = dict()
+        for answer in survey.answers():
+            answer_ids[answer.id()] = answer.original_answer()
+        return answer_ids
+
+    def _header(self, questions_list):
+        cvs_content = "Question, Year, Month, "
+        #cvs_content = "Question, "
+        for q_id in questions_list:
+            cvs_content += str(q_id) + ", "
+        cvs_content += '\n'
+        return cvs_content
+
+    def _results_to_cvs(self, survey_list, questions_list):
+        cvs_content = ""
+        index = 1
+        for survey in survey_list:
+            answer_ids = self._ids_from_answer(survey)
+            cvs_line = str(index) + ", " + str(survey.year()) + ", " + str(survey.month()) + ", "
+            for question_id in questions_list:
+                if question_id in answer_ids:
+                    cvs_line += str(answer_ids[question_id]) + ", "
+                else:
+                    cvs_line += ", "
+            cvs_content += cvs_line + '\n'
+            index += 1
+        return cvs_content
+
+    def results_to_cvs(self, poll_struct, test_results):
+        questions_repo = poll_struct.questions_repo()
+
+        if questions_repo is None:
+            print("CVSResults, error obtaining the ids from questions.")
+
+        questions_id = questions_repo.as_dict().keys()
+
+        return self._header(questions_id) + self._results_to_cvs(test_results.get_surveys(), questions_id)
+
+
+
+
+
+
+
 ## Facade methods
 
 # Depretace, intenta no usarla
@@ -608,7 +462,6 @@ def _load_answers(questions_repo, filename = "data.txt"):
 
 
 def generate_report(test_results, id_proj, id_team, year, month, survey = "RADAR9"):
-    #ra = RadarAnalysis()
     ra = RadarAnalysis(get_survey_structure(load_questions(), survey_name= survey)) # Quitar estas referencias para que venga de fuera
     return ra.generate_report(test_results, id_proj, id_team, year, month)
 

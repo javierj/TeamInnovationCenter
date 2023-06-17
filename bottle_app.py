@@ -1,7 +1,8 @@
-from bottle import route, template, request, static_file, redirect, default_app
+from bottle import route, template, request, static_file, redirect, default_app, response
 from tappraisal import AppraisalDirector, TestData, load_questions, get_survey_structure, TestStructsCache, \
-    SurveyStructure, SurveyStructureLoader
+    SurveyStructureLoader
 from analysis import generate_report, surveys_overview, load_test_results
+from control import answers_as_cvs_in_file
 import os
 
 question_repo = None
@@ -14,14 +15,12 @@ def _server_url():
 
 @route('/')
 def home():
-    #print('Home is Working')
     redirect("/static/index.html")
 
 
 @route('/static/<filename:path>')
 def send_static(filename):
     global BASE_DIR
-    #base_path = os.path.dirname(os.path.abspath(__file__))
     my_path = os.path.join(BASE_DIR, 'static')
     #print("Statyic path: ", my_path, "Base:", BASE_DIR)
     return static_file(filename, root=my_path)
@@ -126,7 +125,6 @@ def _softia_get_template_name(question):
 
 def question(test, org_id, project_id, questions=""):
     global question_repo # Tenemos que cargar aquí el director según el tipo de test
-
     data = TestData(org_id, project_id, questions)
     director = AppraisalDirector(get_survey_structure(question_repo, test))
     next_question = director.next_question(data)
@@ -186,6 +184,7 @@ def report_radar9(org_id, project_id, year, month):
 
 @route('/report/<org_id>/<project_id>/<year>/<month>/<survey_type>/')
 def report(org_id, project_id, year, month, survey_type):
+    #http://127.0.0.1:8080/report/01/01/2023/6/SOFTIA/
     global question_repo
     upper_survey_type = survey_type.upper()
     test_results = load_test_results(question_repo, org_id, project_id, survey_name = upper_survey_type) # Poner los ids y filtrar por ellos
@@ -193,15 +192,29 @@ def report(org_id, project_id, year, month, survey_type):
     if report.has_answers():
         q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month)  # Método independiente, como generate_report
         desc = get_survey_structure(question_repo, upper_survey_type).description_dict()
-        return template('report_template', report=report, question_answer=q_a_v, defs = desc)
+        return template('report_template', report=report, question_answer=q_a_v, defs = desc, base_url=_server_url())
     return template('noanswers_template', org_id=org_id, project_id = project_id)
 
 
 @route('/selector/<org_id>/<project_id>/')
 def report_selector(org_id, project_id):
+    # http://127.0.0.1:8080/selector/01/01/
     s_overview = surveys_overview(org_id, project_id)
     base_url = _server_url()+"/report/"+org_id+"/"+project_id
     return template('report_selector', org_id=org_id, project_id=project_id, surveys_overview=s_overview, base_url = base_url)
+
+
+@route('/cvs/<poll_id>/<survey_type>/')
+# ejemplo http://127.0.0.1:8080/cvs/01/radar9/
+def export_to_cvs(poll_id, survey_type):
+    full_filename = answers_as_cvs_in_file(poll_id, survey_type) # Command
+    if full_filename is None:
+        print("CVSExport error, struct nor found, ", survey_type)
+        return template('error_template', base_url=request.url)
+    #response.content_type = 'text/html; charset=latin9'
+    #return result
+    # return u'A, B \n\r C, D \r\n E, F \n' -- No funciona
+    return static_file(full_filename, root='/', download=full_filename)
 
 
 ### Form para crear una nueva estructura de encuesta
@@ -218,11 +231,8 @@ def check_error(request):
 
 @route('/newpoll', method='POST')
 def do_new_poll():
-    #username = request.forms.get('username')
-    #password = request.forms.get('password')
     if check_error(request) is None:
         #print("bottle_app. ", request.forms.get('questions_file'))
-        #result = SurveyStructure.translate_to_json(request)
         saver = SurveyStructureLoader()
         saver.save_structure(request) # corregir esto, no hacer las dos cosas aquí.
         return "<p>Your login information was correct.</p>"

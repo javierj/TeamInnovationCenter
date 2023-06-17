@@ -1,5 +1,6 @@
 
 # 0 not in use
+
 MONTHS =("", "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre")
 
 
@@ -108,6 +109,9 @@ class ReportView(object):
         self._year = None
         self._month = None
         self._answers_len = None
+        self._project_id = None
+        self._group_id = None
+        self._struct_name = None
 
     def with_factor(self, factor_name):
         if factor_name not in self._factors:
@@ -127,6 +131,15 @@ class ReportView(object):
     def month(self, p_month):
         self._month = p_month
 
+    def project_id(self, p_month):
+        self._project_id = p_month
+
+    def group_id(self, p_month):
+        self._group_id = p_month
+
+    def struct_name(self, p_month):
+        self._struct_name = p_month
+
     def answers_len(self, answers_num):
         self._answers_len = answers_num
 
@@ -139,6 +152,15 @@ class ReportView(object):
 
     def get_answers_len(self):
         return self._answers_len
+
+    def get_project_id(self):
+        return self._project_id
+
+    def get_group_id(self):
+        return self._group_id
+
+    def get_struct_name(self):
+        return self._struct_name
 
     def has_answers(self):
         if len(self._factors) == 0:
@@ -204,17 +226,5 @@ class HierarchicalGroups(object):
     def __str__(self):
         return str(self._root)
 
-        """
-        root.begin().add_group('2021')
-        root.begin().group('2021').add_group('1')
-        root.begin().group('2021').group('1').add_group('RADAR-9')
-        root.begin().group('2021').group('1').group('RADAR-9').inc_counter()
-        root.begin().group('2021').group('1').get_keys()
-        root.begin().group('2021').group('1').get_keys()
-        root.begin().group('2021').group('1').group('RADAR-9').counter()
 
-        for year in root.begin().keys()
-            for month in root.begin().group(year).keys()
 
-        {'2021' : {'1': {'RADAR-9': 1}}}
-        """

@@ -1,18 +1,7 @@
 import random
 
 # Candidato a refactorizarlo a otro sitio.
-from utilities import Cache
-
-
-def _get_full_filename(filename, basedir = None):
-    import os
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    if basedir is not None:
-        my_path = os.path.join(base_path, basedir)
-        my_path = os.path.join(my_path, filename)
-    else:
-        my_path = os.path.join(base_path, filename)
-    return my_path
+from utilities import Cache, _get_full_filename
 
 
 def _save_data(data, survey_name, filename = "data.txt"):

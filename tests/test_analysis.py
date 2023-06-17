@@ -1,7 +1,8 @@
 import unittest
 from analysis import TestsResult, RadarAnalysis, surveys_overview, load_test_results, \
-    HistoricDataAnalysis, RawAnswer, generate_report
-from tappraisal import get_survey_structure, QuestionRepository, _get_full_filename
+    HistoricDataAnalysis, RawAnswer, generate_report, Survey, AnsweredQuestion, CVSResults
+from tappraisal import get_survey_structure, QuestionRepository, TestQuestion
+from utilities import _get_full_filename
 
 
 def load_questions():
@@ -16,6 +17,7 @@ def load_questions():
     file.close()
 
     return repo
+
 
 class TestTestsResult(unittest.TestCase):
 
@@ -115,14 +117,10 @@ class TestRadarAnalysis(unittest.TestCase):
         #self.analisis = RadarAnalysis(get_survey_structure(load_questions()))
         self.results.add_test_answer("2021-01-28 17:08:00.482801/01/01/A021B012C121C105D065D135E062F051G055")
         self.results.add_test_answer("2021-01-28 17:08:02.912267/01/01/A012B044C042C015D135D101E022F045G055")
-        # crear el databrame directaente.
-        # df = self.results.create_dataframe()
-        # report = self.analisis.analyze(df, "01", "01")
         report = self.analisis.generate_report(self.results, "01", "01", 2021, 1)
 
         # print(report)
         # expected = "{'Precondiciones': {'answer': [[1, 2], [2, 2]], 'mean': ['1.5', '2.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Seguridad sicológica': {'answer': [[1, 1], [2, 1]], 'mean': ['1.5', '1.0'], 'mad': ['0.5', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Dependabilidad': {'answer': [[1, 1], [1, 1]], 'mean': ['1.0', '1.0'], 'mad': ['0.0', '0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Estructura y claridad': {'answer': [[2], [2]], 'mean': ['2.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Significado': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}, 'Impacto': {'answer': [[1], [1]], 'mean': ['1.0'], 'mad': ['0.0'], 'analysis': 'La media indica que la mayoría de las repsuestas están en los valores inferiores. Recomendamos organizar alguna actividad grupal que ayude a abordar los problemas y plantear soluciones que mejoren la valoración del equipo.'}}"
-
         self.assertEqual(6, len(report.factors()))
         self.assertEqual([1.75], report.with_factor("Precondiciones").means())
         self.assertEqual([0.25], report.with_factor("Precondiciones").mads())
@@ -295,6 +293,40 @@ class Test_HistoricDataAnalysis(unittest.TestCase):
         self.assertIn(2021, result.begin().keys())
         self.assertIn(3, result.begin().group(2021).keys())
         self.assertEqual(5, len(result.begin().group(2021).group(3).keys()))
+
+
+class Test_Survey_And_AnsweredQuestion(unittest.TestCase):
+
+    def setUp(self):
+        self.survey = Survey("2020-12-23 15:24:17.008097", "01", "01")
+        self.survey.add_a_q(AnsweredQuestion("1", "5"))
+
+    def test_create_survey(self):
+        self.assertEqual(2020, self.survey.year()) # int
+        self.assertEqual(12, self.survey.month()) # int
+
+    def test_answered_question(self):
+        answer = self.survey.answers()[0]
+        answer.set_question(TestQuestion("text", "code", "valoration", "cat_name"))
+        self.assertEqual("code", answer.id())
+        self.assertEqual("1", answer.adapted_answer())
+        self.assertEqual("5", answer.original_answer())
+
+
+class Test_CVSResults(unittest.TestCase):
+
+    def setUp(self):
+        self.results = TestsResult(q_repo=load_questions()) # Evitar esta dependencia
+        self.results.add_test_answer("2020-12-23 15:24:17.008097/01/01/A035B033C032C065D121D023E075F053G022")
+        self.cvs = CVSResults()
+
+    def test_results_to_cvs(self):
+        cvs_text = self.cvs._results_to_cvs(self.results.get_surveys(), {'A01':"", 'A02':"", 'A03':""})
+        self.assertEqual("1, 2020, 12, , , 5, \n", cvs_text)
+
+    def test_header_cvs(self):
+        cvs_text = self.cvs._header({'A01':"", 'A02':"", 'A03':""})
+        self.assertEqual("Question, Year, Month, A01, A02, A03, \n", cvs_text)
 
 
 if __name__ == '__main__':

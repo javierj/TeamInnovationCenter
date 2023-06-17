@@ -127,7 +127,8 @@ def search_by_answer(results, answer_id, value):
         for answer in survey.answers():
             if answer.id() == answer_id and answer.original_answer() == value:
                 #print("Survey: ", survey)
-                print("+ Answers: ", survey.answers_as_string())
+                #print("+ Answers: ", survey.answers_as_string())
+                print("+ Answers: ", survey.str())
                 break
 
 
