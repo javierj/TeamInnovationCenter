@@ -1,21 +1,11 @@
 import unittest
 
+from analysis import surveys_from_poll
 from tappraisal import TestQuestion
 from view import QuestionsAnswersView, ReportView, HierarchicalGroups
 
 
 class TestQuestionsAnswersView(unittest.TestCase):
-
-    """
-    def test_add_one_question(self):
-        qav = QuestionsAnswersView()
-        qav.add("A06", "Precondiciones", "Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.", 5)
-
-        self.assertEqual(["Precondiciones"], qav.categories())
-        self.assertEqual(["A06"], qav.questions_id("Precondiciones"))
-        self.assertEqual("Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.", qav.question_text("A06"))
-        self.assertEqual([5], qav.question_answers("A06"))
-    """
 
     def test_add_one_question(self):
         qav = QuestionsAnswersView()
@@ -26,7 +16,6 @@ class TestQuestionsAnswersView(unittest.TestCase):
         self.assertEqual(["A06"], qav.questions_id("Precondiciones"))
         self.assertEqual("Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.", qav.question_text("A06"))
         self.assertEqual([5], qav.question_answers("A06"))
-
 
     def test_add_three_questions(self):
         qav = QuestionsAnswersView()
@@ -107,6 +96,17 @@ class TestHierarchicalGroups(unittest.TestCase):
         self._root.begin().group('2021').group('1').group('RADAR-9').inc_counter()
         self._root.begin().group('2021').group('1').group('RADAR-9').inc_counter()
         self.assertEqual(3, self._root.begin().group('2021').group('1').group('RADAR-9').counter())
+
+
+    def test_counter_2(self): # Useless test
+        s_overview = surveys_from_poll("SoftIA", filename="tests/data_test.txt")
+        #print(s_overview)
+        #self.assertEqual(3, s_overview.begin().group('2023').counter())
+        years = len(s_overview.begin().keys())
+        #print(s_overview.begin().keys())
+        self.assertEqual(1, years)
+        months = len(s_overview.begin().group(2023).keys())
+        self.assertEqual(2, months)
 
 
 if __name__ == '__main__':

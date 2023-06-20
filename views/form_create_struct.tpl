@@ -1,4 +1,4 @@
-% include('header.tpl')
+% include('header_web.tpl')
 
     <form action="/newpoll" method="post">
         <label for="questions_file">Nombre del fichero de preguntas:</label><br>
@@ -37,4 +37,4 @@ Example: "Formación":"Formación.", "Flexibilidad": "Flexibilidad."</textarea>
     </form>
 
 
-% include('footer.tpl')
+% include('footer_web.tpl')

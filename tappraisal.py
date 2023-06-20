@@ -1,7 +1,7 @@
 import random
 
 # Candidato a refactorizarlo a otro sitio.
-from utilities import Cache, _get_full_filename
+from utilities import Cache, _get_full_filename, file_exists
 
 
 def _save_data(data, survey_name, filename = "data.txt"):
@@ -188,11 +188,18 @@ class QuestionRepository(object):
 
 
 def load_questions(filename="preguntas_sofia.txt", basedir=None):
+    """
+    :param filename:
+    :param basedir:
+    :return: None if file with questions does not exists.
+    """
     repo = QuestionRepository()
 
     # Cambiado para softIA
     # file_name = _get_full_filename("preguntas.txt")
     file_name = _get_full_filename(filename, basedir)
+    if not file_exists(file_name):
+        return None
 
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
@@ -216,28 +223,6 @@ class SurveyStructure(object):
         self._questions_repo = None # It has to come from the outside
         self._poll_structure = None
         self._question_groups = None
-
-    """ - Pasamos a 100% JSon y ya no necesitamos esto
-    def _load_json(self, value):
-        json_txt = '{"key": ' + value + '}'
-        import json
-        raw_json = json.loads(json_txt)
-        return raw_json['key']
-
-    def set_property(self, key, value):
-        if key == "poll_name":
-            self._name = value
-        if key == "questions_file":
-            self._questions_filename = value
-        if key == "num_of_questions":
-            self._num_of_questions = int(value)
-        if key == "questions_in_categories":
-            self._questions_in_categories = self._load_json(value)
-        if key == "poll_structure":
-            self._poll_structure = self._load_json(value)
-        if key == "groups":
-            self._question_groups = self._load_json(value)
-    """
 
     def name(self):
         return self._name
@@ -285,7 +270,6 @@ class SurveyStructure(object):
         self._poll_structure = raw_json["poll_structure"]
         self._question_groups = raw_json[ "groups"]
 
-
     @staticmethod
     def _from_string_to_dict(raw_string):
         result = dict()
@@ -302,23 +286,8 @@ class SurveyStructure(object):
 
         return result
 
-
     @staticmethod
     def translate_to_json(form_request):
-        """
-        json_raw = dict()
-
-        json_raw['questions_file'] = form_request.forms.get('questions_file')
-        json_raw['poll_name'] = form_request.forms.get('poll_name')
-        json_raw['num_of_questions'] = form_request.forms.get('num_of_questions')
-
-        json_raw['questions_in_categories']=SurveyStructure._from_string_to_dict(form_request.forms.get('questions_in_categories'))
-        json_raw['poll_structure']=SurveyStructure._from_string_to_dict(form_request.forms.get('poll_structure'))
-        json_raw['groups']=SurveyStructure._from_string_to_dict(form_request.forms.get('groups'))
-        json_raw['descriptions']=SurveyStructure._from_string_to_dict(form_request.forms.get('descriptions'))
-
-        # Test
-        """
         test_json = " {\"questions_file\": \"" \
                     + form_request.forms.get('questions_file') \
                     + "\", \"poll_name\": \"" + form_request.forms.get('poll_name') \
@@ -338,15 +307,6 @@ class SurveyStructure(object):
 
 class SurveyStructureLoader(object):
 
-    """
-    def _clean_line(self, raw_line):
-        return raw_line.strip()
-
-    def _has_information(self, line):
-        if len(line) == 0:
-            return False
-        return line[0] == '$'
-    """
     def load_structure(self, filename, basedir="polls"):
         poll_structure = SurveyStructure()
 
@@ -360,16 +320,6 @@ class SurveyStructureLoader(object):
         poll_structure.load_json(raw_json)
 
         return poll_structure
-        """
-            
-            for raw_line in file:
-                line = self._clean_line(raw_line)
-                if self._has_information(line):
-                    self.process_line(line, poll_structure)
-
-            file.close()
-        """
-
 
     def save_structure(self, form_request, basedir="polls"):
         json_raw = SurveyStructure.translate_to_json(form_request)
@@ -381,17 +331,6 @@ class SurveyStructureLoader(object):
         #json.dump(json_raw, file)
         file.write(json_raw)
         file.close()
-
-
-    """ - Pasamos a JSon y ya no necesitamos este c´digo.
-    def process_line(self, line, poll_structure):
-        tupla = line[1:].split("=")
-        if len(tupla) != 2:
-            print("SurveyStructureLoader:: line has not a valid format (one = ). Line: ", line)
-        key = tupla[0].strip()
-        value = tupla[1].strip()
-        poll_structure.set_property(key, value)
-    """
 
 ##
 

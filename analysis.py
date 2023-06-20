@@ -473,9 +473,24 @@ def surveys_overview(project_id, team_id, filename = "data.txt"):
     for line in file:
         raw_answer = RawAnswer.create(line)
         if project_id == raw_answer.project_id() and team_id == raw_answer.team_id():
+            #print(project_id, " ", team_id)
             s_overview.begin().add_group(raw_answer.year()).add_group(raw_answer.month()).add_group(raw_answer.test_type()).inc_counter()
+            #print(s_overview)
             #surveys_overview.begin().add_group(survey.year()).add_group(MONTHS[survey.month()]).add_group(test_type).inc_counter()
             # si lo pongo con nombre, en vez de número, no genera bien la URL para acceder al report.
+
+    file.close()
+    return s_overview
+
+
+def surveys_from_poll(poll_name, filename = "data.txt"):
+    s_overview = HierarchicalGroups()
+    file_name = _get_full_filename(filename)
+    file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
+    for line in file:
+        raw_answer = RawAnswer.create(line)
+        if poll_name == raw_answer.test_type():
+            s_overview.begin().add_group(raw_answer.year()).add_group(raw_answer.month()).add_group(raw_answer.project_id()).inc_counter()
 
     file.close()
     return s_overview

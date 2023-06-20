@@ -41,5 +41,13 @@ def _save_text(full_filename, text_string):
         myfile.write(text_string)
 
 
+def file_exists(full_filename):
+    import os
+    return os.path.isfile(full_filename)
 
+
+def load_text_file(full_filename):
+    with open(full_filename, encoding="utf-8") as f:
+        lines = f.readlines()
+    return lines
 

@@ -1,9 +1,11 @@
 from bottle import route, template, request, static_file, redirect, default_app, response
 from tappraisal import AppraisalDirector, TestData, load_questions, get_survey_structure, TestStructsCache, \
     SurveyStructureLoader
-from analysis import generate_report, surveys_overview, load_test_results
-from control import answers_as_cvs_in_file
+from analysis import generate_report, surveys_overview, load_test_results, surveys_from_poll
+from control import answers_as_cvs_in_file, load_questions_if_exist, save_questions, poll_exists, get_surveys_from_poll
 import os
+
+from view import HierarchicalGroups
 
 question_repo = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -57,11 +59,12 @@ def get_data():
     return static_file("data.txt", root=BASE_DIR)
 
 
-@route('/get_questions')
-@route('/get_questions/')
-def get_questions():
-    global BASE_DIR
-    return static_file("preguntas.txt", root=BASE_DIR)
+# Este enlace ya no tiene utilidad porque podemos tener varios ficheros de preguntas
+# @route('/get_questions')
+# @route('/get_questions/')
+# def get_questions():
+#    global BASE_DIR
+#    return static_file("preguntas.txt", root=BASE_DIR)
 
 
 @route('/test/<org_id>/<project_id>/<questions>')
@@ -166,7 +169,6 @@ def poll_question(struct, group_id, questions=""):
     next_question = director.next_question(data)
 
     if next_question is None:
-        #print("Server URL: ", _server_url(request.url))
         return template('end_template', base_url=_server_url())
 
     # Hacer esto más genérico
@@ -201,7 +203,15 @@ def report_selector(org_id, project_id):
     # http://127.0.0.1:8080/selector/01/01/
     s_overview = surveys_overview(org_id, project_id)
     base_url = _server_url()+"/report/"+org_id+"/"+project_id
-    return template('report_selector', org_id=org_id, project_id=project_id, surveys_overview=s_overview, base_url = base_url)
+    return template('report_selector', org_id=org_id, project_id=project_id, surveys_overview=s_overview, base_url=base_url)
+
+
+@route('/report/poll/<survey_type>/')
+def report_survey_from_poll(survey_type):
+    # http://127.0.0.1:8080//report/poll/radar9/
+    s_overview, cvs_keys = get_surveys_from_poll(survey_type)
+    base_url = _server_url()
+    return template('report_surveys_from_poll', survey_type=survey_type, surveys_overview=s_overview, base_url=base_url, cvs_keys=cvs_keys)
 
 
 @route('/cvs/<poll_id>/<survey_type>/')
@@ -212,16 +222,16 @@ def export_to_cvs(poll_id, survey_type):
         print("CVSExport error, struct nor found, ", survey_type)
         return template('error_template', base_url=request.url)
     #response.content_type = 'text/html; charset=latin9'
-    #return result
     # return u'A, B \n\r C, D \r\n E, F \n' -- No funciona
     return static_file(full_filename, root='/', download=full_filename)
 
 
 ### Form para crear una nueva estructura de encuesta
 
-@route('/newpoll')
-def login():
-    return template('form_create_struct')
+@route('/newpoll/<survey_type>')
+def new_poll(survey_type=None):
+    if survey_type in None:
+        return template('form_create_struct')
 
 
 def check_error(request):
@@ -238,6 +248,43 @@ def do_new_poll():
         return "<p>Your login information was correct.</p>"
     else:
         return "<p>Form has errors.</p>"
+
+
+@route('/edit/questions/<survey_type>')
+def questions_form(survey_type):
+    # http://127.0.0.1:8080/edit/questions/radar9/
+    #print("Enter form. ")
+    questions_as_txt = load_questions_if_exist(survey_type)
+    if questions_as_txt is None:
+        return "<p> Survey name " + survey_type + " not found. </p>"
+    return template('form_questions', questions_txt=questions_as_txt, survey_name=survey_type)
+
+
+@route('/edit/questions/<survey_type>', method='POST')
+def save_questions_form(survey_type):
+    # http://127.0.0.1:8080/edit/questions/radar9/
+    #print("Save form. ")
+    result = save_questions(survey_type, request)
+    if result is None:
+        return "<p> Survey name " + survey_type + " not found. </p>"
+    # return template('form_questions', questions_txt=questions_as_txt, survey_name=survey_type)
+    return "<p> Done. TODO, redirect to other page. </p>"
+
+
+## Dashboard
+
+@route('/dashboard/')
+@route('/dashboard')
+def error_dashboard():
+    return "<p> Error. Poll name not found in URL. </p>"
+
+
+@route('/dashboard/<survey_type>/')
+def dashboard(survey_type):
+    # http://127.0.0.1:8080/dashboard/radar9/
+    if not poll_exists(survey_type):
+        return "<p> Error. Poll name not found. </p>"
+    return template('dashboard', survey_name=survey_type, base_url=_server_url())
 
 
 #--- URLs erróneas ----------------------

@@ -172,7 +172,6 @@ class ReportView(object):
         return str(self._factors)
 
 
-# Not in use
 class HierarchicalGroups(object):
 
     def __init__(self):

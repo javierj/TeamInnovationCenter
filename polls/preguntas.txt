@@ -1,153 +1,153 @@
-# Versión 1.2
-# Código, texto de la pregunta, si hay que valorarla en positivo o negativo.
-# 1.0. Versión inicial, 60 preguntas
-# 1.1. Mejor redactadas las preguntas de condiciones. 66 preguntas
-# 1.2. Cambios en redacción y desahibilatadas preguntas ambiguas. 65 preguntas
-# 1.3. Añadimos categorías a cada factor. 68 preguntas
-# 1.4. Añadimos la categoría de flujo a precondiciones. 71 preguntas
-# 1.5. Más preguntas de flujo, de impacto, significado y seguridad sicológica. 84 preguntas
-
-#-P01# Precondiciones. Sueldo.
-A01:Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P
-A02:Pienso que mi sueldo actual es adecuado.:P
-A03:Pienso que mi sueldo actual no es adecuado para el trabajo que realizo.:N
-A04:Considero que mi sueldo refleja mi valía en el trabajo que hago.:P
-A05:Considero que mi sueldo no refleja mi valía en el trabajo que hago.:N
-A06:Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.:P
-A07:Estoy en este trabajo principalmente por el sueldo que me pagan.:N
-
-#-P02# Precondiciones. Capacitación.
-B01:Siento que estoy preparado para hacer el trabajo que hago ahora mismo.:P
-B02:No siento que esté preparado para hacer el trabajo que hago ahora mismo.:N
-B03:Me veo capaz de aprender lo necesario para este proyecto.:P
-B04:No me veo capaz de realizar aportaciones valiosas en este proyecto.:N
-B05:No creo que sea capaz de aprender lo suficiente para  aportar algo útil a este proyecto.:N
-B06:Estoy adecuadamente formado para trabajar en este proyecto.:P
-B08:Siento que no estoy bien formado para trabajar en este proyecto.:N
-B07:Estoy adecuadamente formado, o puedo adquirir la formación que necesito para este proyecto mientras trabajo en el mismo.:P
-
-#-P03# Flujo (código FL)
-BL1:En general, puedo concentrarme para hacer mi trabajo.:P
-BL2:En general, no soy capaz de concentrarme para hacer mi trabajo.:N
-BL3:No suelo tener interrupciones no deseadas.:P
-BL4:Tengo interrupciones no deseadas con mucha frecuencia.:N
-BL5:Las interrupciones no deseadas no suelen interferir en mi rendimiento.:P
-
-
-## Seguridad sicológica (PS)
-
-#-SP01# Feedback
-C01:Tengo miedo de pedir o dar feedback en mi trabajo.:N
-C02:No tengo miedo de dar feedback constructivo a mis compañeros.:P
-C03:No tengo miedo de que mis compañeros me den feedback sobre mi trabajo.:P
-C04:Cuando doy feedback siento que ha ido bien recibido.:P
-C05:El feedback que recibo de mis compañeros es constructivo.:P
-C06:Intento evitar activamente dar feedback.:N
-C07:Intento evitar que me den feedback.:N
-C16:El feedback que recibo de mis compañeros de trabajo ni es constructivo ni me sirve para mejorar.:N
-
-#-SP02# Bloque 2. Pregunta original: Hesitance around expressing divergent ideas and asking 'silly' questions
-C08:Dudo en expresar ideas divergentes.:N
-C09:Dudo en hacer preguntas porque pienso que serán preguntas tontas.:N
-C10:Me preocupa que los demás piensen que las preguntas que hago son tontas.:N
-C11:No dudo en expresar mis ideas, aunque sean divergente.:P
-
-#-SP03# Bloque 3. Pregunta original: 'Do all team members feel comfortable brainstorming in front of each other?'
-C12:Me siendo cómodo cuando todo el equipo proponemos ideas juntos.:P
-C13:Prefiero exponer mis ideas en privado antes que exponerlas delante de todo el equipo.:N
-C14:Me siento cómodo haciendo preguntas en presencia de todo el equipo.:P
-C15:Prefiero hacer mis preguntas en privado en lugar de en presencia de todo el equipo.:N
-
-#-SP04# Bloque 4. Errores.
-C17:Todo el equipo habla de errores cometidos para aprende ry evitar que se vuelvan a producir.:P
-C18:En mi quipo no hacemos a nadie repsonsable por haber cometido un error.:P
-C19:Siento que puedo pedir ayuda a mis compañeros de equipo cuando la necesite.:P
-C20:Siento que hay compañeros de mi equipo a los que no puedo pedirles ayuda.:N
-
-# Faltan más
-
-## Dependabilitad (DP).
-# Signos de que tu equipo necesita mejorar su interdependencia y que hay comprmiso por el trabajo.
-
-#-DP01# Bloque 1: Team has poor visibility into project priorities or progress
-D01:Mi equipo tiene poca visibilidad de las prioridades del proyecto.:N
-D02:Mi equipo tienen poca visibilidad del progreso del proyecto.:N
-D03:Mi equipo tiene claro el progreso del proyecto en todo momento.:P
-D04:Mi equipo tiene claro las prioridades del proyecto en todo momento.:P
-
-#-DP02# Bloque 2: Diffusion of responsibility and no clear owners for tasks or problems
-D05:En mi equipo, la responsabilidad de realizar tareas es difusa.:N
-D06:No hay propietarios claros para las tareas.:N
-D07:No hay responsables claros para arreglar problemas.:N
-D08:Las tareas tienen un propietario que se encarga de que se realiza.:P
-D09:Los problemas tienen un responsable que se encarga de que se resuelva.:P
-#D14:Los problemas tienen un responsable que es quien debe resolverlo.:N
-
-#-DP03# Cuando los miembros del equipo dicen que harán algo, ¿lo hacen?
-
-D10:En general, cuando los miembros de mi equipo dicen que van a hacer algo, se hace.:P
-D11:En general, cuando los miembros de mi equipo dicen que van a hacer algo, ese algo no se hace.:N
-D12:La gente de mi equipo se pone a hacer algo y lo hace.:P
-D13:Los miembros de mi equipo dicen que van a hacer algo, pero no se hace.:N
-
-# Faltan más
-
-## Estructura y claridad (SC). Signs that your team needs to improve structure and clarity
-
-#-SC01# Bloque 1: Lack of clarity about who is responsible for what
-E01:Tengo claro quién es el responsable de cada cosa en el proyecto.:P
-E02:Tengo claro qué cosas son responsabilidad mía en el proyecto.:P
-E03:No hay claridad sobre quién es responsable de cada cosa en el proyecto.:N
-
-#-SC02# Bloque 2:  Unclear decision-making process, owners, or rationale
-E04:Siento que tenemos un proceso de toma de decisiones claro.:P
-E05:El proceso de toma de decisiones de mi equipo u organización no es claro.:N
-E06:Tengo claro cómo se asignan responsabilidades a las personas de mi equipo.:P
-E07:Entiendo por qué se asignan responsabilidades.:P
-
-# Faltan más
-
-## Significado (ME). Señales de que su equipo necesita mejorar el significado:
-
-#-ME01# Asignaciones de trabajo basadas únicamente en habilidad, experiencia, carga de trabajo; poca consideración por las necesidades e intereses del desarrollo individual
-F01: La asignación de trabajo en mi proyecto tiene en cuenta nuestras habilidades.:P
-F11: La asignación de trabajo en mi proyecto no tiene en cuenta nuestras habilidades.:N
-F02: La asignación de trabajo en mi proyecto tiene en cuenta nuestra experiencia.:P
-F03: La asignación de trabajo en mi proyecto tiene en cuenta la carga de trabajo de las personas.:P
-F04: Hay poca consideración por las necesidades individuales en la asignación del trabajo.:N
-
-#-ME02# Falta de reconocimiento regular de logros o hitos
-F05:Mi equipo celebra los hitos o logros que alcanzamos.:P
-#F0X:Mi equipo celebra alcanzar una milestone.:P - No tienen por qué saber que es una milestone
-F06:Mi equipo celebra terminar una iteración, o desplegar una nueva versión del sistema.:P
-F07:No hay celebraciones de éxitos alcanzados en el equipo.:N
-
-#-ME03# ¿El trabajo le da a los miembros del equipo un sentido de realización personal y profesional?
-F08: El trabajo que realizo me da una sensación de crecimiento profesional.:P
-F09:El trabajo que realizo me permite sentirme realizado.:P
-F10:Siento que el trabajo que realizo no aporta nada en mi currículum.:N
-
-## Impacto (IM). Signs that your team needs to improve impact:
-
-#-IM01# Bloque 2. Too many goals, limiting ability to make meaningful progress
-G01:Siento que el equipo tiene demasiados objetivos.:N
-G02:Siento que mi equipo tiene los suficientes objetivos para mantenernos centrados.:P
-G03:Siento que mi equipo tiene los suficientes objetivos para poder cumplirlos.:P
-G04:Siento que tengo la posibilidad de hacer que el proyecto avance.:P
-G05:Creo que no puedo conseguir ningún avance significativo con mi trabajo.:N
-
-# ¿Los miembros del equipo ven su trabajo como un cambio para mejorar?
-
-#-IM02# Bloque 5. How are current team processes affecting well-being/burnout?
-G06:La manera de trabajar de mi equipo me agota.:N
-G07:Termino el trabajo y aún tengo energía.:P
-
-#-IM03# Bloque 6. Propio
-G08:Mi equipo comparte objetivos comunes en este proyecto.:P
-G09:No tengo claro cuáles son los objetivos de mi equipo.:N
-G10:Mis objetivos en este proyecto son diferentes a los objetivos del resto del equipo.:N
-G11:En mi equipo nunca hablamos de objetivos.:N
-
-#-IM04# Bloque 3. Do team members see their work as creating change for the better?
-G12: Con mi trabajo siento que estoy mejorando la vida de un grupo de personas.:P
-G12: No siento que mi trabajo contribuya a aportar valor a un grupo de personas.:N
+# Versión 1.2
+# Código, texto de la pregunta, si hay que valorarla en positivo o negativo.
+# 1.0. Versión inicial, 60 preguntas
+# 1.1. Mejor redactadas las preguntas de condiciones. 66 preguntas
+# 1.2. Cambios en redacción y desahibilatadas preguntas ambiguas. 65 preguntas
+# 1.3. Añadimos categorías a cada factor. 68 preguntas
+# 1.4. Añadimos la categoría de flujo a precondiciones. 71 preguntas
+# 1.5. Más preguntas de flujo, de impacto, significado y seguridad sicológica. 83 preguntas
+
+#-P01# Precondiciones. Sueldo.
+A01:Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P
+A02:Pienso que mi sueldo actual es adecuado.:P
+A03:Pienso que mi sueldo actual no es adecuado para el trabajo que realizo.:N
+A04:Considero que mi sueldo refleja mi valía en el trabajo que hago.:P
+A05:Considero que mi sueldo no refleja mi valía en el trabajo que hago.:N
+A06:Estoy en este trabajo porque me gusta, no por el sueldo que me pagan.:P
+A07:Estoy en este trabajo principalmente por el sueldo que me pagan.:N
+
+#-P02# Precondiciones. Capacitación.
+B01:Siento que estoy preparado para hacer el trabajo que hago ahora mismo.:P
+B02:No siento que esté preparado para hacer el trabajo que hago ahora mismo.:N
+B03:Me veo capaz de aprender lo necesario para este proyecto.:P
+B04:No me veo capaz de realizar aportaciones valiosas en este proyecto.:N
+B05:No creo que sea capaz de aprender lo suficiente para  aportar algo útil a este proyecto.:N
+B06:Estoy adecuadamente formado para trabajar en este proyecto.:P
+B08:Siento que no estoy bien formado para trabajar en este proyecto.:N
+B07:Estoy adecuadamente formado, o puedo adquirir la formación que necesito para este proyecto mientras trabajo en el mismo.:P
+
+#-P03# Flujo (código FL)
+BL1:En general, puedo concentrarme para hacer mi trabajo.:P
+BL2:En general, no soy capaz de concentrarme para hacer mi trabajo.:N
+BL3:No suelo tener interrupciones no deseadas.:P
+BL4:Tengo interrupciones no deseadas con mucha frecuencia.:N
+BL5:Las interrupciones no deseadas no suelen interferir en mi rendimiento.:P
+
+
+## Seguridad sicológica (PS)
+
+#-SP01# Feedback
+C01:Tengo miedo de pedir o dar feedback en mi trabajo.:N
+C02:No tengo miedo de dar feedback constructivo a mis compañeros.:P
+C03:No tengo miedo de que mis compañeros me den feedback sobre mi trabajo.:P
+C04:Cuando doy feedback siento que ha ido bien recibido.:P
+C05:El feedback que recibo de mis compañeros es constructivo.:P
+C06:Intento evitar activamente dar feedback.:N
+C07:Intento evitar que me den feedback.:N
+C16:El feedback que recibo de mis compañeros de trabajo ni es constructivo ni me sirve para mejorar.:N
+
+#-SP02# Bloque 2. Pregunta original: Hesitance around expressing divergent ideas and asking 'silly' questions
+C08:Dudo en expresar ideas divergentes.:N
+C09:Dudo en hacer preguntas porque pienso que serán preguntas tontas.:N
+C10:Me preocupa que los demás piensen que las preguntas que hago son tontas.:N
+C11:No dudo en expresar mis ideas, aunque sean divergente.:P
+
+#-SP03# Bloque 3. Pregunta original: 'Do all team members feel comfortable brainstorming in front of each other?'
+C12:Me siendo cómodo cuando todo el equipo proponemos ideas juntos.:P
+C13:Prefiero exponer mis ideas en privado antes que exponerlas delante de todo el equipo.:N
+C14:Me siento cómodo haciendo preguntas en presencia de todo el equipo.:P
+C15:Prefiero hacer mis preguntas en privado en lugar de en presencia de todo el equipo.:N
+
+#-SP04# Bloque 4. Errores.
+C17:Todo el equipo habla de errores cometidos para aprende ry evitar que se vuelvan a producir.:P
+C18:En mi quipo no hacemos a nadie repsonsable por haber cometido un error.:P
+C19:Siento que puedo pedir ayuda a mis compañeros de equipo cuando la necesite.:P
+C20:Siento que hay compañeros de mi equipo a los que no puedo pedirles ayuda.:N
+
+# Faltan más
+
+## Dependabilitad (DP).
+# Signos de que tu equipo necesita mejorar su interdependencia y que hay comprmiso por el trabajo.
+
+#-DP01# Bloque 1: Team has poor visibility into project priorities or progress
+D01:Mi equipo tiene poca visibilidad de las prioridades del proyecto.:N
+D02:Mi equipo tienen poca visibilidad del progreso del proyecto.:N
+D03:Mi equipo tiene claro el progreso del proyecto en todo momento.:P
+D04:Mi equipo tiene claro las prioridades del proyecto en todo momento.:P
+
+#-DP02# Bloque 2: Diffusion of responsibility and no clear owners for tasks or problems
+D05:En mi equipo, la responsabilidad de realizar tareas es difusa.:N
+D06:No hay propietarios claros para las tareas.:N
+D07:No hay responsables claros para arreglar problemas.:N
+D08:Las tareas tienen un propietario que se encarga de que se realiza.:P
+D09:Los problemas tienen un responsable que se encarga de que se resuelva.:P
+#D14:Los problemas tienen un responsable que es quien debe resolverlo.:N
+
+#-DP03# Cuando los miembros del equipo dicen que harán algo, ¿lo hacen?
+
+D10:En general, cuando los miembros de mi equipo dicen que van a hacer algo, se hace.:P
+D11:En general, cuando los miembros de mi equipo dicen que van a hacer algo, ese algo no se hace.:N
+D12:La gente de mi equipo se pone a hacer algo y lo hace.:P
+D13:Los miembros de mi equipo dicen que van a hacer algo, pero no se hace.:N
+
+# Faltan más
+
+## Estructura y claridad (SC). Signs that your team needs to improve structure and clarity
+
+#-SC01# Bloque 1: Lack of clarity about who is responsible for what
+E01:Tengo claro quién es el responsable de cada cosa en el proyecto.:P
+E02:Tengo claro qué cosas son responsabilidad mía en el proyecto.:P
+E03:No hay claridad sobre quién es responsable de cada cosa en el proyecto.:N
+
+#-SC02# Bloque 2:  Unclear decision-making process, owners, or rationale
+E04:Siento que tenemos un proceso de toma de decisiones claro.:P
+E05:El proceso de toma de decisiones de mi equipo u organización no es claro.:N
+E06:Tengo claro cómo se asignan responsabilidades a las personas de mi equipo.:P
+E07:Entiendo por qué se asignan responsabilidades.:P
+
+# Faltan más
+
+## Significado (ME). Señales de que su equipo necesita mejorar el significado:
+
+#-ME01# Asignaciones de trabajo basadas únicamente en habilidad, experiencia, carga de trabajo; poca consideración por las necesidades e intereses del desarrollo individual
+F01: La asignación de trabajo en mi proyecto tiene en cuenta nuestras habilidades.:P
+F11: La asignación de trabajo en mi proyecto no tiene en cuenta nuestras habilidades.:N
+F02: La asignación de trabajo en mi proyecto tiene en cuenta nuestra experiencia.:P
+F03: La asignación de trabajo en mi proyecto tiene en cuenta la carga de trabajo de las personas.:P
+F04: Hay poca consideración por las necesidades individuales en la asignación del trabajo.:N
+
+#-ME02# Falta de reconocimiento regular de logros o hitos
+F05:Mi equipo celebra los hitos o logros que alcanzamos.:P
+#F0X:Mi equipo celebra alcanzar una milestone.:P - No tienen por qué saber que es una milestone
+F06:Mi equipo celebra terminar una iteración, o desplegar una nueva versión del sistema.:P
+F07:No hay celebraciones de éxitos alcanzados en el equipo.:N
+
+#-ME03# ¿El trabajo le da a los miembros del equipo un sentido de realización personal y profesional?
+F08: El trabajo que realizo me da una sensación de crecimiento profesional.:P
+F09:El trabajo que realizo me permite sentirme realizado.:P
+F10:Siento que el trabajo que realizo no aporta nada en mi currículum.:N
+
+## Impacto (IM). Signs that your team needs to improve impact:
+
+#-IM01# Bloque 2. Too many goals, limiting ability to make meaningful progress
+G01:Siento que el equipo tiene demasiados objetivos.:N
+G02:Siento que mi equipo tiene los suficientes objetivos para mantenernos centrados.:P
+G03:Siento que mi equipo tiene los suficientes objetivos para poder cumplirlos.:P
+G04:Siento que tengo la posibilidad de hacer que el proyecto avance.:P
+G05:Creo que no puedo conseguir ningún avance significativo con mi trabajo.:N
+
+# ¿Los miembros del equipo ven su trabajo como un cambio para mejorar?
+
+#-IM02# Bloque 5. How are current team processes affecting well-being/burnout?
+G06:La manera de trabajar de mi equipo me agota.:N
+G07:Termino el trabajo y aún tengo energía.:P
+
+#-IM03# Bloque 6. Propio
+G08:Mi equipo comparte objetivos comunes en este proyecto.:P
+G09:No tengo claro cuáles son los objetivos de mi equipo.:N
+G10:Mis objetivos en este proyecto son diferentes a los objetivos del resto del equipo.:N
+G11:En mi equipo nunca hablamos de objetivos.:N
+
+#-IM04# Bloque 3. Do team members see their work as creating change for the better?
+G12: Con mi trabajo siento que estoy mejorando la vida de un grupo de personas.:P
+G12: No siento que mi trabajo contribuya a aportar valor a un grupo de personas.:N

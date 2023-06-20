@@ -1,6 +1,6 @@
 import unittest
 from analysis import TestsResult, RadarAnalysis, surveys_overview, load_test_results, \
-    HistoricDataAnalysis, RawAnswer, generate_report, Survey, AnsweredQuestion, CVSResults
+    HistoricDataAnalysis, RawAnswer, generate_report, Survey, AnsweredQuestion, CVSResults, surveys_from_poll
 from tappraisal import get_survey_structure, QuestionRepository, TestQuestion
 from utilities import _get_full_filename
 
@@ -240,7 +240,11 @@ class Test_SurveysOverview(unittest.TestCase):
         #print(s_overview)
         expected = "{2020: {12: {'RADAR-9': {'_inc': 1}}}, 2021: {1: {'RADAR-9': {'_inc': 3}}, 2: {'RADAR-9': {'_inc': 2}}}}"
         self.assertEqual(expected, str(s_overview))
-        # Esto fallará cuando cambie data.txt
+
+    def test_surveys_from_poll(self):
+        s_overview = surveys_from_poll("SoftIA", filename="tests/data_test.txt")
+        expected = "{2023: {6: {'S1': {'_inc': 2}}, 7: {'S1': {'_inc': 1}, 'S2': {'_inc': 1}}}}"
+        self.assertEqual(expected, str(s_overview))
 
 
 class Test_RawAnswer(unittest.TestCase):
