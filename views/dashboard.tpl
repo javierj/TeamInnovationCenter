@@ -14,7 +14,7 @@ Consultar respuestas:  <a href = "{{base_url}}/report/poll/{{survey_name}}/"> {{
 </p>
 <hr/>
 <p>
-Editar estructura de la encuesta: TODO
+Editar estructura de la encuesta: <a href = "{{base_url}}/newpoll/{{survey_name}}"> {{base_url}}/newpoll/{{survey_name}} </a>
 <br/>
 Editar preguntas de la encuesta:
     <a href = "{{base_url}}/edit/questions/{{survey_name}}"> {{base_url}}/edit/questions/{{survey_name}} </a>

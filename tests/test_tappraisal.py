@@ -1,6 +1,7 @@
 import unittest
 from tappraisal import TestData, QuestionRepository, TestQuestion, AppraisalDirector, \
     get_survey_structure, SurveyStructurePsychoSafety, _get_full_filename, SurveyStructureLoader, SurveyStructure
+from view import PollStructView
 
 
 def load_questions():
@@ -196,7 +197,7 @@ class FakeForm(object):
             return "\"Key not found\""
 
 
-class FakeRequest(object):
+class FakeRequest(object): # Esto ya no lo uso, pero puede ser útil para pruebas de control o view
     def __init__(self):
         self.forms = FakeForm()
 
@@ -217,8 +218,17 @@ class Test_LoadPollStructureFromFile(unittest.TestCase):
         self.assertIsNotNone(self.structure.questions_in_categories())
         self.assertEqual(1, self.structure.questions_in_categories()["0"])
 
-    def test_save_structure(self):
-        self.loader.save_structure(FakeRequest())
+    def test_dont_change_quotes(self):
+        self.structure = self.loader.load_structure("radar9.txt")
+        struct_view = PollStructView(self.structure)
+        self.loader.save_structure(struct_view.filename(), struct_view.to_json())
+        self.structure = self.loader.load_structure("RADAR-9.txt")
+        struct_view = PollStructView(self.structure)
+        self.loader.save_structure(struct_view.filename(), struct_view.to_json())
+        self.structure = self.loader.load_structure("RADAR-9.txt")
+        struct_view = PollStructView(self.structure)
+        #print(struct_view.to_json())
+        self.assertIn("\"poll_name\": \"RADAR-9\"", struct_view.to_json())
 
 
 class Test_SurveyStructure(unittest.TestCase):

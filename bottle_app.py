@@ -1,11 +1,10 @@
 from bottle import route, template, request, static_file, redirect, default_app, response
-from tappraisal import AppraisalDirector, TestData, load_questions, get_survey_structure, TestStructsCache, \
-    SurveyStructureLoader
-from analysis import generate_report, surveys_overview, load_test_results, surveys_from_poll
-from control import answers_as_cvs_in_file, load_questions_if_exist, save_questions, poll_exists, get_surveys_from_poll
+from tappraisal import AppraisalDirector, TestData, load_questions, get_survey_structure, TestStructsCache
+from analysis import generate_report, surveys_overview, load_test_results
+from control import answers_as_cvs_in_file, load_questions_if_exist, save_questions, poll_exists, get_surveys_from_poll, \
+     save_struct_from_request
+from view import PollStructView
 import os
-
-from view import HierarchicalGroups
 
 question_repo = None
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -228,27 +227,47 @@ def export_to_cvs(poll_id, survey_type):
 
 ### Form para crear una nueva estructura de encuesta
 
+@route('/newpoll')
+def new_poll():
+    return poll_form(None)
+
+
 @route('/newpoll/<survey_type>')
-def new_poll(survey_type=None):
-    if survey_type in None:
-        return template('form_create_struct')
+def poll_form(survey_type=None):
+    # http://127.0.0.1:8080/newpoll
+    # http://127.0.0.1:8080/newpoll/SoftIA
+    if survey_type is None:
+        struct_view = PollStructView(None)
+        return load_poll_template(struct_view)
+    struct = TestStructsCache.get_struct(survey_type)
+    struct_view = PollStructView(struct)
+    return load_poll_template(struct_view)
 
 
-def check_error(request):
-    # ToDo
-    return None
+def load_poll_template(struct_view, _errors=dict()):
+    return template('form_struct', struct=struct_view, errors=_errors)
 
 
 @route('/newpoll', method='POST')
 def do_new_poll():
-    if check_error(request) is None:
+    struct_view, errors = save_struct_from_request(request)
+    if len(errors) == 0:
+        return dashboard(struct_view.name())
+    else:
+        return load_poll_template(struct_view, errors)
+    """ -- Deprecated, casi todo lo hacemos ya en el control
+    struct_view = PollStructView.from_request(request)
+    errors = _check_error(struct_view)
+    if len(errors) == 0:
         #print("bottle_app. ", request.forms.get('questions_file'))
         saver = SurveyStructureLoader()
         saver.save_structure(request) # corregir esto, no hacer las dos cosas aquí.
-        return "<p>Your login information was correct.</p>"
+        return "<p>Structured saved.</p>"
     else:
-        return "<p>Form has errors.</p>"
+        return load_poll_template(struct_view, errors)
+"""
 
+###
 
 @route('/edit/questions/<survey_type>')
 def questions_form(survey_type):
@@ -293,7 +312,7 @@ def dashboard(survey_type):
 @route('/report/<org_id>/<project_id>/')
 @route('/test/<org_id>/<project_id>')
 def error_url(org_id, project_id):
-    return template('error_template', base_url = request.url)
+    return template('error_template', base_url=request.url)
 
 
 def set_up():

@@ -1,8 +1,8 @@
 import unittest
 
 from analysis import surveys_from_poll
-from tappraisal import TestQuestion
-from view import QuestionsAnswersView, ReportView, HierarchicalGroups
+from tappraisal import TestQuestion, SurveyStructureLoader
+from view import QuestionsAnswersView, ReportView, HierarchicalGroups, PollStructView
 
 
 class TestQuestionsAnswersView(unittest.TestCase):
@@ -107,6 +107,21 @@ class TestHierarchicalGroups(unittest.TestCase):
         self.assertEqual(1, years)
         months = len(s_overview.begin().group(2023).keys())
         self.assertEqual(2, months)
+
+
+class TestPollStructView(unittest.TestCase):
+
+    def setUp(self):
+        self.loader = SurveyStructureLoader()
+        self.structure = None
+
+    def test_to_json(self):
+        self.structure = self.loader.load_structure("radar9.txt")
+        struct_view = PollStructView(self.structure)
+        #print(struct_view.questions_filename())
+        raw_json = struct_view.to_json()
+        #print(raw_json)
+        self.assertIn("\"poll_name\": \"RADAR-9\"", raw_json)
 
 
 if __name__ == '__main__':

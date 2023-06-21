@@ -223,6 +223,7 @@ class SurveyStructure(object):
         self._questions_repo = None # It has to come from the outside
         self._poll_structure = None
         self._question_groups = None
+        self._description_dict = None
 
     def name(self):
         return self._name
@@ -255,6 +256,9 @@ class SurveyStructure(object):
     def questions_repo(self):
         return self._questions_repo
 
+    def description_dict(self):
+        return self._description_dict
+
     def next_question(self, data):
         for key, value in self._questions_in_categories.items():
             if data.len_questions_in(key) < value:
@@ -268,10 +272,12 @@ class SurveyStructure(object):
         self._num_of_questions = int(raw_json["num_of_questions"])
         self._questions_in_categories = raw_json["questions_in_categories"]
         self._poll_structure = raw_json["poll_structure"]
-        self._question_groups = raw_json[ "groups"]
+        self._question_groups = raw_json["groups"]
+        self._description_dict = raw_json["descriptions"]
 
     @staticmethod
     def _from_string_to_dict(raw_string):
+        # Deprecated, solo se usa en casos de prueba.
         result = dict()
 
         for pair in raw_string.split(","):
@@ -288,20 +294,24 @@ class SurveyStructure(object):
 
     @staticmethod
     def translate_to_json(form_request):
+        # Deprecated. Usamos eld e la view
+        """
+        Las { hay que ponerlas en el formulario, roque si no,
+        al cargar datos para editarlo, als vuelve a poner.
+        """
         test_json = " {\"questions_file\": \"" \
                     + form_request.forms.get('questions_file') \
                     + "\", \"poll_name\": \"" + form_request.forms.get('poll_name') \
                     + "\", \"num_of_questions\":" + form_request.forms.get('num_of_questions') \
-                    + ", \"questions_in_categories\": {" + form_request.forms.get('questions_in_categories') \
-                    + "}, \"poll_structure\": {" + form_request.forms.get('poll_structure') \
-                    + "}, \"groups\":{" + form_request.forms.get('groups') \
-                    + "}, \"descriptions\":{" + form_request.forms.get('descriptions') \
-                    +"}}"
+                    + ", \"questions_in_categories\": " + form_request.forms.get('questions_in_categories').replace("'", "\"") \
+                    + ", \"poll_structure\": " + form_request.forms.get('poll_structure') \
+                    + ", \"groups\":" + form_request.forms.get('groups') \
+                    + ", \"descriptions\":" + form_request.forms.get('descriptions') \
+                    +"}"
         #print("translate_to_json ", test_json)
         #import json
         #raw_json = json.loads(test_json)
         #print(raw_json)
-
         return test_json
 
 
@@ -309,21 +319,22 @@ class SurveyStructureLoader(object):
 
     def load_structure(self, filename, basedir="polls"):
         poll_structure = SurveyStructure()
-
         file_name = _get_full_filename(filename, basedir)
 
         import json
         file = open(file_name, encoding="utf-8")  # No: encoding="latin-1" encoding="ascii"
         raw_json = json.load(file)
+        #print("load_structure", raw_json)
         file.close()
 
         poll_structure.load_json(raw_json)
 
         return poll_structure
 
-    def save_structure(self, form_request, basedir="polls"):
-        json_raw = SurveyStructure.translate_to_json(form_request)
-        filename = form_request.forms.get('poll_name') + ".txt"
+    #def save_structure(self, form_request, basedir="polls"):
+    def save_structure(self, filename, json_raw, basedir="polls"):
+        #json_raw = SurveyStructure.translate_to_json(form_request)
+        #filename = form_request.forms.get('poll_name') + ".txt"
         file_name = _get_full_filename(filename, basedir)
 
         #import json
