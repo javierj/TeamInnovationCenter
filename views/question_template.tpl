@@ -5,8 +5,6 @@
 <h3>{{question}}</h3>
 </p>
 <br/>
-
-<h3>
 <p>
 
 %url = base_url + question_code + str("1")
@@ -36,7 +34,6 @@
 </a>
 
 </p>
-</h3>
 
 %# Generate 5 answers with 5 URL.
 

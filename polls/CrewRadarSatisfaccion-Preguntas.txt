@@ -1,0 +1,27 @@
+#
+# Encuesta de satisfacción de Crew Radar
+#
+
+#-A01# Documentación.
+
+A01: He podido utilizar esta herramienta sin problema consultando la documentación.:P
+A02: La documentación es clara y fácil de entender.:P
+A03: La documentación explica todo lo necesario para utilizar esta herramienta.:P
+
+#-B01# Funcionalidad.
+
+B01: Me resulta más eficiente utilizar esta herramienta que utilizar un formulario de Google o de Microsoft.:P
+B02: No he echado en falta ninguna funcionalidad que tienen otras herramientas.:P
+B03: He ganado tiempo utilizando esta herramienta comprado con usar una herramienta genérica como los formularios de Google o Microsoft.:P
+
+#-C01# Satisfacción.
+
+C01: volveré a utilizar esta herramienta para futuras encuestas de investigación.:P
+C02: Recomendaría esta herramienta a otros compañeros para realizar encuestas de investigación.:P
+
+
+#-D01# Preguntas y respuestas.
+
+D01: Las preguntas de cinco respuestas son todo lo que necesito para realizar mis encuestas.:P
+D02: He podido escribir preguntas claras que los encuestados entiendan correctamente.:P
+

@@ -7,9 +7,7 @@
 Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get_year()}}.
 </p>
 
-<p></p>
 <br/>
-
     <!-- Gráfico -->
     <h3> Resumen: </h3>
     <div>
@@ -110,11 +108,13 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
   );
     </script>
 
-<p> La primera barra de cada factor es el valor medio y la segunda barra es la desviació media.
-    <br/> Una barra azul o verde indica un valor adecuado y una barra roja o naranja indica un valor a mejorar.
+<p>
+    La primera barra de cada factor es el valor medio y la segunda barra es la desviación media.
+    <br/>
+    Una barra azul o verde indica un valor adecuado y una barra roja o naranja indica un valor a mejorar.
 </p>
 
-<p></p>
+<br/>
 <br/>
 
 %for factor_name, factor in report.iter_factors():
@@ -154,7 +154,9 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
  </p>
 
 <p>
+<!--
 <strong> Análisis:  </strong> {{factor.get_analysis()}}
+-->
 </p>
 
 <p>
@@ -175,9 +177,7 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 </table>
 </p>
 
-<br/>
-<hr/>
-<br/>
+<br/> <hr/> <br/>
 
 %end
 
@@ -193,9 +193,14 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 <strong> Este informe se ha generado de manera automática </strong>
 
 <hr/>
-<h2>
-<span aria-hidden="true" class="octicon octicon-link">Contacto</span></h2>
-<p> Este proyecto de investigación se desarrolla bajo el paraguas del grupo de investigación en Ingeniería Web y Testing Temprano (IWT2) de la Universidad de Sevilla </p>
-<p> Su principal responsable es Javier Gutiérrez y puedes contactar con él vía correo electrónico: javier arroba us.es o Twitter: arroba iwt2_javier </p>
 
+<!--
+<h2>
+<span aria-hidden="true" class="octicon octicon-link">Contacto</span>
+</h2>
+<p> Este proyecto de investigación se desarrolla bajo el paraguas del grupo de investigación en Ingeniería Web y
+Testing Temprano (IWT2) de la Universidad de Sevilla </p>
+<p> Su principal responsable es Javier Gutiérrez y puedes contactar con él vía correo electrónico: javier arroba us.es
+o Twitter: arroba iwt2_javier </p>
+-->
 % include('footer.tpl')

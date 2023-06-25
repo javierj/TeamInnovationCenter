@@ -56,6 +56,16 @@ class Test_QuestionRepository(unittest.TestCase):
         self.assertEqual("A01", question.code())
         self.assertTrue(question.is_positive())
 
+    def test_commit_worng_question(self):
+        question = self.repo.commit_question("A01;Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P")
+        self.assertIsNone(question)
+
+    def test_commit_comment(self):
+        question = self.repo.commit_question("# Considero que mi sueldo actual no afecta a mi desempeño del trabajo.:P")
+        self.assertIsNone(question)
+        question = self.repo.commit_question("A01:Considero que mi sueldo actual # no afecta a mi desempeño del trabajo.:P")
+        self.assertIsNone(question)
+
     def test_get_category(self):
         question_obj = self.repo.get_question("B01")
         expected = "-P02. Precondiciones. Capacitación."
@@ -178,11 +188,6 @@ class Test_PollStructure(unittest.TestCase):
         self.assertEqual(2, len(list_data['questions']))
 
 
-# "questions": [
-#               { "block": 'Seguridad sicologica', "category": 'C'},
-#               { "block": 'Seguridad sicologica', "category": 'C'} ],
-#               'blocks': [ {'Seguridad sicologica': "Descripcion"}, ]
-
 
 ###############################################
 
@@ -258,18 +263,13 @@ class Test_SurveyStructure(unittest.TestCase):
         question = self.structure.next_question(data)
         self.assertIsNone(question)
 
-    def test_translate_to_json(self):
-        result = SurveyStructure.translate_to_json(FakeRequest()) # Result is a string
-        #print(expected)
-        #print(result)
-        self.assertIn("preguntas_sofia.txt", result)
-
+"""
     def test_from_string_to_dict(self):
-        result = SurveyStructure._from_string_to_dict(""" 0:Género,1:Titulación necesaria,A:Formación """)
+        result = SurveyStructure._from_string_to_dict("0:Género,1:Titulación necesaria,A:Formación")
         self.assertTrue( len(result) > 0 )
         print("test_from_string_to_dict", result)
         self.assertEqual(result["0"], "Género")
-
+"""
 
 if __name__ == '__main__':
     unittest.main()

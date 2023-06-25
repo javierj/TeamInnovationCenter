@@ -229,6 +229,7 @@ class HierarchicalGroups(object):
 class PollStructView(object):
 
     def __init__(self, survey_structure=None):
+        self._go_to_questions = None
         if survey_structure is not None:
             self._name = survey_structure.name()
             self._questions_filename = survey_structure.questions_filename()
@@ -270,35 +271,42 @@ class PollStructView(object):
     def filename(self):
         return self.name() + ".txt"
 
+    def go_to_questions(self):
+        #edit_questions
+        #print("go_to_questions ", self._go_to_questions)
+        return self._go_to_questions is not None
+
     @staticmethod
     def from_request(form_request):
         poll_view = PollStructView()
 
-        poll_view._name = form_request.forms.get('poll_name').strip()
-        poll_view._questions_filename = form_request.forms.get('questions_file').strip()
-        poll_view._num_of_questions = form_request.forms.get('num_of_questions').strip()
-        poll_view._questions_in_categories = form_request.forms.get('questions_in_categories').strip()
-        poll_view._poll_structure = form_request.forms.get('poll_structure').strip()
-        poll_view._question_groups = form_request.forms.get('groups').strip()
-        poll_view._description_dict = form_request.forms.get('descriptions').strip()
+        poll_view._name = form_request.forms.poll_name.strip()
+        poll_view._questions_filename = form_request.forms.questions_file.strip()
+        poll_view._num_of_questions = form_request.forms.num_of_questions.strip()
+        poll_view._questions_in_categories = form_request.forms.questions_in_categories.strip()
+        poll_view._poll_structure = form_request.forms.poll_structure.strip()
+        poll_view._question_groups = form_request.forms.groups.strip()
+        poll_view._description_dict = form_request.forms.descriptions.strip()
+        poll_view._go_to_questions = form_request.forms.get('edit_questions')
+        #print(poll_view._go_to_questions)
 
         return poll_view
 
     def to_json(self):
-        # Deprecated. Usamos eld e la view
         """
         Las { hay que ponerlas en el formulario, roque si no,
         al cargar datos para editarlo, als vuelve a poner.
         """
-        test_json = " {\"questions_file\": \"" \
+        test_json = " {\"json version\": \"1.00\", \n" \
+                    "\"questions_file\": \"" \
                     + self.questions_filename() \
                     + "\", \"poll_name\": \"" + self.name() \
                     + "\", \"num_of_questions\": \"" + str(self.num_of_questions()) \
-                    + "\", \"questions_in_categories\": \"" + str(self.questions_in_categories()) \
-                    + "\", \"poll_structure\": \"" + str(self.get_test_structure()) \
-                    + "\", \"groups\": \"" + str(self.get_groups()) \
-                    + "\", \"descriptions\": \"" + str(self.description_dict()) \
-                    +"\"}"
+                    + "\", \"questions_in_categories\": " + str(self.questions_in_categories()).replace("\'", "\"") \
+                    + ", \"poll_structure\": " + str(self.get_test_structure()).replace("\'", "\"") \
+                    + ", \"groups\": " + str(self.get_groups()).replace("\'", "\"") \
+                    + ", \"descriptions\": " + str(self.description_dict()).replace("\'", "\"") \
+                    +"}"
         #print("translate_to_json ", test_json)
         #import json
         #raw_json = json.loads(test_json)

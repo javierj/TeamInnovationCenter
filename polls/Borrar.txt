@@ -1,1 +1,0 @@
- {"questions_file": "preguntas_sofia.txt", "poll_name": "Borrar", "num_of_questions":"Key not found", "questions_in_categories": "A":1, "poll_structure": "A":1, "groups":"A":1, "descriptions":"A":1}

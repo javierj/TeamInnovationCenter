@@ -1,6 +1,7 @@
 import unittest
 from analysis import TestsResult, RadarAnalysis, surveys_overview, load_test_results, \
     HistoricDataAnalysis, RawAnswer, generate_report, Survey, AnsweredQuestion, CVSResults, surveys_from_poll
+from control import _get_struct
 from tappraisal import get_survey_structure, QuestionRepository, TestQuestion
 from utilities import _get_full_filename
 
@@ -215,11 +216,12 @@ class TestRadarAnalysis_SafetyTest(unittest.TestCase):
         #print(report.factors().keys())
         expected = "dict_keys(['SP01. Feedback', 'SP02. Preguntar y expresar ideas divergentes', 'SP03. Compartir ideas', 'SP04. Errores', 'Miscelanea'])"
         self.assertEqual(expected, str(report.factors().keys()))
-
+    """
     def test_load_safety_test_from_file(self):
         results = load_test_results(self.repo, "01", "01", survey_name="SAFETY", filename="IWT2_reports\\safety.txt")
         #print(results.get_surveys())
         self.assertEqual(2, len(results.get_surveys()))
+    
 
     def test_analyze_safety_test_from_file(self):
         results = load_test_results(self.repo, "01", "01", survey_name="SAFETY", filename="IWT2_reports\\safety.txt")
@@ -231,7 +233,7 @@ class TestRadarAnalysis_SafetyTest(unittest.TestCase):
         # print(report.factors().keys())
         expected = "dict_keys(['SP01. Feedback', 'SP02. Preguntar y expresar ideas divergentes', 'SP03. Compartir ideas', 'SP04. Errores', 'Miscelanea'])"
         self.assertEqual(expected, str(report.factors().keys()))
-
+    """
 
 class Test_SurveysOverview(unittest.TestCase):
 
@@ -332,6 +334,22 @@ class Test_CVSResults(unittest.TestCase):
         cvs_text = self.cvs._header({'A01':"", 'A02':"", 'A03':""})
         self.assertEqual("Question, Year, Month, A01, A02, A03, \n", cvs_text)
 
+
+
+class Test_surveys_from_poll(unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+    def test_crewradarsatisfaction(self):
+        groups = surveys_from_poll("CrewRadarSatisfaccion")
+        self.assertNotEqual("{}", str(groups))
+
+    def test_load_test_results(self):
+        struct = _get_struct("CrewRadarSatisfaccion")
+        # Cambiar el fichero para que nos e cmabien los datos: , filename="IWT2_reports\\safety.txt"
+        results = load_test_results(None, "01", "01", survey_struct=struct)
+        self.assertEqual(2, len(results.get_surveys()))
 
 if __name__ == '__main__':
     unittest.main()

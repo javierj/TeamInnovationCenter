@@ -1,7 +1,5 @@
 import random
-
-# Candidato a refactorizarlo a otro sitio.
-from utilities import Cache, _get_full_filename, file_exists
+from utilities import Cache, _get_full_filename, file_exists, _save_text, load_text_file
 
 
 def _save_data(data, survey_name, filename = "data.txt"):
@@ -12,15 +10,13 @@ def _save_data(data, survey_name, filename = "data.txt"):
     :param filename:
     :return: nothing
     """
-    import datetime
-
     if data.is_mock():
         return
-
-    now = datetime.datetime.now()
     filename = _get_full_filename(filename)
+    import datetime
+    now = str(datetime.datetime.now())
     with open(filename, "a") as myfile:
-        myfile.write(str(now)+"/"+str(data) + "/"+survey_name.upper()+"\n")
+        myfile.write(now+"/"+str(data) + "/"+survey_name.upper()+"\n")
 
 
 # renombrar a WebTestInfo o algo así
@@ -150,6 +146,9 @@ class QuestionRepository(object):
             return None
 
         elements = s_line.split(':')
+        if len(elements) != 3:
+            print("commit_question() - Worng question: ", s_line)
+            return None
         question = TestQuestion(code=elements[0].strip(), text=elements[1].strip(), valoration=elements[2].strip(), cat_name= self._tmp_cat)
 
         self._append(question)
@@ -158,7 +157,8 @@ class QuestionRepository(object):
     def random_question_from(self, category):
         index = random.randint(0, len(self._questions[category])-1)
         #print("Random question from", category, "max questions ", len(self._questions[category]), "index:", index)
-        return self._questions[category][index]
+        question = self._questions[category][index]
+        return question
 
     def get_question(self, code):
         """
@@ -186,28 +186,6 @@ class QuestionRepository(object):
                 result[question.code()] = question
         return result
 
-
-def load_questions(filename="preguntas_sofia.txt", basedir=None):
-    """
-    :param filename:
-    :param basedir:
-    :return: None if file with questions does not exists.
-    """
-    repo = QuestionRepository()
-
-    # Cambiado para softIA
-    # file_name = _get_full_filename("preguntas.txt")
-    file_name = _get_full_filename(filename, basedir)
-    if not file_exists(file_name):
-        return None
-
-    file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
-    for line in file:
-        repo.commit_question(line)
-        #print("áéÍÓñÑ: " + line)
-    file.close()
-
-    return repo
 
 
 ################################################
@@ -244,6 +222,8 @@ class SurveyStructure(object):
         return self._questions_filename
 
     def _random_question_from(self, cat, data):
+        if self._questions_repo is None:
+            print("SurveyStructure Error. Question report not set.")
         ids = data.ids_set()
         question = self._questions_repo.random_question_from(cat)
         while question.code() in ids:
@@ -275,6 +255,7 @@ class SurveyStructure(object):
         self._question_groups = raw_json["groups"]
         self._description_dict = raw_json["descriptions"]
 
+    """
     @staticmethod
     def _from_string_to_dict(raw_string):
         # Deprecated, solo se usa en casos de prueba.
@@ -283,7 +264,7 @@ class SurveyStructure(object):
         for pair in raw_string.split(","):
             tuple = pair.split(":")
             if len(tuple) != 2:
-                print("_from_string_to_dict: pair has worng lenght ", pair)
+                # print("_from_string_to_dict: pair has worng lenght ", pair)
                 continue
             key = tuple[0].strip()
             value = tuple[1].strip()
@@ -291,29 +272,7 @@ class SurveyStructure(object):
             result[key] = value
 
         return result
-
-    @staticmethod
-    def translate_to_json(form_request):
-        # Deprecated. Usamos eld e la view
-        """
-        Las { hay que ponerlas en el formulario, roque si no,
-        al cargar datos para editarlo, als vuelve a poner.
-        """
-        test_json = " {\"questions_file\": \"" \
-                    + form_request.forms.get('questions_file') \
-                    + "\", \"poll_name\": \"" + form_request.forms.get('poll_name') \
-                    + "\", \"num_of_questions\":" + form_request.forms.get('num_of_questions') \
-                    + ", \"questions_in_categories\": " + form_request.forms.get('questions_in_categories').replace("'", "\"") \
-                    + ", \"poll_structure\": " + form_request.forms.get('poll_structure') \
-                    + ", \"groups\":" + form_request.forms.get('groups') \
-                    + ", \"descriptions\":" + form_request.forms.get('descriptions') \
-                    +"}"
-        #print("translate_to_json ", test_json)
-        #import json
-        #raw_json = json.loads(test_json)
-        #print(raw_json)
-        return test_json
-
+    """
 
 class SurveyStructureLoader(object):
 
@@ -323,25 +282,16 @@ class SurveyStructureLoader(object):
 
         import json
         file = open(file_name, encoding="utf-8")  # No: encoding="latin-1" encoding="ascii"
-        raw_json = json.load(file)
+        raw_json = json.load(file) # detectar aquí errores
         #print("load_structure", raw_json)
         file.close()
 
         poll_structure.load_json(raw_json)
-
         return poll_structure
 
     #def save_structure(self, form_request, basedir="polls"):
     def save_structure(self, filename, json_raw, basedir="polls"):
-        #json_raw = SurveyStructure.translate_to_json(form_request)
-        #filename = form_request.forms.get('poll_name') + ".txt"
-        file_name = _get_full_filename(filename, basedir)
-
-        #import json
-        file = open(file_name, "w", encoding="utf-8")  # No: encoding="latin-1" encoding="ascii"
-        #json.dump(json_raw, file)
-        file.write(json_raw)
-        file.close()
+        _save_text(filename, json_raw, basedir=basedir)
 
 ##
 
@@ -450,6 +400,11 @@ class SurveyStructureRadarClassic(object):
 
 
 class SurveyStructurePsychoSafety(object):
+    """
+    Auque hay una rcivo,e ssólo para cargar infromaciónd e prueba.
+    Este test nos e puede ahcer proque tiene una caracter´sitica especial que no soporta el archivo.
+    No borrar este código aunque nos e pueda usar.
+    """
 
     def __init__(self, _questions_repo):
         self._questions_repo = _questions_repo
@@ -497,7 +452,7 @@ class SurveyStructurePsychoSafety(object):
 
     def next_question(self, data):
         """
-        SP01: 2, SP02: 1, SP03: 1, SP04: 1 y 2 más de todos los SP.
+        SP01: 2, SP02: 1, SP03: 1, SP04: 1 y 2 más de todos los SP. <-- Esto no lo pedo codificaren el archivo
         :param data:
         :return:
         """
@@ -662,21 +617,40 @@ def get_test_structure():
 
 def get_survey_structure(question_repo, survey_name = "RADAR-9"):
     if survey_name.upper() == "RADAR-9" or survey_name.upper() == "TEST":
-        #ss._set({'A': 1, 'B': 1, 'C': 2, 'D': 2, 'E': 1, 'F': 1, 'G': 1})
-        return SurveyStructureRadar9(question_repo)
+        #return SurveyStructureRadar9(question_repo)
+        return TestStructsCache.get_struct("radar9")
     if survey_name.upper() == "SAFETY":
         return SurveyStructurePsychoSafety(question_repo)
     if survey_name.upper() == SurveyStructureRadarClassic.name():
         return SurveyStructureRadarClassic(question_repo)
-
     if survey_name.upper() == SurveyStructureSoftIA.name():
-        return SurveyStructureSoftIA(question_repo)
+       #return SurveyStructureSoftIA(question_repo)
+        return TestStructsCache.get_struct("softia")
 
     print("WARNING. Unkown: " + survey_name)
     return None
 
 
 ## Cache
+
+def load_questions(filename="preguntas_sofia.txt", basedir=None):
+    """
+    :return: None if file with questions does not exists.
+    """
+    repo = QuestionRepository()
+
+    # Cambiado para softIA
+    # file_name = _get_full_filename("preguntas.txt")
+    file_name = _get_full_filename(filename, basedir)
+    if not file_exists(file_name):
+        return None
+
+    file = load_text_file(file_name) # No: encoding="latin-1" encoding="ascii"
+    for line in file:
+        repo.commit_question(line)
+
+    return repo
+
 
 class TestStructsCache(object):
 
@@ -686,11 +660,11 @@ class TestStructsCache(object):
         return loader.load_structure(struct_name + ".txt")
 
     @staticmethod
-    def _load_questions_repo(struct):
-        repo = load_questions(struct.questions_filename(), "polls")
+    def _load_questions_repo(filename):
+        repo = load_questions(filename, "polls")
         if repo is None:
-            print("TestStructsCache::_load_questions_repo Error, questions repo is none, ", struct.questions_filename())
-        struct.set_questions_repo(repo)
+            print("TestStructsCache::_load_questions_repo Warning, questions repo is none, ", filename)
+        return repo
 
     @staticmethod
     def get_struct(struct_name):
@@ -704,6 +678,7 @@ class TestStructsCache(object):
             return None
         Cache.put(struct_name, struct)
         if struct.questions_repo() is None:
-            TestStructsCache._load_questions_repo(struct)
+            repo = TestStructsCache._load_questions_repo(struct.questions_filename())
+            struct.set_questions_repo(repo)
 
         return struct

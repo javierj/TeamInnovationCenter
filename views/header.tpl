@@ -2,7 +2,7 @@
 <html>
 
   <head>
-    <meta charset='utf-8'>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="description" content="Team Improvement Center">
 

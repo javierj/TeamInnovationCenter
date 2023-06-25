@@ -2,13 +2,11 @@
 <html>
 
   <head>
-    <meta charset='utf-8'>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="description" content="Team Improvement Center">
-
     <link rel="stylesheet" type="text/css" media="screen" href="/stylesheets/stylesheet.css">
-
-    <title>Team Improvement Center. Mide y mejora la eficiencia de tus equipos.</title>
+    <title>Crew Radar</title>
   </head>
 
   <body>

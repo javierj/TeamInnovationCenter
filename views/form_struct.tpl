@@ -2,7 +2,7 @@
 
     <form action="/newpoll" method="post">
         <label for="questions_file">Nombre del fichero de preguntas:</label><br>
-        <input type="text" id="questions_file" name="questions_file" value="{{str(struct.questions_filename())}}"/>
+        <input type="text" id="questions_file" name="questions_file" value="{{str(struct.questions_filename())}}" size="30"/>
         <br/>
         %if "questions_file" in errors:
             * {{errors["questions_file"]}} <br/>
@@ -10,7 +10,7 @@
         <br/>
         <label for="poll_name">Nombre de la encuesta:</label>
         <br>
-        <input type="text" id="poll_name" name="poll_name" value="{{str(struct.name())}}"/>
+        <input type="text" id="poll_name" name="poll_name" value="{{str(struct.name())}}" size="30"/>
         <br>
         %if "poll_name" in errors:
              * {{errors["poll_name"]}} <br/>
@@ -65,12 +65,10 @@
         <label for="edit_questions"> Editar fichero de preguntas.</label>
         <br/>
         <br/>
-        <input type="submit" value="Submit"/>
+        <input type="submit" value="Guardar"/>
         <br/>
         <br/>
-        <a href=""/> Salir sin guardar. </a>
-
+        <a href="/"/> Salir sin guardar. </a>
     </form>
-
 
 % include('footer_web.tpl')

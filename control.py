@@ -1,17 +1,15 @@
 ####################################
 # Controlers
+
 from analysis import load_test_results, CVSResults, surveys_from_poll
 from tappraisal import TestStructsCache, SurveyStructureLoader
-from utilities import _get_full_filename, _save_text, file_exists, load_text_file
+from utilities import _get_full_filename, _save_text, file_exists, load_text_file, _save_text_full_filename
 from view import HierarchicalGroups, PollStructView
 
 
 def _get_struct(poll_name):
     return TestStructsCache.get_struct(poll_name)
 
-
-def _from_request(_key, request):
-    return request.forms.get(_key)
 
 ######
 
@@ -20,15 +18,14 @@ def answers_as_cvs_in_file(poll_id, survey_type):
     struct = _get_struct(survey_type)
     if struct is None:
         return None
-    test_results = load_test_results(struct.questions_repo(), poll_id, poll_id, survey_name = struct.name())
+    test_results = load_test_results(struct.questions_repo(), poll_id, poll_id, survey_struct=struct)
     CVS = CVSResults()
 
     # Grabar en fichero
     full_filename = _get_full_filename("CVS_tmp.cvs")
-    _save_text(full_filename,CVS.results_to_cvs(struct, test_results) )
+    _save_text_full_filename(full_filename, CVS.results_to_cvs(struct, test_results) )
 
     return full_filename
-
 
 
 def get_surveys_from_poll(survey_type):
@@ -39,6 +36,7 @@ def get_surveys_from_poll(survey_type):
         for month in s_overview.begin().group(year).keys():
             for project_id in s_overview.begin().group(year).group(month).keys():
                 cvs_keys.begin().group(year).add_group(project_id)
+    #print(s_overview)
     #print(cvs_keys)
     return s_overview, cvs_keys
 
@@ -61,7 +59,6 @@ def _check_error(struct_view):
         errors["poll_name"] = "You must indicate a name for the struct."
     if struct_view.num_of_questions() == "":
         errors["num_of_questions"] = "You must indicate the number of questions of the poll."
-
 
     if struct_view.questions_in_categories() == "":
         errors["questions_in_categories"] = "You must indicate the questions in each category."
@@ -103,7 +100,6 @@ def load_questions_if_exist(poll_name):
     questions_txt = ""
     filename = struct.questions_filename()
     full_filename = _get_full_filename(filename, "polls")
-    #print("file to found: ", full_filename)
     if file_exists(full_filename):
         lines = load_text_file(full_filename)
         for line in lines:
@@ -119,10 +115,12 @@ def save_questions(poll_name, request):
     if struct is None:
         return None
 
-    questions_txt = _from_request("questions_text", request)
+    #questions_txt = _from_request("questions_text", request)
+    questions_txt = request.forms.questions_text
+    print(questions_txt)
     filename = struct.questions_filename()
-    full_filename = _get_full_filename(filename, "polls")
-    _save_text(full_filename, questions_txt)
+    #full_filename = _get_full_filename(filename, "polls")
+    _save_text(filename, questions_txt, basedir = "polls")
     return "Not None"
 
 

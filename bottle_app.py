@@ -12,6 +12,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def _server_url():
     return request.url.split('/')[0]
+    #return "http://127.0.0.1"
 
 
 @route('/')
@@ -56,14 +57,6 @@ def iwt2_static():
 def get_data():
     global BASE_DIR
     return static_file("data.txt", root=BASE_DIR)
-
-
-# Este enlace ya no tiene utilidad porque podemos tener varios ficheros de preguntas
-# @route('/get_questions')
-# @route('/get_questions/')
-# def get_questions():
-#    global BASE_DIR
-#    return static_file("preguntas.txt", root=BASE_DIR)
 
 
 @route('/test/<org_id>/<project_id>/<questions>')
@@ -178,23 +171,27 @@ def poll_question(struct, group_id, questions=""):
 
 ###
 
-@route('/report/<org_id>/<project_id>/<year>/<month>/')
-def report_radar9(org_id, project_id, year, month):
-    return report(org_id, project_id, year, month, "RADAR-9")
-
-
-@route('/report/<org_id>/<project_id>/<year>/<month>/<survey_type>/')
-def report(org_id, project_id, year, month, survey_type):
+@route('/report/<org_id>/<project_id>/<year>/<month>/<survey_name>/')
+def report(org_id, project_id, year, month, survey_name):
     #http://127.0.0.1:8080/report/01/01/2023/6/SOFTIA/
     global question_repo
-    upper_survey_type = survey_type.upper()
-    test_results = load_test_results(question_repo, org_id, project_id, survey_name = upper_survey_type) # Poner los ids y filtrar por ellos
-    report = generate_report(test_results, org_id, project_id, year=year, month=month, survey= upper_survey_type)
+    upper_survey_type = survey_name.upper()
+
+    survey_struct = TestStructsCache.get_struct(survey_name)
+    if survey_struct is None:
+        print("Report URL - Warning, structure not in file: ", survey_name)
+
+    test_results = load_test_results(survey_struct.questions_repo(),
+                                     org_id, project_id,
+                                     survey_name = upper_survey_type,
+                                     survey_struct=survey_struct) # Poner los ids y filtrar por ellos
+    report = generate_report(test_results, org_id, project_id, year=year, month=month, survey_struct=survey_struct)
     if report.has_answers():
         q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month)  # Método independiente, como generate_report
-        desc = get_survey_structure(question_repo, upper_survey_type).description_dict()
-        return template('report_template', report=report, question_answer=q_a_v, defs = desc, base_url=_server_url())
-    return template('noanswers_template', org_id=org_id, project_id = project_id)
+        #desc = get_survey_structure(question_repo, upper_survey_type).description_dict()
+        desc = survey_struct.description_dict()
+        return template('report_template', report=report, question_answer=q_a_v, defs=desc, base_url=_server_url())
+    return template('noanswers_template', org_id=org_id, project_id=project_id)
 
 
 @route('/selector/<org_id>/<project_id>/')
@@ -220,8 +217,6 @@ def export_to_cvs(poll_id, survey_type):
     if full_filename is None:
         print("CVSExport error, struct nor found, ", survey_type)
         return template('error_template', base_url=request.url)
-    #response.content_type = 'text/html; charset=latin9'
-    # return u'A, B \n\r C, D \r\n E, F \n' -- No funciona
     return static_file(full_filename, root='/', download=full_filename)
 
 
@@ -235,7 +230,7 @@ def new_poll():
 @route('/newpoll/<survey_type>')
 def poll_form(survey_type=None):
     # http://127.0.0.1:8080/newpoll
-    # http://127.0.0.1:8080/newpoll/SoftIA
+    # http://127.0.0.1:8080/newpoll/radar9
     if survey_type is None:
         struct_view = PollStructView(None)
         return load_poll_template(struct_view)
@@ -251,21 +246,12 @@ def load_poll_template(struct_view, _errors=dict()):
 @route('/newpoll', method='POST')
 def do_new_poll():
     struct_view, errors = save_struct_from_request(request)
-    if len(errors) == 0:
-        return dashboard(struct_view.name())
-    else:
+    if len(errors) != 0:
         return load_poll_template(struct_view, errors)
-    """ -- Deprecated, casi todo lo hacemos ya en el control
-    struct_view = PollStructView.from_request(request)
-    errors = _check_error(struct_view)
-    if len(errors) == 0:
-        #print("bottle_app. ", request.forms.get('questions_file'))
-        saver = SurveyStructureLoader()
-        saver.save_structure(request) # corregir esto, no hacer las dos cosas aquí.
-        return "<p>Structured saved.</p>"
-    else:
-        return load_poll_template(struct_view, errors)
-"""
+    if struct_view.go_to_questions():
+        return questions_form(struct_view.name())
+    #return dashboard(struct_view.name())
+    return redirect("/dashboard/" + struct_view.name() + "/")
 
 ###
 
@@ -287,7 +273,8 @@ def save_questions_form(survey_type):
     if result is None:
         return "<p> Survey name " + survey_type + " not found. </p>"
     # return template('form_questions', questions_txt=questions_as_txt, survey_name=survey_type)
-    return "<p> Done. TODO, redirect to other page. </p>"
+    #return "<p> Done. TODO, redirect to other page. </p>" # Redirigir al dashboard
+    return redirect("/dashboard/" + survey_type + "/")
 
 
 ## Dashboard
@@ -303,6 +290,7 @@ def dashboard(survey_type):
     # http://127.0.0.1:8080/dashboard/radar9/
     if not poll_exists(survey_type):
         return "<p> Error. Poll name not found. </p>"
+    print("Base ur: ", _server_url()) # Probar esto en eld e prueba.
     return template('dashboard', survey_name=survey_type, base_url=_server_url())
 
 

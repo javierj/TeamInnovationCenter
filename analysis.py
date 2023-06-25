@@ -1,8 +1,7 @@
 import pandas as pd
-import numpy
 
 from assistants import FactorAnalysisAssistant
-from tappraisal import _get_full_filename, get_test_structure, load_questions, get_survey_structure
+from tappraisal import _get_full_filename, get_test_structure, get_survey_structure
 from view import QuestionsAnswersView, ReportView, HierarchicalGroups
 from datetime import datetime
 
@@ -357,7 +356,6 @@ class RawAnswer(object):
         self._project_id = None
         self._team_id = None
         self._raw_data = None
-        #self._date_time = None
 
     @staticmethod
     def create(line):
@@ -461,8 +459,9 @@ def _load_answers(questions_repo, filename = "data.txt"):
     return answers
 
 
-def generate_report(test_results, id_proj, id_team, year, month, survey = "RADAR9"):
-    ra = RadarAnalysis(get_survey_structure(load_questions(), survey_name= survey)) # Quitar estas referencias para que venga de fuera
+def generate_report(test_results, id_proj, id_team, year, month, survey = "RADAR9", survey_struct=None):
+    #ra = RadarAnalysis(get_survey_structure(load_questions(), survey)) # Quitar estas referencias para que venga de fuera
+    ra = RadarAnalysis(survey_struct) # Quitar estas referencias para que venga de fuera
     return ra.generate_report(test_results, id_proj, id_team, year, month)
 
 
@@ -483,22 +482,32 @@ def surveys_overview(project_id, team_id, filename = "data.txt"):
     return s_overview
 
 
-def surveys_from_poll(poll_name, filename = "data.txt"):
+def surveys_from_poll(poll_name, filename="data.txt"):
+    """
+    Este métodod ebería unirs eocn el anterior y ambos deberían casi desaparecer para ir a control.
+    :param poll_name:
+    :param filename:
+    :return:
+    """
     s_overview = HierarchicalGroups()
     file_name = _get_full_filename(filename)
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
         raw_answer = RawAnswer.create(line)
-        if poll_name == raw_answer.test_type():
+        if poll_name.upper() == raw_answer.test_type().upper():
             s_overview.begin().add_group(raw_answer.year()).add_group(raw_answer.month()).add_group(raw_answer.project_id()).inc_counter()
 
     file.close()
     return s_overview
 
 
-def load_test_results(questions_repo, project_id, team_id, survey_name="RADAR-9", filename = "data.txt"):
-    survey_struct = get_survey_structure(questions_repo, survey_name)
-    results = TestsResult(q_repo = questions_repo,
+def load_test_results(questions_repo, project_id, team_id, survey_name="RADAR-9", filename = "data.txt", survey_struct=None):
+    # la llaada a get_survey_ debe desaparecer
+    # l primer parámetro ya no se usa. survey_name tampocos e usa.
+    if survey_struct is None:
+        survey_struct = get_survey_structure(questions_repo, survey_name)
+
+    results = TestsResult(q_repo = survey_struct.questions_repo(),
                           questions_number= survey_struct.num_of_questions(),
                           _survey_struct = survey_struct)
     file_name = _get_full_filename(filename)
@@ -507,7 +516,7 @@ def load_test_results(questions_repo, project_id, team_id, survey_name="RADAR-9"
         raw_answer = RawAnswer.create(line)
         if project_id == raw_answer.project_id() \
                 and team_id == raw_answer.team_id() \
-                and raw_answer.test_type().upper() == survey_name.upper():
+                and raw_answer.test_type().upper() == survey_struct.name().upper():
             results.add_raw_answer(raw_answer)
         else:
             #print("project_id == raw_answer.project_id()", project_id, raw_answer.project_id())
