@@ -1,7 +1,7 @@
 % include('header.tpl')
 
 <br/>
-<h2> <span aria-hidden="true" class="octicon octicon-link">Informe Team Radar.</span></h2>
+<h2> <span aria-hidden="true" class="octicon octicon-link">Informe.</span></h2>
 <p> Se han encontrado {{report.get_answers_len()}} encuestras.
 <br/>
 Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get_year()}}.

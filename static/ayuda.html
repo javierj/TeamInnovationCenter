@@ -16,7 +16,7 @@
            
         <center>
           <h1 id="project_title">Crew Radar. </h1>
-          <h2 id="project_tagline">Realiza encuestas para trabajos de investigación.</h2>
+          <h2 id="project_tagline">Página de ayuda.</h2>
 		  <img src="./images/ES3_100x100.png"/></center>
         </header>
     </div>
@@ -24,117 +24,166 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <h3><span aria-hidden="true" class="octicon octicon-link">¿Qué es Crew Radar?</span></h3>
+        <h3><span aria-hidden="true" class="octicon octicon-link">Manual en PDF</span></h3>
 
     <p>
-    Crew Radar es una herramienta diseñada para realizar encuestas en el ámbito de la investigación universitaria.
-    A diferencia de las herramientas más utilizadas, como las herramientas de nube de Google y Microsoft,
-    Crew Radar ofrece funcionalidad específica como poder crear varias encuestas a partir de un mismo conjunto de
-    preguntas, elegir las preguntas de manera aleatoria, o poder hacer la misma encuesta a varios grupos segmentando
-    los resultados.
+    La mejor ayuda para utilizar Crew Radar es consultar su manual en PDF. Esta página es un resumen de lo más
+        importante de dicho manual.
     </p>
     <p>
-     Crew Radar es gratuita, de código abierto, y no necesita registro ni almacena información personal, ni utiliza
-        ninguna cookie.
+        <a href="/static/files/ManualCrewRadar.pdf"> Manual PDF Crew Radar. Versión 1.0 </a>
     </p>
 
 
     <hr/>
           <h3><span aria-hidden="true" class="octicon octicon-link">Primeros pasos</span></h3>
         <p>
-            Para comenzar desde cero, consulta la página de documentación disponible en el siguiente enlace:
-            <a href="./ayuda.html"> manual de instrucciones de Crew Radar. </a>
+            La página principal de Crew Radar explica el origen y los objetivos de la herramienta.
         </p>
           <p>
-              Una vez que tengas tus encuestas preparadas, accede al formulario de nueva encuesta para completar el
-              formulario de la estructura y las preguntas de la encuesta en el siguiente enlace:
-              <a href="/newpoll"> crea tu primera encuesta en Crew Radar. </a>.
-              Una vez hecho, accederás al dashboard de la encuesta desde donde podrás compartir los enlaces para tus
-              encuestados y ver y descargar sus respuestas.
+             A partir de la página principal se puede navegar hacia la página de documentación y ayuda, donde están todas las instrucciones que se describen a continuación y que permiten utilizar Crew Radar, así como los contactos con las personas que han realizado Crew Radar y que prestan soporte y ayuda de la misma.
           </p>
           <p>
-              Si ya has realizado antes alguna encuesta, accede al directamente al dashboard de la encuesta para
-              getionarla.
+              Si no se cuenta con ninguna encuesta precia ni conjunto de preguntas, el `primer paso siempre será crear ambas. Si ya se han creado, será posible acceder al panel de control de la encuesta (llamado “dashboard”) para acceder a todas las opciones disponibles. Estas opciones se explican más adelante.
+          </p>
+          <p>
+Para crear una nueva encuesta y un nuevo conjunto de preguntas, se recomienda consultar esta documentación y preparar toda la información en local, por ejemplo, utilizando un archivo de texto con el bloc de notas y, una vez que todo esté listo, volcarlo en Crew Radar mediante los formularios.
+          </p>
+          <h3><span aria-hidden="true" class="octicon octicon-link">Como crear una nueva encuesta</span></h3>
+          <p>
+Para crear una nueva encuesta, el primer paso es crear la estructura. El formulario para crear la estructura está accesible a partir de la página principal
+          </p>
+          <p>
+El nombre del fichero de preguntas es dónde se guardarán las preguntas de la encuesta. Si se va a reutilizar otro archivo de preguntas, debe ponerse aquí el nombre del archivo. Si no, puede utilizarse cualquier nombre de archivo. Se recomienda utilizar un nombre descriptivo, por ejemplo: “nombre de la organización-preguntas.txt”.
+          </p>
+          <p>
+El nombre de la encuesta debe ser corto y fácil de escribir, ya que se usar en las URLs para responderlas y ver resultados.
+          </p>
+          <p>
+El número de preguntas es el número de preguntas que tendrá la encuesta. Este número tiene que ser menor o igual al número de preguntas del fichero de preguntas. Si es menor, las preguntas se elegirán de manera aleatoria de entre las preguntas del fichero, siguiendo la distribución que indicaremos en “Preguntas por categoría”.
+          </p>
+          <p>
+Preguntas por categoría indica cuantas preguntas se van a realizar en la encuesta de cada una d las categorías de preguntas del fichero de preguntas. La suma de las preguntas debe coincidir con el número de preguntas indicado.
+          </p>
+          <p>
+Para indicar las preguntas por categoría es necesario seguir el formato indicado en el ejemplo del usuario. Todo el contenido debe estar dentro de un par de llaves: “{}”. Las preguntas por categoría se indican por pares, en primer lugar, se pone la ´letra de la categoría entre comillas dobles, después el carácter de dos puntos y, a continuación, el número de preguntas, seguido por una coma para indicar un nuevo par.
+          </p>
+          <p>
+El campo Estructura permite indicar el nombre completo de cada categoría, lo cual se utiliza en los informes de resultados con las respuestas de las encuestas. El formato es el mismo que el campo de preguntas por categorías, debe comenzar por dos llaves, y debe estar compuesto por pares de categoría y descripción, ambos entre comillas dobles
+          </p>
+          <p>
+El campo grupos permite agrupar categorías para que se analicen juntas. Para ello, es necesario indicar el índice de cada categoría entre corchetes. Si se desea que cada categoría se analice de manera separada, es necesario incluir las categorías una a una como se muestra en el ejemplo.
+          </p>
+
+          <p>
+Por último, el campo descripción permite indicar una descripción a cada grupo de categorías, la cual se utilizará a la hora de mostrar el informe con los resultados de las encuestas.
+          </p>
+          <p>
+Si no se ha creado el fichero con las preguntas de la encuesta se recomienda dejar marcado e cuadro “Editar fichero de preguntas”. Así, al guardar la estructura de la encuesta, se abrirá el formulario para incluir las preguntas que se describe en la siguiente sección.
+          </p>
+
+          <p>
+Nota importante: si después de crear la estructura de la encuesta e ir al formulario para editar el fichero de preguntas, este formulario ya se muestra con datos de preguntas, es porque se ha indicado un fichero de preguntas que ya está en uso. Si no se desea utilizar ese conjunto de preguntas, se puede editar la estructura de la encuesta (por ejemplo, seleccionando la opción correspondiente en el dashboard como se explica más adelante) e indicar otro fichero de preguntas.
+          </p>
+           <h3><span aria-hidden="true" class="octicon octicon-link">Crear el fichero de preguntas</span></h3>
+          <p>
+El fichero de preguntas contiene un conjunto de preguntas que se utiliza en una o varias encuestas.
+          </p>
+
+          <p>
+Estas preguntas se agrupan en categorías. En la definición de la encuesta ya se ha indicado qué categorías se van a utilizar, cuantas preguntas de cada categoría se incluyen en las encuestas e incluso se pueden agrupar categorías en factores, para que sus resultados aparezcan agrupados en los informes.
+          </p>
+          <p>
+Es posible incluir comentarios al fichero de preguntas utilizando el símbolo “#”.
+          </p>
+          <p>
+Una pregunta debe comenzar por un código único. El primer carácter de este código identifica la clase de la pregunta y el segundo identifica a la propia pregunta.
+          </p>
+          <p>
+Después del código, debe incluirse el carácter “:”. A continuación, se escribe el texto de la pregunta que no puede tener saltos de línea. Para terminar, se vuelve a escribir el carácter dos puntos y, justo a continuación, o la letra “P” o la letra “N”.
+          </p>
+          <p>
+Crew Radar soporta preguntas positivas (n las que una respuesta de un valor alto es bueno y negativas (en las que una respuesta de un valor bajo es bueno), para poder calcular estadísticas de preguntas, es necesario saber si una pregunta se interpreta como positiva o negativa, por ese motivo se añade la letra P al final si la pregunta es positiva y la letra N si la pregunta es negativa.
+          </p>
+          <p>
+Nota: a veces es posible que, por errores en el contenido, un archivo de estructura o pregunta no pueda cargarse correctamente. En ese caso, re recomienda crear una nueva estructura sin errores con un nombre distinto y ponerse en contacto con el equipo de desarrollo de Crew Radar.
+          </p>
+          <h3><span aria-hidden="true" class="octicon octicon-link">El Dashboard</span></h3>
+          <p>
+Una vez que ya se tiene creada la estructura de la encuesta y el fichero de preguntas, ya se puede enviar la encuesta a todos los interesados y consultar las respuestas.
+          </p>
+          <p>
+Para facilitar el trabajo con una encuesta, Crew Radar ofrecer un panel de control, llamado dashboard, para cada encuesta. La única manera de acceder a este dashboard es a partir de la URL única creada para cada encuesta. Esta URL tiene la siguiente forma: http://<dirección del servidor>/dashboard/<nombre de la encuesta/.
+          </p>
+          <p>
+El enlace de la encuesta muestra el enlace directo y persistente para rellenar la encuesta. Este enlace debe ser copiado y facilitado a todas las personas que se desee que realicen la encuestas, las cuales podrán acceder al sistema directamente a través de este enlace. La ilustración 6 muestra un ejemplo de encuesta.
+          </p>
+          <p>
+El segundo enlace, es un enlace de prueba que permite rellenar la encuesta sin que se guarden los resultados. Mediante este enlace, los responsables pueden realizar tantas encuestas como consideren necesarias para ajustar las preguntas y la estructura de la misma y comprobar qué es lo que verán sus encuestados.
+          </p>
+          <p>
+El siguiente enlace lleva a una nueva página que permite consultar los resultados de las encuestas. Esta funcionalidad se describe con más detalle más adelante.
+          </p>
+          <p>
+Los dos últimos enlaces sirven para modificar la estructura de la encuesta o el fichero de preguntas utilizando los mismos formularios que los usados en secciones anteriores para crearlos.
+          </p>
+          <p>
+Advertencia: si se cambia el número de respuestas de una estructura de encuesta que ya ha recibido respuestas, esas respuestas no se incluirán en los informes. Si tienes que cambiar el número de respuestas cuando ya hay respuestas almacenadas, se debe contactar con los autores de esta herramienta para que podamos ayudarte.
+          </p>
+           <h3><span aria-hidden="true" class="octicon octicon-link">El identificador de grupo</span></h3>
+          <p>
+Crew Radar permite realizar simultáneamente encuestas a distintos grupos manteniendo separadas los datos de repuesta para poder compararlos.
+          </p>
+          <p>
+Por ejemplo, el proyecto SoftIA incluye un conjunto de herramientas para comenzar el desarrollo de un nuevo sistema de información. Un equipo que utilice SoftIA puede utilizar esas herramientas para comenzar defendiendo pantallas de usuario, o definiendo la arquitectura de información del sistema o definiendo los requisitos funcionales.
+          </p>
+          <p>
+Se puede usar Crew Radar para encuestar a los tres grupos de usuarios (los que empezaron por pantallas, por la información y por la funcionalidad), manteniendo separados sus resultados para poder compararlos.
+          </p>
+          <p>
+Para ello Crew Radar asocia las repuestas de una encuesta a un identificador de grupo. Para crear varios grupos de repuestas, solo hay que cambiar el identificador de proyecto en la URL que utilice el grupo para responder la encuesta.
+          </p>
+          <p>
+Por ejemplo, en enlace https://javierj.pythonanywhere.com/poll/CrewRadarSatisfaccion/01/ almacenará todos los resultados de las encuestas en el grupo “01”, mientras que el enlace https://javierj.pythonanywhere.com/poll/CrewRadarSatisfaccion/02/ almacenará los resultados en el grupo “02”. Se pueden utilizar tantos grupos como se desee, pero para ello, es necesario modificar el identificados de grupo de los enlaces a mano y distribuir los enlaces correctos a cada uno de los grupos.
+          </p>
+          <p>
+Al descargar los datos en CVS se descargan todos los datos de todos los identificadores de proyecto. El identificador de grupo de cada repuesta se incluye dentro de los datos en el fichero CVS.
+          </p>
+          <h3><span aria-hidden="true" class="octicon octicon-link">Informes de resultados</span></h3>
+          <p>
+En el dashboard se encuentras las opciones para poder consultarlos resultados de las encuestas y descargar dichos resultados en formato CVS.
+          </p>
+          <p>
+Crew Radar ofrece un enlace para acceder a cada grupo de encuestas segmentado por mes, por lo que si desea realizar varias rondas de encuestas para ver cómo evoluciona un grupo de encuestados, se recomienda espaciarlas en, al menos, un mes entre encuesta y encuesta
+          </p>
+          <p>
+Además de las opciones para ver los resultados, también se pueden descargar todos los datos de todos los meses de cada grupo de encuestas en formato CVS. Este formato es un archivo de texto plano que se puede cargar en otras herramientas, como por ejemplo Microsoft Excel, para hacer análisis de resultados personalizados.
+          </p>
+   <p>
+Una vez seleccionado el mes que desea consultar, se muestra un informe con los resultados de las encuestas de dicho mes. Un informe se muestra en la ilustración 8.
+          </p>
+          <p>
+El informe comienza indicando el número de respuestas y mostrando un gráfico con los dos estadísticos que se calculan: la media y la desviación media. La media es la media de todas las respuestas a las preguntas de una misma categoría (las categorías se definieron en la estructura de la encuesta). Este resultado, cuanto más alto mejor. La desviación media india lo alejadas que están unas repuestas de otra ya que, por ejemplo, no es lo mismo tener una media de 3 a partir de dos repuestas 3, que tener una media de 3 a partir de una respuesta 1 y otra 5. En este caso, cuanto más pequeña es la desviación media es mejor ya que indica que ha habido más unanimidad de las respuestas.
+          </p>
+          <p>
+Después, el informe va categoría a categoría indicando todas las respuestas para cada una de las preguntas. Así como la evolución temporal, mes a mes, de esta categoría siempre que haya datos de encuestas realizadas en meses diferentes. Esto ayuda a definir una evolución n el caso de que se aproveche la funcionalidad de preguntas aleatorias para repetir una misma encuesta periódicamente. Sino es el caso, esta información puede no tenerse en cuenta.
           </p>
 
 
+<br/>
 <center><img src="./images/img01.jpg" height="480" width="640"/></center>
-
-
-
- 
-
-<p>Team Radar combina los resultados de las encuentas en un radar que muestra el nivel en cada uno de los factores claves para un equipo eficiente, junto con un análisis de la fiabilidad de los resultados y un plan de acción. </p>  
-        
-<p>En el plan de acción se incluyen acciones de mejora,técnicas y prácticas listas para usarlas. Puedes ver un ejemplo de radar y plan de acción de un proyecto real <A href="./files/InformeEjemplo.pdf">  aquí (PDF) </a>  </p>
-
-<center><img src="./images/img02.jpg"/ height="480" width="640"></center>
-
-<hr/>
-<h2> Cómo usar Team Radar (versión Google Forms): </h2>
-
-<p>Team Radar ya está disponible. Hemos creado una página con las intrucciones y los formularios necesarios para que puedas usar Team Radar con tus equipos en este enlace: <A href="./instrucciones.html">  Instrucciones de uso de Team Radar. </a> </p>
-<ul>
-<li><A href="https://forms.gle/FsxpBAbUHjoQtHeH9"> Encuesta 1 (Google Forms) </a>
-<li><A href="https://forms.gle/ZQnUWbBna5W6VYFHA"> Encuesta 2 (Google Forms) </a>
-<li><A href="https://forms.gle/djs7U9tbipGD6ur27"> Encuesta 3 (Google Forms) </a>
-</UL>
-
-<center><img src="./images/img05.jpg" height="300" width="400"/></center>
-
-<hr/>
-
-<h2> Cómo usar Team Radar (versión web): </h2>
-
-<p>Con la experiencia que hemos acumulado en 2019 y 2020 trabajando con la versión anterior de Team Radar, hemos implementado una aplicación web para realizar las encuestas y procesar los resultados. </p>
-<p> La principal ventaja es que la aplicación web te muestra las preguntas una a una y las elige aleatoriamente, por lo que las encuestas siempre serán diferentes.
-</p>
-<p> Puedes acceder a una versión de demostración de la encuesta <A href="/test/DEMO_PROYECTO/DEMO_EQUIPOS/"> en el siguiente enlace. </A>
-</p>
-<p> Para usar Team Radar con tus equipos, eligue un codigo de proyecto y equipo y sustituye los valores "DEMO" del enlace anterior por tus valores.
-</p>
-<center><img src="./images/img09.jpg" height="300" width="400"/></center>
-<hr/>
-<h2> Política de datos: </h2>
-
-<p>Team Radar no almacena datos de caracter personal ni utiliza ningún tipo de cookie. Toda la información que recopila Team Radar es de libre acceso y consulta y puede ser consultada <A href="/get_data"> en el siguiente enlace. </A>
-</p>
-
-<hr/>
-
-
-<h3> Código fuente </h3>
-<p>
-    Crew Radar también puede utilizarse descargando su código fuente y desplegándolo en un servidor con soporte para
-    Python que pueda procesar llamadas web a través de Web Server Gateway Interface (que son, prácticamente, todos los
-    existentes, ya que es el único estándar existente).
-
-    <a href="https://github.com/javierj/TeamInnovationCenter">Código fuente de Crew Radar en Github (enlace externo).
-    </a>
-</p>
-
-
-<hr/>
-
-
-<h2> Galería de fotos: </h2>
-
-<center><img src="./images/img04.jpg" /></center>
-<center><img src="./images/img06.jpg"/></center>
-<center><img src="./images/img07.jpg"/></center>
-<center><img src="./images/img08.jpg"/></center>
-
 
 
 <hr/>
 <h2>
 <span aria-hidden="true" class="octicon octicon-link">Contacto</span></h2>
-<p> Este proyecto de investigación se desarrolla bajo el paraguas del grupo de investigación en Ingeniería Web y Testing Temprano (IWT2) de la Universidad de Sevilla </p>
-<p> Su principal responsable es Javier Gutiérrez y puedes contactar con él vía correo electrónico: javier arroba us.es o Twitter: arroba iwt2_javier </p>
+<p> Este proyecto de investigación se desarrolla bajo el paraguas del grupo de investigación en
+    ES3 de la Universidad de Sevilla </p>
+<p> Su principal responsable es Javier Gutiérrez y puedes contactar con él vía correo electrónico:
+    javier arroba us.es o Twitter: arroba iwt2_javier </p>
 
-<p>Si quieres conocer más de los talleres ágiles que ya hemos hecho consulta nuetsro blog <a href="https://agilego.tumblr.com/">Agilego</a></p>
-	  
-	  </section>
+
+      </section>
     </div>
 
     <!-- FOOTER  -->
