@@ -1,0 +1,29 @@
+{
+"#": "Estructura de la encuesta para SoftIA",
+"Versión": "1",
+"Descripción": "Versión de la encuesta SoftIA en inglés.",
+
+"questions_file": "preguntas_sofia_eng.txt",
+"poll_name": "SoftIA_EN",
+"lang": "en",
+
+"#": "Intentar que esto se pueda calcular automáticamente",
+"num_of_questions": 33,
+
+"questions_in_categories": {"0": 1, "1": 1, "A": 3, "B": 2, "C": 3, "D": 5, "E": 3, "F": 5, "G": 2, "H": 5, "I": 3},
+
+"#": "Ver como usa esto el generador de informes para intentar mejorarlo.",
+
+"poll_structure": {"0":"Género","1":"Titulación","A":"Formación","B":"Flexibilidad","C":"Errores","D":"Automatización","E": "Herramientas","F": "Satisfacción","G": "Planificación y formación","H": "Desarrollo del proyecto","I": "Resultados"},
+
+"groups": {"Género":[1],"Titulación":[2],"Formación":[3],"Flexibilidad":[4],"Errores":[5],"Automatización":[6],"Herramientas":[7],"Satisfacción":[8],"Planificación y formación":[9],"Desarrollo del proyecto":[10],"Resultados":[11]},
+				
+"descriptions": {"Género":"Género.","Titulación":"Titulación.","Formación":"Formación.","Flexibilidad": "Flexibilidad.","Errores": "Errores.","Automatización":"Automatización.","Herramientas":"Herramientas.","Satisfacción":"Satisfacción.","Planificación y formación":"Planificación y formación.", "Desarrollo del proyecto":"Desarrollo del proyecto.","Resultados":"Resultados." },
+		
+		
+"#": "Cosas queme gustaría usar en un futuro",
+
+"header_template": "not in use",
+"footer_template": "not in use"
+
+}

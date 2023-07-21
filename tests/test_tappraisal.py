@@ -235,6 +235,11 @@ class Test_LoadPollStructureFromFile(unittest.TestCase):
         #print(struct_view.to_json())
         self.assertIn("\"poll_name\": \"RADAR-9\"", struct_view.to_json())
 
+    def test_lang(self):
+        self.assertEqual("", self.structure.lang())
+        self.structure = self.loader.load_structure("softia_en.txt")
+        self.assertEqual("en", self.structure.lang())
+
 
 class Test_SurveyStructure(unittest.TestCase):
 

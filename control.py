@@ -1,7 +1,7 @@
 ####################################
 # Controlers
 
-from analysis import load_test_results, CVSResults, surveys_from_poll
+from analysis import load_test_results, CVSResults, surveys_from_poll, generate_report
 from tappraisal import TestStructsCache, SurveyStructureLoader
 from utilities import _get_full_filename, _save_text, file_exists, load_text_file, _save_text_full_filename
 from view import HierarchicalGroups, PollStructView
@@ -42,6 +42,43 @@ def get_surveys_from_poll(survey_type):
 
 
 ########
+# Templates:
+
+
+def question_template_name(default_template, lang, survey_struct, question):
+    if survey_struct is not None:
+        #print("Survey name: ", survey_struct.name())
+        if survey_struct.name().lower() == "softia" or survey_struct.name().lower() == "softia_en":
+            if question.category() == '0':
+                return 'softia_gender_question_template'
+            if question.category() == '1':
+                return 'softia_course_question_template'
+        if survey_struct.lang() != "":
+            return default_template + "_" + survey_struct.lang()
+
+    if lang != "":
+        return default_template + "_" + lang
+
+    return default_template
+
+
+def get_template_name(template_id, default_template, request_query=None, survey_struct=None, question=None):
+    if request_query is None:
+        lang = ""
+    else:
+        lang = request_query.lang
+
+    if template_id == "report":
+        if lang != "":
+            return default_template + "_" + lang
+
+    #print("get_template_name() - template_id ", template_id)
+    if template_id == "question":
+        return question_template_name(default_template, lang, survey_struct, question)
+
+    return default_template
+
+########
 
 
 def _start_with_double_quote(text):
@@ -67,17 +104,8 @@ def _check_error(struct_view):
     if struct_view.get_groups() == "":
         errors["groups"] = "You must indicate the groups of the poll."
     if struct_view.description_dict() == "":
-        errors["descriptions"] = "You must indicate the descrition of the categories."
-    """ - No los uso porque hay que ponerlos con {}
-    if not _start_with_double_quote(struct_view.questions_in_categories()):
-        errors["questions_in_categories"] = "You must use pairs \"key\": \"value\"."
-    if not _start_with_double_quote(struct_view.get_test_structure()):
-        errors["poll_structure"] = "You must use pairs \"key\": \"value\"."
-    if not _start_with_double_quote(struct_view.get_groups()):
-        errors["groups"] = "You must use pairs \"key\": \"value\"."
-    if not _start_with_double_quote(struct_view.description_dict()):
-        errors["descriptions"] = "You must use pairs \"key\": \"value\"."
-    """
+        errors["descriptions"] = "You must indicate the description of the categories."
+
     return errors
 
 
@@ -130,3 +158,17 @@ def poll_exists(poll_name):
     struct = _get_struct(poll_name)
     return struct is not None
 
+
+####################
+
+def get_report_data(survey_struct, org_id, project_id, year, month):
+    test_results = load_test_results(survey_struct.questions_repo(),
+                                     org_id, project_id,
+                                     survey_name = survey_struct.name().upper(),
+                                     survey_struct=survey_struct)
+    poll_report = generate_report(test_results, org_id, project_id, year=year, month=month, survey_struct=survey_struct)
+    if poll_report.has_answers():
+        q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month)  # Método independiente, como generate_report
+        return poll_report, q_a_v
+
+    return None

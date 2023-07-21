@@ -2,14 +2,14 @@
 
 <br/>
 <h2> <span aria-hidden="true" class="octicon octicon-link">Informe.</span></h2>
-<p> Se han encontrado {{report.get_answers_len()}} encuestas.
+<p> {{report.get_answers_len()}} answers found.
 <br/>
-Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get_year()}}.
+Answers from month {{report.get_month()}} and year {{report.get_year()}}.
 </p>
 
 <br/>
     <!-- Gráfico -->
-    <h3> Resumen: </h3>
+    <h3> Overview: </h3>
     <div>
         <canvas id="myChart" style="border:1px solid"></canvas>
     </div>
@@ -19,7 +19,7 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
             %for factor_name, _ in report.iter_factors():
             '{{factor_name}}',
             %end
-            'Sin uso'
+            'Unused'
         ];
         const factor_ok = 'rgba(75, 192, 192, 0.2)';
         const border_factor_ok = 'rgb(75, 192, 192)';
@@ -109,9 +109,9 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
     </script>
 
 <p>
-    La primera barra de cada factor es el valor medio y la segunda barra es la desviación media.
+The first bar of each factor is the mean value and the second bar is the mean deviation.
     <br/>
-    Una barra azul o verde indica un valor adecuado y una barra roja o naranja indica un valor a mejorar.
+    A blue or green bar indicates an adequate value and a red or orange bar indicates a value to improve.
 </p>
 
 <br/>
@@ -126,9 +126,9 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 
     <p style="font-size:20px">
         <strong>
-            Media total: {{factor.total_mean()}}
+            Total mean: {{factor.total_mean()}}
             <br/>
-            Desviación media total: {{factor.total_mad()}}
+            Total mea deviation: {{factor.total_mad()}}
         </strong>
     </p>
     </div>
@@ -137,8 +137,8 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
     %# Tabla de respuestas a las preguntas.
     <table>
 		    <tr>
-            <td> <strong> Pregunta </strong> </td>
-            <td> <strong> Respuestas </strong> </td>
+            <td> <strong> Question </strong> </td>
+            <td> <strong> Answers </strong> </td>
             </tr>
 
             %for q_id in question_answer.questions_id(factor_name):
@@ -149,22 +149,20 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
             %end
 
 	</table>
-
-
  </p>
 
 <p>
 <!--
-<strong> Análisis:  </strong> {{factor.get_analysis()}}
+<strong> Analysis:  </strong> {{factor.get_analysis()}}
 -->
 </p>
 
 <p>
-<strong> Evolución temporal: </strong>
+<strong> Evolution in time: </strong>
 
 <table>
     <tr>
-        <td> Año </td> <td> Mes </td> <td> Encuestas </td><td> Valor medio </td> <td> Desviación media </td>
+        <td> Year </td> <td> Month </td> <td> Polls </td><td> Mean </td> <td> Mean deviation </td>
     </tr>
     %for i in range(0, factor.historical_series()):
     <tr>
@@ -182,7 +180,7 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 %end
 
 <p>
-<a href="{{base_url}}/cvs/{{report.get_project_id()}}/{{report.get_struct_name()}}/"> Descargar todos los datos en CVS. </a>
+<a href="{{base_url}}/cvs/{{report.get_project_id()}}/{{report.get_struct_name()}}/"> Download data in CSV. </a>
 </p>
 
 
@@ -190,7 +188,7 @@ Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get
 
 <p>
 <hr/>
-<strong> Este informe se ha generado de manera automática </strong>
+<strong> This report has been generated automatically. </strong>
 
 <hr/>
 

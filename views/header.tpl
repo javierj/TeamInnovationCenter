@@ -19,7 +19,7 @@
 
         <center>
             <img src="/images/ES3_100x100.png"/>
-            <h1 id="project_title">Encuesta SoftIA 2023. </h1>
+            <h1 id="project_title"> </h1>
             <!-- <h2 id="project_tagline">Mide y mejora la eficacia de tus equipos.</h2> -->
         </center>
 

@@ -202,6 +202,7 @@ class SurveyStructure(object):
         self._poll_structure = None
         self._question_groups = None
         self._description_dict = None
+        self._lang = ""
 
     def name(self):
         return self._name
@@ -220,6 +221,9 @@ class SurveyStructure(object):
 
     def questions_filename(self):
         return self._questions_filename
+
+    def lang(self):
+        return self._lang
 
     def _random_question_from(self, cat, data):
         if self._questions_repo is None:
@@ -254,6 +258,8 @@ class SurveyStructure(object):
         self._poll_structure = raw_json["poll_structure"]
         self._question_groups = raw_json["groups"]
         self._description_dict = raw_json["descriptions"]
+        if "lang" in raw_json:
+            self._lang = raw_json["lang"]
 
     """
     @staticmethod
@@ -628,7 +634,7 @@ def get_survey_structure(question_repo, survey_name = "RADAR-9"):
         return TestStructsCache.get_struct("softia")
 
     print("WARNING. Unkown: " + survey_name)
-    return None
+    return TestStructsCache.get_struct(survey_name)
 
 
 ## Cache

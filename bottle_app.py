@@ -1,8 +1,8 @@
 from bottle import route, template, request, static_file, redirect, default_app, response
 from tappraisal import AppraisalDirector, TestData, load_questions, get_survey_structure, TestStructsCache
-from analysis import generate_report, surveys_overview, load_test_results
+from analysis import surveys_overview
 from control import answers_as_cvs_in_file, load_questions_if_exist, save_questions, poll_exists, get_surveys_from_poll, \
-     save_struct_from_request
+    save_struct_from_request, get_template_name, get_report_data
 from view import PollStructView
 import os
 
@@ -103,33 +103,25 @@ def first_question_sofia(org_id, project_id):
 ###
 
 
-def _softia_get_template_name(question):
-    """
-    Esto se ha hecho para SoftIA para poder implementar lapregunta de género
-    y de titulación
-    :param question: objeto de tipo TestQuestion
-    :return:
-    """
-    if question.category() == '0':
-        return 'softia_gender_question_template'
-    if question.category() == '1':
-        return 'softia_course_question_template'
-
-    return 'question_template'
-
-
+# quitar este metodo y usar en su lgar poll_questio
 def question(test, org_id, project_id, questions=""):
     global question_repo # Tenemos que cargar aquí el director según el tipo de test
     data = TestData(org_id, project_id, questions)
-    director = AppraisalDirector(get_survey_structure(question_repo, test))
+    survey_struct = get_survey_structure(question_repo, test) # Evitar llamar a este método
+    director = AppraisalDirector(survey_struct)
     next_question = director.next_question(data)
 
     if next_question is None:
         #print("Server URL: ", _server_url(request.url))
         return template('end_template', base_url=_server_url())
 
-    template_name = _softia_get_template_name(next_question)
-    return template(template_name, question=next_question.text(), base_url = request.url, question_code = next_question.code(), question_index = data.len_questions() + 1)
+    #template_name = _softia_get_template_name(next_question)
+    template_name = get_template_name("question", "question_template", question=next_question, survey_struct=survey_struct)
+    return template(template_name,
+                    question=next_question.text(),
+                    base_url = request.url,
+                    question_code = next_question.code(),
+                    question_index = data.len_questions() + 1)
 
 
 ########
@@ -164,8 +156,12 @@ def poll_question(struct, group_id, questions=""):
         return template('end_template', base_url=_server_url())
 
     # Hacer esto más genérico
-    # template_name = _softia_get_template_name(next_question)
-    return template('question_template',
+    template_name = get_template_name("question", "question_template",
+                                      request_query=request.query, # Ellang debería estar en la definiciónd e la poll, no en el query
+                                      question=next_question,
+                                      survey_struct=struct)
+
+    return template(template_name,
                     question=next_question.text(), base_url=request.url, question_code=next_question.code(), question_index = data.len_questions() + 1)
 
 
@@ -174,23 +170,14 @@ def poll_question(struct, group_id, questions=""):
 @route('/report/<org_id>/<project_id>/<year>/<month>/<survey_name>/')
 def report(org_id, project_id, year, month, survey_name):
     #http://127.0.0.1:8080/report/01/01/2023/6/SOFTIA/
-    global question_repo
-    upper_survey_type = survey_name.upper()
-
     survey_struct = TestStructsCache.get_struct(survey_name)
     if survey_struct is None:
         print("Report URL - Warning, structure not in file: ", survey_name)
 
-    test_results = load_test_results(survey_struct.questions_repo(),
-                                     org_id, project_id,
-                                     survey_name = upper_survey_type,
-                                     survey_struct=survey_struct) # Poner los ids y filtrar por ellos
-    report = generate_report(test_results, org_id, project_id, year=year, month=month, survey_struct=survey_struct)
-    if report.has_answers():
-        q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month)  # Método independiente, como generate_report
-        #desc = get_survey_structure(question_repo, upper_survey_type).description_dict()
-        desc = survey_struct.description_dict()
-        return template('report_template', report=report, question_answer=q_a_v, defs=desc, base_url=_server_url())
+    poll_report, q_a_v = get_report_data(survey_struct, org_id, project_id, year, month)
+    if poll_report is not None:
+        template_name = get_template_name(template_id="report", default_template='report_template', request_query = request.query)
+        return template(template_name, report=poll_report, question_answer=q_a_v, defs=survey_struct.description_dict(), base_url=_server_url())
     return template('noanswers_template', org_id=org_id, project_id=project_id)
 
 
