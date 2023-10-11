@@ -6,6 +6,9 @@
 <br/>
 Las encuestas mostradas son del mes {{report.get_month()}} del año {{report.get_year()}}.
 </p>
+<p>
+{{notes}}
+</p>
 
 <br/>
     <!-- Gráfico -->

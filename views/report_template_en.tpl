@@ -6,6 +6,9 @@
 <br/>
 Answers from month {{report.get_month()}} and year {{report.get_year()}}.
 </p>
+<p>
+{{notes}}
+</p>
 
 <br/>
     <!-- Gráfico -->

@@ -93,13 +93,22 @@ class TestsResult(object):
         self._answers = list()
         self._answers_id = list()
         self._q_repo = q_repo
-        self._answers_number = questions_number
+
         self._answered_questions = list()
         self._surveys = list() # Survey objects
         if _survey_struct is None:
             self.test_struct = get_test_structure()
+            self._answers_number = questions_number
         else:
             self.test_struct = _survey_struct.get_test_structure()
+            self._answers_number = _survey_struct.num_of_questions()
+            # Cger el nçúmero de preguntas del survey
+
+        self._status_same_answers = True
+
+
+    def t_answers_number(self): # Testing only
+        return self._answers_number
 
     def add_test_answer(self, result_line):
         """
@@ -114,8 +123,9 @@ class TestsResult(object):
         #self._url_answers.append(data[3])
         answers_list, original_answers_list = self._extract_answers(raw_answer.raw_data()) # Cambiar esto
 
+        # Esto habría que quitarlo pero sólos e ejecuta cuando una repsuesta no termina en el nombre del test
         if len(answers_list) < self._answers_number:
-            print("Answers ", len(answers_list), " Expected: ", self._answers_number, " Discarted: ", str(answers_list))
+            print("add_raw_answer() - Answers ", len(answers_list), " Expected: ", self._answers_number, " Discarted: ", str(answers_list))
             return
 
         survey = Survey(raw_answer.date_time_str(), raw_answer.project_id(), raw_answer.team_id()) # not in use yet
@@ -129,6 +139,7 @@ class TestsResult(object):
 
             _key = aq.id()[0]
             if _key not in self.test_struct:
+                print("TestsResult - add_raw_answer")
                 print("Id ", aq.id())
                 print("Key ", _key)
                 print(" Not in ", self.test_struct)
@@ -218,17 +229,35 @@ class TestsResult(object):
         return questions_answers_view
 
 
-
 class HistoricDataAnalysis:
 
+    def __init__(self):
+        self._result_flags = dict()
+
+    def result_flag(self):
+        return self._result_flags
+
     def _create_data_for_dataframe(self, surveys):
+        """
+        self._result_flags["Diff_Num_of_Answers"] sets True if there are surveys with a diferent number of answrs
+        :param surveys:
+        :return: a list of lists for a dataframe
+        """
         data = list()
-        num_questions  = len(surveys[0].answers())
+
+        first_num_questions = len(surveys[0].answers())
         for survey in surveys:
+            num_questions = len(survey.answers())
+            #print("HistoricDataAnalysis._create_data_for_dataframe - num of questions ", first_num_questions, num_questions)
             s_list = list()
             s_list.append(survey.year())
             s_list.append(survey.month())
-            #s_list.append("Radar-9")
+
+            if first_num_questions != num_questions:
+                print("HistoricDataAnalysis._create_data_for_dataframe() - Diferent number of answers for the same test")
+                print("Expected: ", first_num_questions, " - Found: ", num_questions)
+                self._result_flags["Diff_Num_of_Answers"] = True
+
             for index in range(0, num_questions):
                 answer = survey.answers()[index]
                 s_list.append(answer.adapted_answer())
@@ -248,6 +277,7 @@ class HistoricDataAnalysis:
 
         surveys = results.get_surveys()
         if len(surveys) == 0:
+            self._result_flags["Zero_Surveys"] = True
             return h_data
 
         data = self._create_data_for_dataframe(surveys)
@@ -285,15 +315,20 @@ class RadarAnalysis(object):
 
     def __init__(self, survey_structure):
         """
-
         :param survey_structure: stringwith the name of the survey
         """
         self._survey_structure = survey_structure
         self._factor_analisys = FactorAnalysisAssistant()
+        self._result_flags = dict()
+
+    def result_flag(self):
+        return self._result_flags
 
     def _historical_data(self, results):
         d_a = HistoricDataAnalysis()
-        return d_a.historical_data(results, self._survey_structure)
+        tmp = d_a.historical_data(results, self._survey_structure)
+        self._result_flags.update(d_a.result_flag())
+        return tmp
 
     def _add_historical_data(self, report, h_data):
         #print("hist_data:", h_data)
@@ -310,6 +345,8 @@ class RadarAnalysis(object):
                     report.with_factor(factor_name).add_historical_serie(year, month, answers, mean, mad)
 
     def generate_report(self, results, id_proj, id_team, year, month):
+        self._result_flags = dict()
+
         year = int(year)
         month = int(month)
         historical_data = self._historical_data(results)
@@ -328,11 +365,9 @@ class RadarAnalysis(object):
         #print(historical_data)
         report.answers_len(historical_data.begin().group(year).group(month).value())
 
-        #factor_data = historical_data.begin().group(year).group(month)
         keys = historical_data.begin().group(year).group(month).keys()
 
         for factor in keys:
-            #print(keys, factor)
             stats = historical_data.begin().group(year).group(month).group(factor).value()
             mean = stats[0]
             mad = stats[1]
@@ -366,8 +401,6 @@ class RawAnswer(object):
         else:
             raw_answer._test_type = "RADAR-9"
         raw_answer._date_time = datetime.fromisoformat(data[0])
-        #print(data[0], raw_answer._date_time)
-        #raw_answer._date_time = data[0]
         raw_answer._project_id = data[1]
         raw_answer._team_id = data[2]
         raw_answer._raw_data = data[3]
@@ -439,11 +472,6 @@ class CVSResults(object):
         return self._header(questions_id) + self._results_to_cvs(test_results.get_surveys(), questions_id)
 
 
-
-
-
-
-
 ## Facade methods
 
 # Depretace, intenta no usarla
@@ -460,9 +488,20 @@ def _load_answers(questions_repo, filename = "data.txt"):
 
 
 def generate_report(test_results, id_proj, id_team, year, month, survey = "RADAR9", survey_struct=None):
+    """
+
+    :param test_results:
+    :param id_proj:
+    :param id_team:
+    :param year:
+    :param month:
+    :param survey:
+    :param survey_struct:
+    :return: result_flag a dict with some flags indicating the results of the analysis.
+    """
     #ra = RadarAnalysis(get_survey_structure(load_questions(), survey)) # Quitar estas referencias para que venga de fuera
     ra = RadarAnalysis(survey_struct) # Quitar estas referencias para que venga de fuera
-    return ra.generate_report(test_results, id_proj, id_team, year, month)
+    return ra.generate_report(test_results, id_proj, id_team, year, month), ra.result_flag()
 
 
 def surveys_overview(project_id, team_id, filename = "data.txt"):
@@ -518,6 +557,7 @@ def load_test_results(questions_repo, project_id, team_id, survey_name="RADAR-9"
                 and team_id == raw_answer.team_id() \
                 and raw_answer.test_type().upper() == survey_struct.name().upper():
             results.add_raw_answer(raw_answer)
+            #print("+ Añadida: ", line)
         else:
             #print("project_id == raw_answer.project_id()", project_id, raw_answer.project_id())
             #print("team_id == raw_answer.team_id()", team_id , raw_answer.team_id())

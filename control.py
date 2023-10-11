@@ -166,9 +166,14 @@ def get_report_data(survey_struct, org_id, project_id, year, month):
                                      org_id, project_id,
                                      survey_name = survey_struct.name().upper(),
                                      survey_struct=survey_struct)
-    poll_report = generate_report(test_results, org_id, project_id, year=year, month=month, survey_struct=survey_struct)
+    poll_report, flags = generate_report(test_results, org_id, project_id, year=year, month=month, survey_struct=survey_struct)
     if poll_report.has_answers():
         q_a_v = test_results.question_answers_to_view(org_id, project_id, year=year, month=month)  # Método independiente, como generate_report
-        return poll_report, q_a_v
+        notes = ""
+        if flags is not None:
+            if flags["Diff_Num_of_Answers"] is True:
+                notes = "Warning. Diferent number of anwsers for some surveys."
+                print("control:: get_report_data. ", notes)
+        return poll_report, q_a_v, notes
 
     return None

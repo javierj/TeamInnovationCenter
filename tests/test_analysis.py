@@ -6,11 +6,11 @@ from tappraisal import get_survey_structure, QuestionRepository, TestQuestion
 from utilities import _get_full_filename
 
 
-def load_questions():
+def load_questions(file_name="preguntas.txt"):
     repo = QuestionRepository()
 
     # Cambiado para softIA
-    file_name = _get_full_filename("preguntas.txt")
+    file_name = _get_full_filename(file_name)
     file = open(file_name, encoding="utf-8") # No: encoding="latin-1" encoding="ascii"
     for line in file:
         repo.commit_question(line)
@@ -18,6 +18,10 @@ def load_questions():
     file.close()
 
     return repo
+
+def _load_softIA_struct():
+    survey_structure = get_survey_structure(load_questions("preguntas_sofia.txt"), survey_name="softia")
+    return survey_structure
 
 
 class TestTestsResult(unittest.TestCase):
@@ -85,6 +89,14 @@ class TestTestsResult(unittest.TestCase):
         results.add_test_answer("2021-03-19 18:58:31.121013/01/01/C055C065C095C135C195C085C125/SAFETY")
 
         self.assertEqual(2, len(results.get_surveys()))
+
+    def test_take_num_questions_from_struct(self):
+        self.assertEqual(9, self.results.t_answers_number())
+        self.results = TestsResult(q_repo=load_questions())
+        self.repo = load_questions("preguntas_sofia.txt")
+        survey_structure = _load_softIA_struct()
+        self.results = TestsResult(q_repo=self.repo, _survey_struct=survey_structure)
+        self.assertEqual(survey_structure.num_of_questions(), self.results.t_answers_number())
 
 
 class TestRadarAnalysis(unittest.TestCase):
@@ -197,19 +209,54 @@ class TestRadarAnalysis(unittest.TestCase):
         self.assertFalse(report.has_answers())
 
 
+class TestHistoricDataAnalysis_2(unittest.TestCase):
+    # Merge qwith te main class
+
+    def _get_historical_data(self):
+        return self.d_a.historical_data(self._raw_answers, get_survey_structure(self.repo))
+
+    def setUp(self):
+        self.repo = load_questions("preguntas_sofia.txt")
+        survey_structure = get_survey_structure(self.repo, survey_name = "softia")
+        #print("Name survey struct: ", survey_structure.name())
+        self.analysis = RadarAnalysis(survey_structure)
+        self._raw_answers = TestsResult(q_repo=self.repo, _survey_struct = survey_structure)  # Evitar esta dependencia
+        #self._historical_diciembre = (2020, "diciembre", 1, 1.5, 0.0)
+        self.d_a = HistoricDataAnalysis()
+
+    def test_diferent_number_of_answers(self):
+        self._raw_answers.add_test_answer("2023-06-12 08:38:38.638461/01/01/00121023A014A035A024B023B014B033C014C023C033D055D015D022D044D035E021E033E013F043F025F054F033F015G114G014H055H042H033H025H014I014I035I025/SOFTIA")
+        self._raw_answers.add_test_answer("2023-07-02 09:56:12.321417/01/01/00111023A035A014A024B023B035C035C015C025D022D055D035D042D015E023E033E013F055F043F015F025F033G014G114H055H043H025H015H034I035I015I024/SOFTIA")
+        result = self._get_historical_data()
+        #print(result)
+        self.assertIsNotNone(result)
+
+    def test_flag_when_diferent_answers(self):
+        self._raw_answers.add_test_answer(
+            "2023-06-12 08:38:38.638461/01/01/00121023A014A035A024B023B014B033C014C023C033D055D015D022D044D035E021E033E013F043F025F054F033F015G114G014H055H042H033H025H014I014I035I025/SOFTIA")
+        self._raw_answers.add_test_answer(
+            "2023-07-02 09:56:12.321417/01/01/00111023A035A014A024B023B035C035C015C025D022D055D035D042D015E023E033E013F055F043F015F025F033G014G114H055H043H025H015H034I035I015I024/SOFTIA")
+        _ = self._get_historical_data()
+        flags = self.d_a.result_flag()
+        #print(flags)
+        self.assertIsNotNone(flags)
+        self.assertNotIn("Zero_Surveys", flags)
+        self.assertTrue(flags["Diff_Num_of_Answers"])
+
+
 class TestRadarAnalysis_SafetyTest(unittest.TestCase):
 
     def setUp(self):
         self.repo = load_questions()
         self.test_struct = get_survey_structure(self.repo, "SAFETY")
-        self.results = TestsResult(q_repo=self.repo, questions_number=self.test_struct.num_of_questions())
+        self.results = TestsResult(q_repo=self.repo, questions_number=7)
+        self.analisis = RadarAnalysis(get_survey_structure(self.repo, survey_name = "SAFETY"))
 
     def test_analysis_safety_test(self):
         self.results.add_test_answer("2021-03-19 18:42:14.254246/01/01/C055C075C105C145C195C205C185/SAFETY")
         self.results.add_test_answer("2021-03-19 18:58:31.121013/01/01/C055C065C095C135C195C085C125/SAFETY")
         self.assertEqual(2, len(self.results.get_surveys()))
 
-        self.analisis = RadarAnalysis(get_survey_structure(self.repo, survey_name = "SAFETY"))
         report = self.analisis.generate_report(self.results, "01", "01", 2021, 3)
         self.assertTrue(report.has_answers())
         #print(report)
@@ -235,12 +282,24 @@ class TestRadarAnalysis_SafetyTest(unittest.TestCase):
         self.assertEqual(expected, str(report.factors().keys()))
     """
 
+    def test_flags(self):
+        _ = self.analisis.generate_report(self.results, "01", "01", 2021, 3)
+        flags = self.analisis.result_flag()
+        #print(flags)
+        self.assertTrue(flags["Zero_Surveys"])
+
+        self.results.add_test_answer("2021-03-19 18:42:14.254246/01/01/C055C075C105C145C195C205C185/SAFETY")
+        _ = self.analisis.generate_report(self.results, "01", "01", 2021, 3)
+        flags = self.analisis.result_flag()
+        self.assertEqual(len(flags), 0)
+
+
 class Test_SurveysOverview(unittest.TestCase):
 
     def test_surveys_overview(self):
         s_overview = surveys_overview("01", "01", filename="tests/data_test.txt")
         #print(s_overview)
-        expected = "{2020: {12: {'RADAR-9': {'_inc': 1}}}, 2021: {1: {'RADAR-9': {'_inc': 3}}, 2: {'RADAR-9': {'_inc': 2}}}}"
+        expected = "{2020: {12: {'RADAR-9': {'_inc': 1}}}, 2021: {1: {'RADAR-9': {'_inc': 3}}, 2: {'RADAR-9': {'_inc': 2}}}, 2023: {6: {'CREWRADARSATISFACCION': {'_inc': 2}}}}"
         self.assertEqual(expected, str(s_overview))
 
     def test_surveys_from_poll(self):
@@ -348,7 +407,8 @@ class Test_surveys_from_poll(unittest.TestCase):
     def test_load_test_results(self):
         struct = _get_struct("CrewRadarSatisfaccion")
         # Cambiar el fichero para que nos e cmabien los datos: , filename="IWT2_reports\\safety.txt"
-        results = load_test_results(None, "01", "01", survey_struct=struct)
+        #print("\n\n\n--- Failed test ------")
+        results = load_test_results(None, "01", "01", survey_struct=struct, filename = "tests\\data_test.txt")
         self.assertEqual(2, len(results.get_surveys()))
 
 if __name__ == '__main__':

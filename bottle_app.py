@@ -174,10 +174,15 @@ def report(org_id, project_id, year, month, survey_name):
     if survey_struct is None:
         print("Report URL - Warning, structure not in file: ", survey_name)
 
-    poll_report, q_a_v = get_report_data(survey_struct, org_id, project_id, year, month)
+    poll_report, q_a_v, notes = get_report_data(survey_struct, org_id, project_id, year, month)
     if poll_report is not None:
         template_name = get_template_name(template_id="report", default_template='report_template', request_query = request.query)
-        return template(template_name, report=poll_report, question_answer=q_a_v, defs=survey_struct.description_dict(), base_url=_server_url())
+        return template(template_name,
+                        report=poll_report,
+                        question_answer=q_a_v,
+                        defs=survey_struct.description_dict(),
+                        notes=notes,
+                        base_url=_server_url())
     return template('noanswers_template', org_id=org_id, project_id=project_id)
 
 
